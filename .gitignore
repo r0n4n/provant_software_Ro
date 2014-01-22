@@ -1,0 +1,9 @@
+# General .gitignore file for the Software folder of the repo.
+
+# Ignore all object files.
+*.[oa]
+
+# Ignore all temp files from editors 
+*~
+
+
