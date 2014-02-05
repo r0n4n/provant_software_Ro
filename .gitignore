@@ -10,3 +10,6 @@
 .cproject
 .project
 
+# Ignore eclipse project files
+.cproject
+.project
