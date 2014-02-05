@@ -11,3 +11,7 @@ bin/
 
 # ignore generated html documentation
 doc/html
+
+# ignore project files from eclipse 
+.project
+.cproject

@@ -11,7 +11,7 @@
 ############################################################################
 
 # project name
-PRJNAME = provant_v_0_1
+PRJNAME = prj-remote-controlled-flight
 
 # toolchain configuration
 TOOLCHAIN_PREFIX = arm-none-eabi-
