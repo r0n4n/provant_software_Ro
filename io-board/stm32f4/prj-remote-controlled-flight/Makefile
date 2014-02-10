@@ -36,10 +36,16 @@ MODULES	      = $(MODDIR)/common
 MODULES	     += $(MODDIR)/rc
 MODULES	     += $(MODDIR)/io
 
-# CMSIS directory
+# CMSIS Device Drivers directory
 CMSISDIR     := $(LIBDIR)/cmsis
 CMSISSRCDIR  := $(CMSISDIR)/src
 CMSISINCDIR  := $(CMSISDIR)/inc
+
+# CMSIS DSP directory
+DSPDIR 		:= $(PRJDIR)/../../lib/DSP_Lib
+DSPSRC		:= $(DSPDIR)/Source
+DSPLIB		:= $(DSPDIR)/Lib/GCC
+DSPINC		:= $(DSPSRC)/*
 
 # FreeRTOS directories
 FRTDIR    := $(LIBDIR)/FreeRTOSV7.5.2/FreeRTOS
@@ -57,6 +63,8 @@ C_SRC += $(MODDIR)/rc/*.c
 C_SRC += $(MODDIR)/io/*.c
 C_SRC += $(MODDIR)/datapr/*.c
 C_SRC += $(MODDIR)/common/*.c
+#dsp
+#C_SRC += $(DSPSRC)/*/*.c
 #freertos
 C_SRC += $(FRTSRCDIR)/list.c 
 C_SRC += $(FRTSRCDIR)/queue.c 
@@ -76,10 +84,10 @@ A_SRC =
 DOXYGEN = doxygen
 
 # include directories
-INCDIRS = $(INCDIR) $(LIBDIR) $(MODULES) $(COMMON)/system 											\
+INCDIRS = $(INCDIR) $(LIBDIR) $(MODULES) $(COMMON)/system 							\
 	  	  $(CMSISDIR) $(CMSISINCDIR) $(CMSISINCDIR)/peripherals $(CMSISINCDIR)/core \
 	  	  $(FRTINCDIR) $(FRTPORDIR)													\
-	  	  $(LIBDIR)/trace/config $(LIBDIR)/trace/inc		 						
+	  	  $(LIBDIR)/trace/config $(LIBDIR)/trace/inc $(DSPINC)		 						
 
 # add startup file to build
 C_SRC += $(CMSISDIR)/startup_stm32f4xx.s	

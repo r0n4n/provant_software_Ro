@@ -10,7 +10,6 @@
 /* Includes ------------------------------------------------------------------*/
 #include "c_rc_control.h"
 
-
 /** @addtogroup Module_RC
   * @{
   */
@@ -26,8 +25,18 @@
 /* Private define ------------------------------------------------------------*/
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
+
 /* Private function prototypes -----------------------------------------------*/
 /* Private functions ---------------------------------------------------------*/
+
+/** \brief Inicilização do controle de estabilidade.
+ *
+ * Aloca espaço para matrizes, inicializa variáveis, etc.
+ */
+void c_rc_control_init() {
+
+}
+
 /* IRQ handlers ------------------------------------------------------------- */
 
 /**

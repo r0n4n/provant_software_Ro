@@ -22,6 +22,7 @@
 
 /* Hardware includes. */
 #include "stm32f4xx_conf.h"
+#include "system_stm32f4xx.h"
 
 /* FreeRTOS kernel includes */
 #include "FreeRTOS.h"
@@ -49,6 +50,7 @@
 GPIOPin LED;
 
 /* Private define ------------------------------------------------------------*/
+
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
 /* Private function prototypes -----------------------------------------------*/
