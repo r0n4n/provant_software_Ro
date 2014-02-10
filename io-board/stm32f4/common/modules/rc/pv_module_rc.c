@@ -25,6 +25,8 @@
 /* Private define ------------------------------------------------------------*/
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
+pv_msg_io_servoSetpoints setp;
+
 /* Private function prototypes -----------------------------------------------*/
 /* Private functions ---------------------------------------------------------*/
 /* Exported functions definitions --------------------------------------------*/
@@ -36,8 +38,8 @@
   * @param  None
   * @retval None
   */
-void module_RC_init() {
-
+void module_rc_init() {
+	c_rc_receiver_init();
 }
 
 /** \brief Função principal do módulo de RC.
@@ -47,8 +49,12 @@ void module_RC_init() {
   * Interpreta o recebimento de PPM, calcula sinais de controle e os envia
   * via interface.
   */
-void module_RC_run() {
+void module_rc_run() {
+	setp.leftAngle = 180.0;
+	setp.rightAngle = 300.0;
 
+	if(pv_interface_rc.oAngularRefs != 0)
+		xQueueOverwrite(pv_interface_rc.oAngularRefs, &setp);
 }
 /* IRQ handlers ------------------------------------------------------------- */
 

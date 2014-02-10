@@ -27,6 +27,8 @@
 /* Private define ------------------------------------------------------------*/
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
+pv_msg_io_servoSetpoints recvsetp;
+
 /* Private function prototypes -----------------------------------------------*/
 /* Private functions ---------------------------------------------------------*/
 /* Exported functions definitions --------------------------------------------*/
@@ -39,7 +41,18 @@
   * @retval None
   */
 void module_io_init() {
+	// Init hardware
+	c_common_i2c_init();
+	c_common_usart2_init(9600);
+	c_io_rx24f_init(1000000);
 
+	// Init queues
+	pv_interface_io.iServoSetpoints = xQueueCreate(1, sizeof(pv_msg_io_servoSetpoints));
+
+	if(pv_interface_io.iServoSetpoints == 0) {
+		vTraceConsoleMessage("Could not create queue in pv_interface_io!");
+		while(1);
+	}
 }
 
 /** \brief Função principal do módulo de IO.
@@ -50,6 +63,8 @@ void module_io_init() {
   *
   */
 void module_io_run() {
+
+	xQueueReceive(pv_interface_io.iServoSetpoints, &recvsetp, 0);
 
 }
 /* IRQ handlers ------------------------------------------------------------- */

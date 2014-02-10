@@ -11,7 +11,7 @@
 ############################################################################
 
 # project name
-PRJNAME = provant_v_0_1
+PRJNAME = prj-remote-controlled-flight
 
 # toolchain configuration
 TOOLCHAIN_PREFIX = arm-none-eabi-
@@ -51,10 +51,11 @@ FRTPORDIR := $(FRTSRCDIR)/portable/GCC/ARM_CM4F
 # C source files
 
 #modules
-C_SRC += $(PRJDIR)/*.c
+C_SRC += $(PRJDIR)/main.c
 C_SRC += $(COMMON)/system/*.c
 C_SRC += $(MODDIR)/rc/*.c
 C_SRC += $(MODDIR)/io/*.c
+C_SRC += $(MODDIR)/datapr/*.c
 C_SRC += $(MODDIR)/common/*.c
 #freertos
 C_SRC += $(FRTSRCDIR)/list.c 

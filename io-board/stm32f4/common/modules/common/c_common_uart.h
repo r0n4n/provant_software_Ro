@@ -39,6 +39,7 @@ unsigned char c_common_usart_read(USART_TypeDef* USARTx);
 /** @addtogroup Common_Components
   * @{
   */
+
 /** @addtogroup Common_Components_UART
   * @{
   */

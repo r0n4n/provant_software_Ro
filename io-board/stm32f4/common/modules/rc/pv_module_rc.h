@@ -15,24 +15,36 @@
  extern "C" {
 #endif
 
-
 /* Includes ------------------------------------------------------------------*/
+
+/* FreeRTOS kernel includes */
+#include "FreeRTOS.h"
+#include "queue.h"
+
+/* proVANT includes */
 #include "c_rc_control.h"
 #include "c_rc_receiver.h"
 
-/* Exported types ------------------------------------------------------------*/
-struct pv_interface_rc {
-	xQueueHandle oThrottles;
-	xQueueHandle oAngularRefs;
-};
+#include "pv_typedefs.h"
 
+/* Exported types ------------------------------------------------------------*/
+
+ /** \brief Ponteiro de in- e outboxes do módulo de RC.
+   *
+   * Armazena e envia dados brutos ou pré-processados de sensores, e recebe
+   * setpoints ou comandos para atuadores.
+   */
+struct pv_interface_rc {
+	xQueueHandle oThrottles;	/** Referência de throttle para o ESC, 0-255 [char]. **/
+	xQueueHandle oAngularRefs;	/** Ângulos de referência para servo. **/
+} pv_interface_rc;
 
 /* Exported constants --------------------------------------------------------*/
 /* Exported macro ------------------------------------------------------------*/
 
 /* Exported functions ------------------------------------------------------- */
-void module_RC_init();
-void module_RC_run();
+void module_rc_init();
+void module_rc_run();
 
 #ifdef __cplusplus
 }

@@ -12,6 +12,7 @@
 
 #include "c_common_gpio.h"
 #include "c_common_uart.h"
+#include "c_common_utils.h"
 
 #include <math.h>
 
@@ -126,10 +127,6 @@ GPIOPin controlPin;
 
 /* Private function prototypes -----------------------------------------------*/
 /* Private functions ---------------------------------------------------------*/
-long map(long x, long in_min, long in_max, long out_min, long out_max) {
-  return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
-}
-
 int prv_read_error() {
 
 	return 0;
@@ -158,7 +155,7 @@ void c_io_rx24f_init(int baudrate) {
   * @retval Status.
   */
 int c_io_rx24f_move(unsigned char ID, int position) {
-	int hexPosition = round(map(position,0,300,0,1023));
+	int hexPosition = round(c_common_utils_map(position,0,300,0,1023));
     unsigned char Position_H, Position_L;
     Position_H = hexPosition >> 8;
     Position_L = 0x00FF & hexPosition;
