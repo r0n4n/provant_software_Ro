@@ -56,6 +56,7 @@ GPIOPin LED;
 #define ADXL345_ADDR 0x53    // The adress of ADXL345
 #define ITG3205_X_ADDR 0x1D  // Start address for x-axis
 #define ADXL345_X_ADDR 0x32  // Start address for x-axis
+#define BLCTRL_ADDR  0x29
 
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
@@ -158,6 +159,26 @@ void i2c_task(void *pvParameters)
 	}
 }
 
+void blctrl_task(void *pvParameters)
+{
+  char str[30];
+  c_io_blctrl_setSpeed(BLCTRL_ADDR, 0);
+  while(1)
+  {
+    vTaskDelay(10/portTICK_RATE_MS);
+    c_io_blctrl_updateBuffer(BLCTRL_ADDR);
+
+    sprintf(str, "esc rpm: %d \n\r",(int)c_io_blctrl_readSpeed(BLCTRL_ADDR) );
+    c_common_usart_puts(USART2, str);
+
+    sprintf(str, "esc Voltage: %d \n\r",(int)c_io_blctrl_readVoltage(BLCTRL_ADDR) );
+    c_common_usart_puts(USART2, str);
+
+    vTaskDelay(100/portTICK_RATE_MS);
+    c_io_blctrl_setSpeed(BLCTRL_ADDR, 195);
+  }
+}
+
 
 /* PRV -----------------------------------------------------------------------*/
 void prvHardwareInit()
@@ -189,7 +210,7 @@ int main(void)
 	/* create tasks */
 	xTaskCreate(blink_led_task, (signed char *)"Blink led", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+1, NULL);
 	//xTaskCreate(echo_task, (signed char *)"Echo task", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+1, NULL);
-	xTaskCreate(i2c_task,  (signed char *)"I2C task" , configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+1, NULL);
+	xTaskCreate(blctrl_task,  (signed char *)"blctrl task" , configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+1, NULL);
 	//xTaskCreate(uart_task	  , (signed char *)"UART task", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+1, NULL);
 	//xTaskCreate(rc_servo_task , (signed char *)"Servo task", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+1, NULL);
 
