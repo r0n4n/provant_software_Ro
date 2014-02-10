@@ -21,6 +21,12 @@
 #include "c_rc_receiver.h"
 
 /* Exported types ------------------------------------------------------------*/
+struct pv_interface_rc {
+	xQueueHandle oThrottles;
+	xQueueHandle oAngularRefs;
+};
+
+
 /* Exported constants --------------------------------------------------------*/
 /* Exported macro ------------------------------------------------------------*/
 

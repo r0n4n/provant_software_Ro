@@ -118,8 +118,22 @@ o mostrado abaixo:
 
 \subsection page_naming_subsec_codenaming Funções, variáveis, etc.
 
+\b Variáveis: critério não estrito, mas recomenda-se o uso do padrão Java - com separações apenas com letras maiúsculas e minúsculas.
+
+\code{.c} 
+	int someVariable; 
+\endcode
+
+\b Funções: seguindo o apresentado acima, devem ser separadas com \em underlines, seguinto o sistema de nomeclatura proposto. 
+
 \code{.c} 
 	c_common_gpio_init(GPIOC, GPIO_Pin_13, GPIO_Mode_OUT); 
+\endcode
+Para funções privadas de componentes específicos, usa-se nomes compactos mas não crípticos, também divididos com \em underlines se necessário for.
+\code{.c} 
+long map(long x, long in_min, long in_max, long out_min, long out_max) {
+	return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
+} 
 \endcode
 
 \section page_naming_sec_naming Doxygen

@@ -31,7 +31,8 @@
 
 /** \brief Inicializacao do módulo de RC.
   *
-  * Inicializa o receiver e equações de controle.
+  * Instancia as Queues de comunicação inter-thread, inicializa a pinagem necessária para
+  * o controle remoto e aloca o que for necessário para as equações de controle.
   * @param  None
   * @retval None
   */
