@@ -19,7 +19,7 @@
   * @{
   */
 
-/** @addtogroup Module_IO_Component_RX24F
+/** @addtogroup Module_IO_Component_Sonar
   *	\brief Componente para a leitura do sonar XL-MaxSonar-EZ MB1200.
   *
   * @{

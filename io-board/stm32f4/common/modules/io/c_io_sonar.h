@@ -31,4 +31,4 @@ int  c_io_sonar_read();
 }
 #endif
 
-#endif //C_IO_BLCTRL20_H
+#endif //C_IO_SONAR_H
