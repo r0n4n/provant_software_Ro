@@ -88,6 +88,50 @@ void module_io_task(void *pvParameters)
 	}
 }
 
+void blctrl_task(void *pvParameters)
+{
+  char str[30];
+  c_io_blctrl_setSpeed(BLCTRL_ADDR, 0);
+  while(1)
+  {
+    vTaskDelay(10/portTICK_RATE_MS);
+    c_io_blctrl_updateBuffer(BLCTRL_ADDR);
+
+    sprintf(str, "esc rpm: %d \n\r",(int)c_io_blctrl_readSpeed(BLCTRL_ADDR) );
+    c_common_usart_puts(USART2, str);
+
+    sprintf(str, "esc Voltage: %d \n\r",(int)c_io_blctrl_readVoltage(BLCTRL_ADDR) );
+    c_common_usart_puts(USART2, str);
+
+    vTaskDelay(100/portTICK_RATE_MS);
+    c_io_blctrl_setSpeed(BLCTRL_ADDR, 195);
+  }
+}
+
+void sonar_task(void *pvParameters)
+{
+
+  while(1)
+  {
+    char str[64];
+    sprintf(str, "Distance: %d \n\r", c_io_sonar_read());
+    c_common_usart_puts(USART2, str);
+    vTaskDelay(300/portTICK_RATE_MS);
+  }
+}
+
+
+/* PRV -----------------------------------------------------------------------*/
+void prvHardwareInit()
+{
+	c_common_i2c_init();
+	c_common_usart2_init(9600);
+	c_io_sonar_init();
+	//c_io_rx24f_init(1000000);
+	//c_rc_receiver_init();
+	LED = c_common_gpio_init(GPIOC, GPIO_Pin_13, GPIO_Mode_OUT);
+}
+
 /* Main ----------------------------------------------------------------------*/
 int main(void)
 {
@@ -113,6 +157,7 @@ int main(void)
 	xTaskCreate(blink_led_task, (signed char *)"Blink led", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+1, NULL);
 	xTaskCreate(module_rc_task, (signed char *)"module_rc", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+1, NULL);
 	xTaskCreate(module_io_task, (signed char *)"module_io", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+1, NULL);
+	xTaskCreate(sonar_task, (signed char *)"Sonar task", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+1, NULL);
 
 	/* Start the scheduler. */
 	vTaskStartScheduler();
