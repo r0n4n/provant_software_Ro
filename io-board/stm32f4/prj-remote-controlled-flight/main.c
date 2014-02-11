@@ -134,6 +134,13 @@ void matrix_task(void *pvParameters)
 	}
 }
 
+
+arm_matrix_instance_f32 A;
+arm_matrix_instance_f32 B;
+arm_matrix_instance_f32 C;
+arm_matrix_instance_f32 l;
+arm_matrix_instance_f32 lt;
+
 /* Main ----------------------------------------------------------------------*/
 int main(void)
 {
@@ -163,11 +170,7 @@ int main(void)
 	float f3 = f / 2.29f;
 	vu32 it3 = CORE_GetSysTick() - it - it2;
 
-	arm_matrix_instance_f32 A;
-	arm_matrix_instance_f32 B;
-	arm_matrix_instance_f32 C;
-	arm_matrix_instance_f32 l;
-	arm_matrix_instance_f32 lt;
+
 
 	arm_mat_init_f32(&A, 2, 2, (float32_t *)A_f32);
 	arm_mat_init_f32(&B, 2, 2, (float32_t *)B_f32);
