@@ -99,7 +99,7 @@ OBJDUMP = $(TOOLCHAIN_PREFIX)objdump
 NM      = $(TOOLCHAIN_PREFIX)nm
 
 # compiler flags
-CFLAGS  = -g -O2 -Wall -T$(COMMON)/system/stm32_flash.ld #-ftime-report
+CFLAGS  = -g -Wall -T$(COMMON)/system/stm32_flash.ld #-ftime-report
 CFLAGS += -mlittle-endian -mthumb -mcpu=$(MCU) -mthumb-interwork
 CFLAGS += -mfloat-abi=hard -mfpu=fpv4-sp-d16
 CFLAGS += -I. $(patsubst %,-I%,$(INCDIRS)) 
@@ -133,7 +133,7 @@ lib:
 proj: 	$(PRJNAME).elf
 
 $(PRJNAME).elf: $(C_SRC) 
-	$(CC) $(CFLAGS) $^ -o $(OUTDIR)/$@ -L$(CMSISDIR) -lc -lstm32f4 -lstdc++ -lnosys
+	$(CC) $(CFLAGS) $^ -o $(OUTDIR)/$@ -L$(CMSISDIR) -L$(DSPLIB) -lc -lstm32f4 -lstdc++ -lnosys -larm_cortexM4lf_math
 	$(OBJCOPY) -O ihex $(OUTDIR)/$(PRJNAME).elf $(OUTDIR)/$(PRJNAME).hex
 	$(OBJCOPY) -O binary $(OUTDIR)/$(PRJNAME).elf $(OUTDIR)/$(PRJNAME).bin
 
@@ -142,3 +142,6 @@ clean:
 	rm -f $(OUTDIR)/$(PRJNAME).elf
 	rm -f $(OUTDIR)/$(PRJNAME).hex
 	rm -f $(OUTDIR)/$(PRJNAME).bin
+	
+allclean: clean	
+	$(MAKE) clean -C $(CMSISDIR)
