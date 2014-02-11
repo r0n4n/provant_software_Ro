@@ -179,14 +179,27 @@ void blctrl_task(void *pvParameters)
   }
 }
 
+void sonar_task(void *pvParameters)
+{
+
+  while(1)
+  {
+    char str[64];
+    sprintf(str, "Distance: %d \n\r", c_io_sonar_read());
+    c_common_usart_puts(USART2, str);
+    vTaskDelay(300/portTICK_RATE_MS);
+  }
+}
+
 
 /* PRV -----------------------------------------------------------------------*/
 void prvHardwareInit()
 {
 	c_common_i2c_init();
 	c_common_usart2_init(9600);
-	c_io_rx24f_init(1000000);
-	c_rc_receiver_init();
+  c_io_sonar_init();
+	//c_io_rx24f_init(1000000);
+	//c_rc_receiver_init();
 	LED = c_common_gpio_init(GPIOC, GPIO_Pin_13, GPIO_Mode_OUT);
 }
 
@@ -209,8 +222,9 @@ int main(void)
 
 	/* create tasks */
 	xTaskCreate(blink_led_task, (signed char *)"Blink led", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+1, NULL);
+  xTaskCreate(sonar_task, (signed char *)"Sonar task", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+1, NULL);
 	//xTaskCreate(echo_task, (signed char *)"Echo task", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+1, NULL);
-	xTaskCreate(blctrl_task,  (signed char *)"blctrl task" , configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+1, NULL);
+	//xTaskCreate(blctrl_task,  (signed char *)"blctrl task" , configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+1, NULL);
 	//xTaskCreate(uart_task	  , (signed char *)"UART task", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+1, NULL);
 	//xTaskCreate(rc_servo_task , (signed char *)"Servo task", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+1, NULL);
 

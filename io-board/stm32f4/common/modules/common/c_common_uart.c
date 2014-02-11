@@ -216,6 +216,24 @@ unsigned char c_common_usart_read(USART_TypeDef* USARTx) {
 	else return 0;
 }
 
+
+/** \brief Limpa o Ring-Buffer.
+ *
+ * 	@param USARTx USART a verificar.
+ * 	@return None
+ */
+
+void c_common_usart_flush(USART_TypeDef* USARTx) 
+{
+	int i=0;
+	if(USARTx == USART2)
+		for(i=0;i < RECV_BUFFER_SIZE-1;i++)
+			usart2_recv_buffer[i]=0;
+	if(USARTx == USART6) 
+		for(i=0;i < RECV_BUFFER_SIZE-1;i++)
+			usart6_recv_buffer[i]=0;
+}
+
 /* IRQ handlers ------------------------------------------------------------- */
 
 /** \brief Tratador de interrupção para o recebimento de um byte em USART2.
