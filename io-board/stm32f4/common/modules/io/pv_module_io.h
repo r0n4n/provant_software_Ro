@@ -28,6 +28,7 @@
 #include "c_common_uart.h"
 
 #include "c_io_rx24f.h"
+#include "c_io_imu.h"
 
 #include "pv_typedefs.h"
 

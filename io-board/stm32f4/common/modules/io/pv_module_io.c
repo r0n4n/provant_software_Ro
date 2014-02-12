@@ -29,6 +29,9 @@
 /* Private variables ---------------------------------------------------------*/
 pv_msg_io_servoSetpoints recvsetp;
 
+int  accRaw[3], gyroRaw[3], magRaw[3];
+char str[64];
+
 /* Private function prototypes -----------------------------------------------*/
 /* Private functions ---------------------------------------------------------*/
 /* Exported functions definitions --------------------------------------------*/
@@ -41,8 +44,9 @@ pv_msg_io_servoSetpoints recvsetp;
   * @retval None
   */
 void module_io_init() {
-	// Init hardware
 	c_common_i2c_init();
+	c_io_imu_init();
+
 	c_common_usart2_init(9600);
 	c_io_rx24f_init(1000000);
 
@@ -63,8 +67,11 @@ void module_io_init() {
   *
   */
 void module_io_run() {
-
 	xQueueReceive(pv_interface_io.iServoSetpoints, &recvsetp, 0);
+
+	c_io_imu_getRaw(accRaw, gyroRaw, magRaw);
+    sprintf(str, "Accel: %d %d %d\n\r", accRaw[0], accRaw[1], accRaw[2]);
+    c_common_usart_puts(USART2, str);
 
 }
 /* IRQ handlers ------------------------------------------------------------- */

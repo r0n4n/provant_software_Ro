@@ -22,7 +22,13 @@
 /* Exported types ------------------------------------------------------------*/
 /* Exported constants --------------------------------------------------------*/
 /* Exported macro ------------------------------------------------------------*/
+#define C_IO_IMU_USE_ITG_ADXL_HMC
+
 /* Exported functions ------------------------------------------------------- */
+void c_io_imu_init();
+void c_io_imu_getRaw(int * accRaw, int * gyroRaw, int * magRaw);
+void c_io_imu_getRPY(float * rpy);
+void c_io_imu_calibrate();
 
 #ifdef __cplusplus
 }

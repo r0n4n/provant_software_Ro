@@ -33,6 +33,7 @@
 #define BLCTRL_MAH 2             // local da memoria onde esta o valor da corrente  em mAh
 #define BLCTRL_SPEED 3           // local da memoria onde esta a velocidade
 #define BLCTRL_VOLTAGE 5         // local da memoria onde esta o valor de tensao
+
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
 char blctrl_buffer[BLCTRL_BUFFER_SIZE]={};  // buffer para a leitura do esc

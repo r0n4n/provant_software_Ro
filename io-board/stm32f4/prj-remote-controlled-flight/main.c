@@ -41,6 +41,8 @@
 
 /* Common Components, FOR TESTING */
 #include "c_common_gpio.h"
+#include "c_io_blctrl.h"
+#include "c_io_sonar.h"
 
 /** @addtogroup ProVANT_Modules
   * \brief Ponto de entrada do software geral do VANT.
@@ -152,8 +154,7 @@ void sonar_task(void *pvParameters)
   }
 }
 
-
-/* PRV -----------------------------------------------------------------------*/
+/*
 void prvHardwareInit()
 {
 	c_common_i2c_init();
@@ -163,6 +164,7 @@ void prvHardwareInit()
 	//c_rc_receiver_init();
 	LED = c_common_gpio_init(GPIOC, GPIO_Pin_13, GPIO_Mode_OUT);
 }
+*/
 
 void matrix_task(void *pvParameters)
 {
@@ -190,7 +192,7 @@ arm_matrix_instance_f32 lt;
 /* Main ----------------------------------------------------------------------*/
 int main(void)
 {
-  /* Enable FPU.*/
+	/* Enable FPU.*/
   __asm("  LDR.W R0, =0xE000ED88\n"
 		"  LDR R1, [R0]\n"
 		"  ORR R1, R1, #(0xF << 20)\n"
@@ -202,11 +204,13 @@ int main(void)
 	//*(uint32_t *) (0xE000ED88) |= 0X00F00000;
 	//__DSB();
 	//__ISB();
+
 	#if (__FPU_PRESENT == 1) && (__FPU_USED == 1)
 	  SCB->CPACR |= ((3UL << 10*2)|(3UL << 11*2));  /* set CP10 and CP11 Full Access */
 	#endif
 
-	/******MESSAROUND******************/
+
+	/******MESSAROUND******************//*
 	float f = 1.01f;
 	int   i = 53425;
 	CORE_SysTickEn();
@@ -215,8 +219,6 @@ int main(void)
 	vu32 it2 = CORE_GetSysTick() - it;
 	float f3 = f / 2.29f;
 	vu32 it3 = CORE_GetSysTick() - it - it2;
-
-
 
 	arm_mat_init_f32(&A, 2, 2, (float32_t *)A_f32);
 	arm_mat_init_f32(&B, 2, 2, (float32_t *)B_f32);
@@ -252,7 +254,7 @@ int main(void)
 	xTaskCreate(blink_led_task, (signed char *)"Blink led", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+1, NULL);
 	xTaskCreate(module_rc_task, (signed char *)"module_rc", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+1, NULL);
 	xTaskCreate(module_io_task, (signed char *)"module_io", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+1, NULL);
-	xTaskCreate(sonar_task, (signed char *)"Sonar task", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+1, NULL);
+	//xTaskCreate(sonar_task, (signed char *)"Sonar task", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+1, NULL);
 	xTaskCreate(matrix_task   , (signed char *)"matrixinv", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+1, NULL);
 
 	/* Start the scheduler. */
