@@ -54,11 +54,6 @@
 GPIOPin LED;
 
 /* Private define ------------------------------------------------------------*/
-// Sys-Tick Counter - Messen der Anzahl der Befehle des Prozessors:
-#define CORE_SysTickEn()    (*((u32*)0xE0001000)) = 0x40000001
-#define CORE_SysTickDis()   (*((u32*)0xE0001000)) = 0x40000000
-#define CORE_GetSysTick()   (*((u32*)0xE0001004))
-
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
 float32_t A_f32[4] =
@@ -99,9 +94,31 @@ void blink_led_task(void *pvParameters)
 {
 	LED = c_common_gpio_init(GPIOC, GPIO_Pin_13, GPIO_Mode_OUT);
 
-    while(1) {
-        c_common_gpio_toggle(LED);
-        vTaskDelay(500/portTICK_RATE_MS);
+    while(1)
+    {
+    	c_common_gpio_toggle(LED);
+    	vTaskDelay(500/portTICK_RATE_MS);
+        
+    }
+}
+
+void servo_task(void *pvParameters)
+{
+	char str[64];
+
+    while(1)
+    {
+    	vTaskDelay(500/portTICK_RATE_MS);
+    	sprintf(str, "move 10 -> %d\n\r",c_io_rx24f_move(2,10));
+    	c_common_usart_puts(USART2, str); 
+    	vTaskDelay(500/portTICK_RATE_MS);
+    	sprintf(str, "move 50 -> %d\n\r",c_io_rx24f_move(2,50));
+    	c_common_usart_puts(USART2, str); 
+    	vTaskDelay(500/portTICK_RATE_MS);
+    	c_common_usart_flush(USART6);
+    	vTaskDelay(2/portTICK_RATE_MS);
+    	sprintf(str, "lido -> %d\n\r",c_io_rx24f_readPosition(2));
+        c_common_usart_puts(USART2, str);        
     }
 }
 
@@ -252,10 +269,11 @@ int main(void)
 
 	/* create tasks */
 	xTaskCreate(blink_led_task, (signed char *)"Blink led", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+1, NULL);
-	xTaskCreate(module_rc_task, (signed char *)"module_rc", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+1, NULL);
-	xTaskCreate(module_io_task, (signed char *)"module_io", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+1, NULL);
+	xTaskCreate(servo_task, (signed char *)"servo_task", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+1, NULL);
+	//xTaskCreate(module_rc_task, (signed char *)"module_rc", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+1, NULL);
+	//xTaskCreate(module_io_task, (signed char *)"module_io", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+1, NULL);
 	//xTaskCreate(sonar_task, (signed char *)"Sonar task", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+1, NULL);
-	xTaskCreate(matrix_task   , (signed char *)"matrixinv", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+1, NULL);
+	//xTaskCreate(matrix_task   , (signed char *)"matrixinv", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+1, NULL);
 
 	/* Start the scheduler. */
 	vTaskStartScheduler();

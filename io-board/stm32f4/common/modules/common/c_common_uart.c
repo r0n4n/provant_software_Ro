@@ -229,9 +229,17 @@ void c_common_usart_flush(USART_TypeDef* USARTx)
 	if(USARTx == USART2)
 		for(i=0;i < RECV_BUFFER_SIZE-1;i++)
 			usart2_recv_buffer[i]=0;
+		usart2_rb_in=0;
+		usart2_rb_out=0;
+		usart2_available_flag=0;
 	if(USARTx == USART6) 
+	{
 		for(i=0;i < RECV_BUFFER_SIZE-1;i++)
 			usart6_recv_buffer[i]=0;
+		usart6_rb_in=0;
+		usart6_rb_out=0;
+		usart6_available_flag=0;
+	}
 }
 
 /* IRQ handlers ------------------------------------------------------------- */

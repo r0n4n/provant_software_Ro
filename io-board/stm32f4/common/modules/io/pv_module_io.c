@@ -44,10 +44,10 @@ char str[64];
   * @retval None
   */
 void module_io_init() {
-	c_common_i2c_init();
-	c_io_imu_init();
+	//c_common_i2c_init();
+	//c_io_imu_init();
 
-	c_common_usart2_init(9600);
+	c_common_usart2_init(115200);
 	c_io_rx24f_init(1000000);
 
 	// Init queues

@@ -26,7 +26,7 @@
 
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
-#define BLCTRL_NUM_OF_MAGNETS 20 // numero de polos do motor
+#define BLCTRL_NUM_OF_MAGNETS 14 // numero de polos do motor
 #define BLCTRL_BUFFER_SIZE 10    // tamanho do buffer
 #define BLCTRL_CURRENT 0         // local da memoria onde esta o valor de corrente
 #define BLCTRL_TEMPERATURE 2     // local da memoria onde esta o valor de temperatura
