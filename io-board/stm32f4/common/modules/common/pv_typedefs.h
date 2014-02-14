@@ -70,7 +70,8 @@ typedef struct {
 
 /** \brief Estrutura de para posição do VANT.*/
 typedef struct {
-
+	float x, y, z;
+	float dotX, dotY, dotZ;
 } pv_msg_datapr_position;
 
 /* Exported constants --------------------------------------------------------*/

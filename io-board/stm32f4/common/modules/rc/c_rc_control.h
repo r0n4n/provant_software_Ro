@@ -11,6 +11,11 @@
 #ifndef C_RC_CONTROL_H
 #define C_RC_CONTROL_H
 
+#define ARM_MATH_CM4
+#include "arm_math.h"
+
+#include "pv_typedefs.h"
+
 #ifdef __cplusplus
  extern "C" {
 #endif
@@ -23,7 +28,10 @@
 
 /* Exported functions ------------------------------------------------------- */
 void c_rc_control_init();
-
+pv_msg_io_actuation RC_controller(pv_msg_datapr_attitude attitude,
+				  pv_msg_datapr_attitude attitude_reference,
+				  pv_msg_datapr_position position,
+				  pv_msg_datapr_position position_reference);
 
 #ifdef __cplusplus
 }

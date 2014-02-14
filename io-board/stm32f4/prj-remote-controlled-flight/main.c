@@ -88,9 +88,9 @@ void FPU_init(){
 		"  ORR R1, R1, #(0xF << 20)\n"
 		"  STR R1, [R0]");
 
-	#if (__FPU_PRESENT == 1) && (__FPU_USED == 1)
+	//#if (__FPU_PRESENT == 1) && (__FPU_USED == 1)
 		SCB->CPACR |= ((3UL << 10*2)|(3UL << 11*2));  /* set CP10 and CP11 Full Access */
-	#endif
+	//#endif
 }
 
 /* Tasks ----------------------------------------------------------------------*/
@@ -200,6 +200,38 @@ int main(void)
 
 	/* Init system and trace */
 	SystemInit();
+
+	// Teste Rodrigo -----------------------------------------------------------------------------
+	c_common_usart2_init(9600);
+	c_common_usart_puts(USART2, "Iniciado!\n\r");
+
+	int it, it2;
+	GPIOPin test = c_common_gpio_init(GPIOB, GPIO_Pin_11, GPIO_Mode_OUT);
+
+	pv_msg_io_actuation   actuation = {0,0.0f,0.0f,0.0f,0.0f};
+	pv_msg_datapr_attitude attitude = {0.0f,0.0f,0.0f,0.0f,0.0f,0.0f};
+	pv_msg_datapr_attitude attitude_reference = {0.0f,0.0f,0.0f,0.0f,0.0f,0.0f};
+	pv_msg_datapr_position position = {0.0f,0.0f,0.0f,0.0f,0.0f,0.0f};
+	pv_msg_datapr_position position_reference = {0.0f,0.0f,0.0f,0.0f,0.0f,0.0f};
+
+	attitude_reference.roll = 1.0f;
+
+	while(1) {
+		actuation = RC_controller(attitude,
+						attitude_reference,
+						position,
+						position_reference);
+		c_common_gpio_toggle(test);
+	}
+
+	char str[64];
+	sprintf(str, "%4.4f %4.4f %4.4f %4.4f\n\r", (float)actuation.escLeftSpeed,
+												(float)actuation.escRightSpeed,
+												(float)actuation.servoLeft,
+												(float)actuation.servoRight);
+	c_common_usart_puts(USART2, str);
+
+	//---------------------------------------------------------------------------------------------
 
 	vTraceInitTraceData();
 

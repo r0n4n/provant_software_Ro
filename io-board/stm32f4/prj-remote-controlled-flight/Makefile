@@ -99,10 +99,11 @@ OBJDUMP = $(TOOLCHAIN_PREFIX)objdump
 NM      = $(TOOLCHAIN_PREFIX)nm
 
 # compiler flags
-CFLAGS  = -g -O0 -Wall -T$(COMMON)/system/stm32_flash.ld 
+CFLAGS  = -g -O2 -Wall -T$(COMMON)/system/stm32_flash.ld 
 CFLAGS += -mlittle-endian -mthumb -mcpu=$(MCU) -mthumb-interwork
 CFLAGS += -mfloat-abi=hard -mfpu=fpv4-sp-d16
-CFLAGS += -I. $(patsubst %,-I%,$(INCDIRS)) 
+CFLAGS += -I. $(patsubst %,-I%,$(INCDIRS))
+CFlAGS += -DARM_MATH_CM4 -DARM_MATH_MATRIX_CHECK -DARM_MATH_ROUNDING -D__FPU_PRESENT="1"  
 # verbose flags, all may be commented out
 CFLAGS += -Wunused-value -Wunused-variable -Wunused-but-set-variable #-ftime-report
 # cpp related flags
