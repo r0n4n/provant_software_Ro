@@ -37,13 +37,41 @@ typedef struct {
 	int channel[8];
 } pv_type_receiverChannels;
 
-/** \brief Estrutura de mensagens para os dois RX24f.*/
+/** \brief Tipo do ESC com informações.*/
 typedef struct {
-	float leftAngle;
-	float leftTorque;
-	float rightAngle;
-	float rightTorque;
-} pv_msg_io_servoSetpoints;
+	char  ID;
+	float angularSpeed;
+	float current;
+	float tension;
+} pv_type_io_esc;
+
+/* Exported messages ---------------------------------------------------------*/
+
+/** \brief Estrutura de mensagens para os dois RX24f e ESCs.
+ *
+ * Pacote prevê passagem de referências de velocidade para os ESCs em <b>rad/s</b>,
+ * referências agulares em <b>rad</b> e torque em <b>N.m</b>. Para o servo, o módulo de
+ * IO automaticamente alternará entre referências de ângulo para torque se a flag
+ *  \b servoTorqueControlEnable estiver setada.
+ */
+typedef struct {
+	bool  servoTorqueControlEnable;
+	float servoLeft;
+	float servoRight;
+	float escRightSpeed;
+	float escLeftSpeed;
+} pv_msg_io_actuation;
+
+/** \brief Estrutura de para orientação do VANT.*/
+typedef struct {
+	float roll, pitch, yaw;
+	float dotRoll, dotPitch, dotYaw;
+} pv_msg_datapr_attitude;
+
+/** \brief Estrutura de para posição do VANT.*/
+typedef struct {
+
+} pv_msg_datapr_position;
 
 /* Exported constants --------------------------------------------------------*/
 /* Exported macro ------------------------------------------------------------*/

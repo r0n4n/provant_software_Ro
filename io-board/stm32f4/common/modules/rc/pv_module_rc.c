@@ -23,9 +23,13 @@
 
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
+#define MODULE_PERIOD	   10//ms
+
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
-pv_msg_io_servoSetpoints setp;
+pv_msg_io_actuation actuation;
+pv_type_receiverChannels receiver;
+portTickType lastWakeTime;
 
 /* Private function prototypes -----------------------------------------------*/
 /* Private functions ---------------------------------------------------------*/
@@ -40,6 +44,14 @@ pv_msg_io_servoSetpoints setp;
   */
 void module_rc_init() {
 	c_rc_receiver_init();
+
+	pv_interface_rc.iAttitude = xQueueCreate(1, sizeof(pv_msg_datapr_attitude));
+
+	actuation.servoTorqueControlEnable = 0;
+	actuation.escLeftSpeed  = 0.0;
+	actuation.escRightSpeed = 0.0;
+	actuation.servoLeft	    = 0.0;
+	actuation.servoRight    = 0.0;
 }
 
 /** \brief Função principal do módulo de RC.
@@ -50,11 +62,22 @@ void module_rc_init() {
   * via interface.
   */
 void module_rc_run() {
-	setp.leftAngle = 180.0;
-	setp.rightAngle = 300.0;
+	while(1) {
+		lastWakeTime = xTaskGetTickCount();
+		/*
+		//get radio-control channel values
+		for(int i=0; i<8; i++)
+			receiver.channel[i] = c_rc_receiver_getChannel(i);
 
-	if(pv_interface_rc.oAngularRefs != 0)
-		xQueueOverwrite(pv_interface_rc.oAngularRefs, &setp);
+		actuation.escLeftSpeed  = 20.0;
+		actuation.escRightSpeed = 20.0;
+
+		//send actuation values
+		if(pv_interface_rc.oActuation != 0)
+			xQueueOverwrite(pv_interface_rc.oActuation, &actuation);
+		*/
+        vTaskDelayUntil( &lastWakeTime, MODULE_PERIOD / portTICK_RATE_MS);
+	}
 }
 /* IRQ handlers ------------------------------------------------------------- */
 

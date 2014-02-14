@@ -14,6 +14,12 @@
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f4xx_conf.h"
 
+#include "c_common_i2c.h"
+#include "c_common_utils.h"
+
+#define ARM_MATH_CM4
+#include "arm_math.h"
+
 #ifdef __cplusplus
  extern "C" {
 #endif
@@ -27,7 +33,7 @@
 /* Exported functions ------------------------------------------------------- */
 void c_io_imu_init();
 void c_io_imu_getRaw(int * accRaw, int * gyroRaw, int * magRaw);
-void c_io_imu_getRPY(float * rpy);
+void c_io_imu_getComplimentaryRPY(float * rpy);
 void c_io_imu_calibrate();
 
 #ifdef __cplusplus

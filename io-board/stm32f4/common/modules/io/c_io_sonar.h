@@ -14,6 +14,13 @@
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f4xx_conf.h"
 
+#include "c_common_gpio.h"
+#include "c_common_uart.h"
+
+#include <math.h>
+#include <stdio.h>
+
+
 #ifdef __cplusplus
  extern "C" {
 #endif

@@ -51,7 +51,8 @@
   */
 
 /* Private typedef -----------------------------------------------------------*/
-GPIOPin LED;
+GPIOPin LED_builtin;
+GPIOPin LED_Green, LED_Red;
 
 /* Private define ------------------------------------------------------------*/
 // Sys-Tick Counter - Messen der Anzahl der Befehle des Prozessors:
@@ -61,19 +62,6 @@ GPIOPin LED;
 
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
-float32_t A_f32[4] =
-{
-  3.0,     5.0,
-  9.0,     7.0
-};
-
-float32_t B_f32[4] =
-{
-  1.0,     1.0,
-  1.0,     1.0
-};
-
-float32_t C_f32[4];
 float32_t largetarget_f32[36];
 
 float32_t large_f32[36] =
@@ -92,33 +80,56 @@ void vApplicationIdleHook() {};
 void vApplicationStackOverflowHook() {};
 void vApplicationMallocFailedHook() {};
 
+
+void FPU_init(){
+	/* Enable FPU.*/
+	__asm("  LDR.W R0, =0xE000ED88\n"
+		"  LDR R1, [R0]\n"
+		"  ORR R1, R1, #(0xF << 20)\n"
+		"  STR R1, [R0]");
+
+	#if (__FPU_PRESENT == 1) && (__FPU_USED == 1)
+		SCB->CPACR |= ((3UL << 10*2)|(3UL << 11*2));  /* set CP10 and CP11 Full Access */
+	#endif
+}
+
 /* Tasks ----------------------------------------------------------------------*/
 
 // `I'm alive` kind of task
 void blink_led_task(void *pvParameters)
 {
-	LED = c_common_gpio_init(GPIOC, GPIO_Pin_13, GPIO_Mode_OUT);
+	LED_builtin = c_common_gpio_init(GPIOC, GPIO_Pin_13, GPIO_Mode_OUT);
+	LED_Green   = c_common_gpio_init(GPIOG, GPIO_Pin_7,  GPIO_Mode_OUT);
+	LED_Red     = c_common_gpio_init(GPIOG, GPIO_Pin_8, GPIO_Mode_OUT);
+
+	char str[64];
+	int  channels[4];
 
     while(1) {
-        c_common_gpio_toggle(LED);
-        vTaskDelay(500/portTICK_RATE_MS);
+        c_common_gpio_toggle(LED_builtin);
+        vTaskDelay(100/portTICK_RATE_MS);
+        /*
+        c_common_usart_puts(USART2, "Canais: ");
+        for(int i=0; i<4; i++) {
+        	sprintf(str, "%d ", c_rc_receiver_getChannel(i));
+        	c_common_usart_puts(USART2, str);
+        }
+        c_common_usart_puts(USART2, "\n\r: ");
+        */
     }
+
 }
 
 // Module RC task
 void module_rc_task(void *pvParameters)
 {
-	while(1) {
-		module_rc_run();
-	}
+	module_rc_run();
 }
 
 // Module IO taske
 void module_io_task(void *pvParameters)
 {
-	while(1) {
-		module_io_run();
-	}
+	module_io_run();
 }
 
 
@@ -128,6 +139,8 @@ void blctrl_task(void *pvParameters)
   c_io_blctrl_setSpeed(BLCTRL_ADDR, 0);
   while(1)
   {
+	c_common_usart_puts(USART2, "Starting blctrl_task main loop!");
+
     vTaskDelay(10/portTICK_RATE_MS);
     c_io_blctrl_updateBuffer(BLCTRL_ADDR);
 
@@ -154,7 +167,6 @@ void sonar_task(void *pvParameters)
   }
 }
 
-/*
 void prvHardwareInit()
 {
 	c_common_i2c_init();
@@ -162,9 +174,7 @@ void prvHardwareInit()
 	c_io_sonar_init();
 	//c_io_rx24f_init(1000000);
 	//c_rc_receiver_init();
-	LED = c_common_gpio_init(GPIOC, GPIO_Pin_13, GPIO_Mode_OUT);
 }
-*/
 
 void matrix_task(void *pvParameters)
 {
@@ -173,67 +183,23 @@ void matrix_task(void *pvParameters)
 
 	arm_mat_init_f32(&l, 6, 6, (float32_t *)large_f32);
 	arm_mat_init_f32(&lt, 6, 6, largetarget_f32);
+	vu32 it, it2;
 
 	while(1) {
-		vu32 it = CORE_GetSysTick();
+		it = CORE_GetSysTick();
 		arm_mat_inverse_f32(&l, &lt);
-		vu32 it2 = CORE_GetSysTick() - it;
+		it2 = CORE_GetSysTick() - it;
 	}
 }
-
-
-arm_matrix_instance_f32 A;
-arm_matrix_instance_f32 B;
-arm_matrix_instance_f32 C;
-arm_matrix_instance_f32 l;
-arm_matrix_instance_f32 lt;
 
 
 /* Main ----------------------------------------------------------------------*/
 int main(void)
 {
-	/* Enable FPU.*/
-  __asm("  LDR.W R0, =0xE000ED88\n"
-		"  LDR R1, [R0]\n"
-		"  ORR R1, R1, #(0xF << 20)\n"
-		"  STR R1, [R0]");
+	FPU_init();
 
 	/* Init system and trace */
 	SystemInit();
-
-	//*(uint32_t *) (0xE000ED88) |= 0X00F00000;
-	//__DSB();
-	//__ISB();
-
-	#if (__FPU_PRESENT == 1) && (__FPU_USED == 1)
-	  SCB->CPACR |= ((3UL << 10*2)|(3UL << 11*2));  /* set CP10 and CP11 Full Access */
-	#endif
-
-
-	/******MESSAROUND******************//*
-	float f = 1.01f;
-	int   i = 53425;
-	CORE_SysTickEn();
-	vu32 it = CORE_GetSysTick();
-	float f2 = f + 2.29f;
-	vu32 it2 = CORE_GetSysTick() - it;
-	float f3 = f / 2.29f;
-	vu32 it3 = CORE_GetSysTick() - it - it2;
-
-	arm_mat_init_f32(&A, 2, 2, (float32_t *)A_f32);
-	arm_mat_init_f32(&B, 2, 2, (float32_t *)B_f32);
-	arm_mat_init_f32(&C, 2, 2, C_f32);
-
-	arm_mat_init_f32(&l, 6, 6, (float32_t *)large_f32);
-	arm_mat_init_f32(&lt, 6, 6, largetarget_f32);
-
-	arm_mat_add_f32(&A, &B, &C);
-	arm_mat_inverse_f32(&A, &C);
-
-	//it = CORE_GetSysTick();
-	//arm_mat_inverse_f32(&l, &lt);
-	//it2 = CORE_GetSysTick() - it;
-	/******MESSAROUND******************/
 
 	vTraceInitTraceData();
 
@@ -246,16 +212,17 @@ int main(void)
 	module_rc_init();
 
 	/* Connect modules */
-	pv_interface_rc.oAngularRefs = pv_interface_io.iServoSetpoints;
+	//pv_interface_rc.oAngularRefs = pv_interface_io.iServoSetpoints;
 
 	c_common_usart_puts(USART2, "Iniciado!\n\r");
 
 	/* create tasks */
 	xTaskCreate(blink_led_task, (signed char *)"Blink led", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+1, NULL);
-	xTaskCreate(module_rc_task, (signed char *)"module_rc", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+1, NULL);
+	//xTaskCreate(module_rc_task, (signed char *)"module_rc", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+1, NULL);
 	xTaskCreate(module_io_task, (signed char *)"module_io", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+1, NULL);
 	//xTaskCreate(sonar_task, (signed char *)"Sonar task", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+1, NULL);
 	xTaskCreate(matrix_task   , (signed char *)"matrixinv", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+1, NULL);
+	//xTaskCreate(blctrl_task, (signed char *)"blctr", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+1, NULL);
 
 	/* Start the scheduler. */
 	vTaskStartScheduler();

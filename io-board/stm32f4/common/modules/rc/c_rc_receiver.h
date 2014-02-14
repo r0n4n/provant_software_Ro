@@ -14,6 +14,8 @@
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f4xx_conf.h"
 
+#include "c_common_utils.h"
+
 #ifdef __cplusplus
  extern "C" {
 #endif
@@ -21,12 +23,19 @@
 /* Includes ------------------------------------------------------------------*/
 /* Exported types ------------------------------------------------------------*/
 /* Exported constants --------------------------------------------------------*/
+#define C_RC_CHANNEL_THROTTLE  2
+#define C_RC_CHANNEL_ROLL      0
+#define C_RC_CHANNEL_PITCH     1
+#define C_RC_CHANNEL_YAW       3
+
 /* Exported macro ------------------------------------------------------------*/
 
 /* Exported functions ------------------------------------------------------- */
 
- void c_rc_receiver_init();
- int  c_rc_receiver_get_channel(int channel_n);
+void c_rc_receiver_init();
+void c_rc_calibrateCenters();
+int  c_rc_receiver_getChannel(int channel_n);
+int  c_rc_receiver_getCenteredChannel(int channel_n);
 
 #ifdef __cplusplus
 }

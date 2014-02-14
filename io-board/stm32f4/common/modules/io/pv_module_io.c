@@ -27,8 +27,6 @@
 /* Private define ------------------------------------------------------------*/
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
-pv_msg_io_servoSetpoints recvsetp;
-
 int  accRaw[3], gyroRaw[3], magRaw[3];
 char str[64];
 
@@ -45,18 +43,22 @@ char str[64];
   */
 void module_io_init() {
 	c_common_i2c_init();
-	c_io_imu_init();
 
 	c_common_usart2_init(9600);
 	c_io_rx24f_init(1000000);
 
-	// Init queues
-	pv_interface_io.iServoSetpoints = xQueueCreate(1, sizeof(pv_msg_io_servoSetpoints));
+	//for(int i=0; i<0xFFFFFF; i++) { __asm("NOP"); }
+	C_COMMON_UTILS_1MS_DELAY //delay para inicialização da IMU
+	c_io_imu_init();
 
-	if(pv_interface_io.iServoSetpoints == 0) {
-		vTraceConsoleMessage("Could not create queue in pv_interface_io!");
-		while(1);
-	}
+	c_io_blctrl_init();
+	// Init queues
+	//pv_interface_io.iServoSetpoints = xQueueCreate(1, sizeof(pv_msg_io_servoSetpoints));
+
+	//if(pv_interface_io.iServoSetpoints == 0) {
+	//	vTraceConsoleMessage("Could not create queue in pv_interface_io!");
+	//	while(1);
+	//}
 }
 
 /** \brief Função principal do módulo de IO.
@@ -67,12 +69,17 @@ void module_io_init() {
   *
   */
 void module_io_run() {
-	xQueueReceive(pv_interface_io.iServoSetpoints, &recvsetp, 0);
+	float rpy[3];
 
-	c_io_imu_getRaw(accRaw, gyroRaw, magRaw);
-    sprintf(str, "Accel: %d %d %d\n\r", accRaw[0], accRaw[1], accRaw[2]);
-    c_common_usart_puts(USART2, str);
-
+	while(1) {
+		//xQueueReceive(pv_interface_io.iServoSetpoints, &recvsetp, 0);
+		/*
+		c_io_imu_getComplimentaryRPY(rpy);
+		//sprintf(str, "RP: %d %d\n\r", (int)(100.0*rpy[0]), (int)(100.0*rpy[1]));
+		//c_common_usart_puts(USART2, str);
+		*/
+		vTaskDelay(250/portTICK_RATE_MS);
+	}
 }
 /* IRQ handlers ------------------------------------------------------------- */
 

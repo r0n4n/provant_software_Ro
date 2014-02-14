@@ -10,11 +10,6 @@
 /* Includes ------------------------------------------------------------------*/
 #include "c_io_imu.h"
 
-#include "c_common_i2c.h"
-#include "c_common_utils.h"
-
-#include <math.h>
-
 /** @addtogroup Module_IO
   * @{
   */
@@ -53,6 +48,11 @@
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
 uint8_t imuBuffer[8];
+unsigned char ACCL_ID = 0;
+unsigned char GYRO_ID = 0;
+unsigned char MAGN_ID = 0;
+
+float gyro_rpy[3], acce_rpy[3], filt_rpy[3];
 
 /* Private function prototypes -----------------------------------------------*/
 /* Private functions ---------------------------------------------------------*/
@@ -66,17 +66,23 @@ uint8_t imuBuffer[8];
 void c_io_imu_init() {
 
 #ifdef C_IO_IMU_USE_ITG_ADXL_HMC // Inicialização para a IMU selecionada
+	// Get Accelerometer ID
+	c_common_i2c_readBytes(ACCL_ADDR, 0x00, 1, &ACCL_ID);
+
 	// Accelerometer increase G-range (+/- 16G)
 	c_common_i2c_writeByte(ACCL_ADDR, 0x31, 0b00001011);
 
-	// ADXL345 POWER_CTL
-	c_common_i2c_writeByte(GYRO_ADDR, 22, 24); //?
-	c_common_i2c_writeByte(GYRO_ADDR, 0x2D, 0);
-	c_common_i2c_writeByte(GYRO_ADDR, 0x2D, 16);
-	c_common_i2c_writeByte(GYRO_ADDR, 0x2D, 8);
+    //  ADXL345 (Accel) POWER_CTL
+    c_common_i2c_writeByte(ACCL_ADDR, 0x2D, 0);
+    c_common_i2c_writeByte(ACCL_ADDR, 0x2D, 16);
+    c_common_i2c_writeByte(ACCL_ADDR, 0x2D, 8);
 
-	// HMC5883 Run in continuous mode
-	c_common_i2c_writeByte(MAGN_ADDR, 0x02, 0x00);
+    // Gyro ID and setup
+	c_common_i2c_readBytes(GYRO_ADDR, 0x00, 1, &GYRO_ID);
+	c_common_i2c_writeByte(GYRO_ADDR, 22, 24);
+
+    // HMC5883 (Magn) Run in continuous mode
+    c_common_i2c_writeByte(MAGN_ADDR, 0x02, 0x00);
 #endif
 
 }
@@ -88,9 +94,9 @@ void c_io_imu_init() {
 void c_io_imu_getRaw(int * accRaw, int * gyroRaw, int * magRaw) {
     // Read x, y, z acceleration, pack the data.
 	c_common_i2c_readBytes(ACCL_ADDR, ACCL_X_ADDR, 6, imuBuffer);
-    accRaw[0] = ((int)imuBuffer[0] | ((int)imuBuffer[1] << 8)) * -1;
-    accRaw[1] = ((int)imuBuffer[2] | ((int)imuBuffer[3] << 8)) * -1;
-    accRaw[2] =  (int)imuBuffer[4] | ((int)imuBuffer[5] << 8);
+    accRaw[0] = ~(((char)imuBuffer[0] | ((char)imuBuffer[1] << 8))-1);
+    accRaw[1] = ~(((char)imuBuffer[2] | ((char)imuBuffer[3] << 8))-1);
+    accRaw[2] = ~(((char)imuBuffer[4] | ((char)imuBuffer[5] << 8))-1);
 
     // Read x, y, z from gyro, pack the data
 	c_common_i2c_readBytes(GYRO_ADDR, GYRO_X_ADDR, 6, imuBuffer);
@@ -99,20 +105,29 @@ void c_io_imu_getRaw(int * accRaw, int * gyroRaw, int * magRaw) {
     gyroRaw[2] = ((int)imuBuffer[5] | ((int)imuBuffer[4] << 8)) * -1;
 
     // Read x, y, z from magnetometer;
-    /*
     c_common_i2c_readBytes(MAGN_ADDR, MAGN_X_ADDR, 6, imuBuffer);
     for (unsigned char i =0; i < 3; i++) {
        magRaw[i] = (int)imuBuffer[(i * 2) + 1] | ((int)imuBuffer[i * 2] << 8);
-    } */
+    }
 }
 
 /** \brief Retorna os ângulos RPY através de um filtro complementar simples.
  *
  *
  */
-void c_io_imu_getRPY(float * rpy) {
+void c_io_imu_getComplimentaryRPY(float * rpy) {
+	int acce_raw[3], gyro_raw[3], magn_raw[3];
 
+	c_io_imu_getRaw(acce_raw, gyro_raw, magn_raw);
 
+	float32_t px, py, pz;
+
+	//arm_sqrt_f32((float32_t)pow(acce_raw[Z],2), pz);
+
+	acce_rpy[ROLL ] = atan2( acce_raw[X], sqrt(pow(acce_raw[Y],2) + pow(acce_raw[Z],2)));// - mean_acce_rpy[ROLL] ;
+	acce_rpy[PITCH] = atan2( acce_raw[Y], sqrt(pow(acce_raw[X],2) + pow(acce_raw[Z],2)));// - mean_acce_rpy[PITCH];
+
+	rpy = acce_rpy;
 }
 
 /** \brief Calibra a IMU considerando o veículo em repouso.

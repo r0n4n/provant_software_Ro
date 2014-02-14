@@ -23,6 +23,8 @@
 /* Exported types ------------------------------------------------------------*/
 /* Exported constants --------------------------------------------------------*/
 /* Exported macro ------------------------------------------------------------*/
+#define C_COMMON_UTILS_1MS_DELAY for(int i=0; i--; i<168000) { __asm("NOP"); }
+
 /* Exported functions ------------------------------------------------------- */
 long c_common_utils_map(long x, long in_min, long in_max, long out_min, long out_max);
 

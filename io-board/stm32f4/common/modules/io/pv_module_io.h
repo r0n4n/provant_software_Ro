@@ -18,14 +18,16 @@
 
 /* Includes ------------------------------------------------------------------*/
 
- /* FreeRTOS kernel includes */
- #include "FreeRTOS.h"
- #include "queue.h"
+/* FreeRTOS kernel includes */
+#include "FreeRTOS.h"
+#include "queue.h"
+#include "task.h"
 
 /* proVANT includes */
 #include "c_common_gpio.h"
 #include "c_common_i2c.h"
 #include "c_common_uart.h"
+#include "c_common_utils.h"
 
 #include "c_io_rx24f.h"
 #include "c_io_imu.h"

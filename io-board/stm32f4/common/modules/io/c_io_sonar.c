@@ -10,11 +10,6 @@
 /* Includes ------------------------------------------------------------------*/
 #include "c_io_sonar.h"
 
-#include "c_common_gpio.h"
-#include "c_common_uart.h"
-
-#include <math.h>
-
 /** @addtogroup Module_IO
   * @{
   */
@@ -57,7 +52,7 @@ int  c_io_sonar_read()
   dist[0]=c_common_usart_read(USART6);
   dist[1]=c_common_usart_read(USART6);
   dist[2]=c_common_usart_read(USART6);
-  return 1;//atoi(dist); /** \todo atoi não compila no meu PC! - Martin*/
+  atoi(dist);
 }
 
 /* IRQ handlers ------------------------------------------------------------- */

@@ -20,6 +20,7 @@
 /* FreeRTOS kernel includes */
 #include "FreeRTOS.h"
 #include "queue.h"
+#include "task.h"
 
 /* proVANT includes */
 #include "c_rc_control.h"
@@ -35,8 +36,8 @@
    * setpoints ou comandos para atuadores.
    */
 struct pv_interface_rc {
-	xQueueHandle oThrottles;	/** Referência de throttle para o ESC, 0-255 [char]. **/
-	xQueueHandle oAngularRefs;	/** Ângulos de referência para servo. **/
+	xQueueHandle oActuation;	/** Sinais de atuação para módulo de IO. **/
+	xQueueHandle iAttitude;		/** Feedback da orientação do VANT. **/
 } pv_interface_rc;
 
 /* Exported constants --------------------------------------------------------*/

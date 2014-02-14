@@ -99,10 +99,12 @@ OBJDUMP = $(TOOLCHAIN_PREFIX)objdump
 NM      = $(TOOLCHAIN_PREFIX)nm
 
 # compiler flags
-CFLAGS  = -g -Wall -T$(COMMON)/system/stm32_flash.ld #-ftime-report
+CFLAGS  = -g -O0 -Wall -T$(COMMON)/system/stm32_flash.ld 
 CFLAGS += -mlittle-endian -mthumb -mcpu=$(MCU) -mthumb-interwork
 CFLAGS += -mfloat-abi=hard -mfpu=fpv4-sp-d16
 CFLAGS += -I. $(patsubst %,-I%,$(INCDIRS)) 
+# verbose flags, all may be commented out
+CFLAGS += -Wunused-value -Wunused-variable -Wunused-but-set-variable #-ftime-report
 # cpp related flags
 CFLAGS += -Os -ffunction-sections -fdata-sections -fno-exceptions --specs=nano.specs -Wl,--gc-sections 
 CFLAGS += -std=c99 
@@ -133,7 +135,7 @@ lib:
 proj: 	$(PRJNAME).elf
 
 $(PRJNAME).elf: $(C_SRC) 
-	$(CC) $(CFLAGS) $^ -o $(OUTDIR)/$@ -L$(CMSISDIR) -L$(DSPLIB) -lc -lstm32f4 -lstdc++ -lnosys -larm_cortexM4lf_math
+	$(CC) $(CFLAGS) $^ -o $(OUTDIR)/$@ -L$(CMSISDIR) -L$(DSPLIB) -lc -lm -lstm32f4 -lstdc++ -lnosys -larm_cortexM4lf_math
 	$(OBJCOPY) -O ihex $(OUTDIR)/$(PRJNAME).elf $(OUTDIR)/$(PRJNAME).hex
 	$(OBJCOPY) -O binary $(OUTDIR)/$(PRJNAME).elf $(OUTDIR)/$(PRJNAME).bin
 
