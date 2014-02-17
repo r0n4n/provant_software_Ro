@@ -55,11 +55,6 @@ GPIOPin LED_builtin;
 GPIOPin LED_Green, LED_Red;
 
 /* Private define ------------------------------------------------------------*/
-// Sys-Tick Counter - Messen der Anzahl der Befehle des Prozessors:
-#define CORE_SysTickEn()    (*((u32*)0xE0001000)) = 0x40000001
-#define CORE_SysTickDis()   (*((u32*)0xE0001000)) = 0x40000000
-#define CORE_GetSysTick()   (*((u32*)0xE0001004))
-
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
 float32_t largetarget_f32[36];
@@ -99,8 +94,6 @@ void FPU_init(){
 void blink_led_task(void *pvParameters)
 {
 	LED_builtin = c_common_gpio_init(GPIOC, GPIO_Pin_13, GPIO_Mode_OUT);
-	LED_Green   = c_common_gpio_init(GPIOG, GPIO_Pin_7,  GPIO_Mode_OUT);
-	LED_Red     = c_common_gpio_init(GPIOG, GPIO_Pin_8, GPIO_Mode_OUT);
 
 	char str[64];
 	int  channels[4];
@@ -108,14 +101,26 @@ void blink_led_task(void *pvParameters)
     while(1) {
         c_common_gpio_toggle(LED_builtin);
         vTaskDelay(100/portTICK_RATE_MS);
-        /*
-        c_common_usart_puts(USART2, "Canais: ");
-        for(int i=0; i<4; i++) {
-        	sprintf(str, "%d ", c_rc_receiver_getChannel(i));
-        	c_common_usart_puts(USART2, str);
-        }
-        c_common_usart_puts(USART2, "\n\r: ");
-        */
+    }
+}
+
+void servo_task(void *pvParameters)
+{
+	char str[64];
+
+    while(1)
+    {
+    	vTaskDelay(500/portTICK_RATE_MS);
+    	sprintf(str, "move 10 -> %d\n\r",c_io_rx24f_move(2,10));
+    	c_common_usart_puts(USART2, str); 
+    	vTaskDelay(500/portTICK_RATE_MS);
+    	sprintf(str, "move 50 -> %d\n\r",c_io_rx24f_move(2,50));
+    	c_common_usart_puts(USART2, str); 
+    	vTaskDelay(500/portTICK_RATE_MS);
+    	c_common_usart_flush(USART6);
+    	vTaskDelay(2/portTICK_RATE_MS);
+    	sprintf(str, "lido -> %d\n\r",c_io_rx24f_readPosition(2));
+        c_common_usart_puts(USART2, str);        
     }
 
 }
@@ -132,22 +137,22 @@ void module_io_task(void *pvParameters)
 	module_io_run();
 }
 
-
 void blctrl_task(void *pvParameters)
 {
   char str[30];
-  c_io_blctrl_setSpeed(BLCTRL_ADDR, 0);
+  c_common_usart_puts(USART2, "esc task !!\n\r");
+  c_io_blctrl_setSpeed(1, 0);
   while(1)
   {
 	c_common_usart_puts(USART2, "Starting blctrl_task main loop!");
 
     vTaskDelay(10/portTICK_RATE_MS);
-    c_io_blctrl_updateBuffer(BLCTRL_ADDR);
+    c_io_blctrl_updateBuffer(1);
 
-    sprintf(str, "esc rpm: %d \n\r",(int)c_io_blctrl_readSpeed(BLCTRL_ADDR) );
+    sprintf(str, "esc rpm: %d \n\r",(int)c_io_blctrl_readSpeed(1) );
     c_common_usart_puts(USART2, str);
 
-    sprintf(str, "esc Voltage: %d \n\r",(int)c_io_blctrl_readVoltage(BLCTRL_ADDR) );
+    sprintf(str, "esc Voltage: %d \n\r",(int)c_io_blctrl_readVoltage(1) );
     c_common_usart_puts(USART2, str);
 
     vTaskDelay(100/portTICK_RATE_MS);
@@ -207,21 +212,15 @@ int main(void)
 
 	c_common_usart_puts(USART2, "Iniciando!\n\r");
 
-	// UART3 test --------------------------------------
-	//c_common_usart3_init(9600);
-
-	GPIOPin pino = c_common_gpio_init(GPIOG, GPIO_Pin_12, GPIO_Mode_OUT);
-
-	// UART3 test --------------------------------------
-
 	/* create tasks */
 	xTaskCreate(blink_led_task, (signed char *)"Blink led", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+1, NULL);
-	xTaskCreate(module_rc_task, (signed char *)"module_rc", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+1, NULL);
-	xTaskCreate(module_io_task, (signed char *)"module_io", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+1, NULL);
+	//xTaskCreate(module_rc_task, (signed char *)"module_rc", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+1, NULL);
+	//xTaskCreate(module_io_task, (signed char *)"module_io", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+1, NULL);
 
 	//xTaskCreate(sonar_task, (signed char *)"Sonar task", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+1, NULL);
 	//xTaskCreate(matrix_task   , (signed char *)"matrixinv", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+1, NULL);
 	//xTaskCreate(blctrl_task, (signed char *)"blctr", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+1, NULL);
+	//xTaskCreate(servo_task   , (signed char *)"servo", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+1, NULL);
 
 	/* Start the scheduler. */
 	vTaskStartScheduler();

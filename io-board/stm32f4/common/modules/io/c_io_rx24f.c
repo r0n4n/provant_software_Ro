@@ -3,31 +3,37 @@
   * @file    modules/io/c_io_rx24f.c
   * @author  Martin Vincent Bloedorn
   * @version V1.0.0
-  * @date    02-Dezember-2013
-  * @brief   Implementação do servo RX-24F.
+  * @date    02-DezemberCHECKSUM_ERRO013
+  * @brief   Implementação do servo RXCHECKSUM_ERRO4F.
   ******************************************************************************/
 
 /* Includes ------------------------------------------------------------------*/
 #include "c_io_rx24f.h"
 
-#include "c_common_gpio.h"
-#include "c_common_uart.h"
-#include "c_common_utils.h"
 
-#include <math.h>
+/*
+#define CORE_SysTickEn()    (*((u32*)0xE0001000)) = 0x40000001
+#define CORE_SysTickDis()   (*((u32*)0xE0001000)) = 0x40000000
+#define CORE_GetSysTick()   (*((u32*)0xE0001004))
+*/
 
 /** @addtogroup Module_IO
   * @{
   */
 
 /** @addtogroup Module_IO_Component_RX24F
-  *	\brief Componente para o Servo Dynamixel RX-24F.
+  *	\brief Componente para o Servo Dynamixel RXCHECKSUM_ERRO4F.
   *
   * @{
   */
 
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
+
+// Sys-Tick Counter - Messen der Anzahl der Befehle des Prozessors:
+#define CORE_SysTickEn()    (*((u32*)0xE0001000)) = 0x40000001
+#define CORE_SysTickDis()   (*((u32*)0xE0001000)) = 0x40000000
+#define CORE_GetSysTick()   (*((u32*)0xE0001004))
 
 // EEPROM AREA  ///////////////////////////////////////////////////////////
 #define AX_MODEL_NUMBER_L           0
@@ -113,9 +119,9 @@
 #define AX_GOAL_SP_LENGTH           7
 #define BROADCAST_ID                254
 #define AX_START                    255
-#define BUFFER_SIZE		  			 64
+#define BUFFER_SIZE		  			      64
 #define TIME_OUT                    10
-#define TX_DELAY_TIME		    	 400
+#define TX_DELAY_TIME		    	      400
 
 #define PIN_CONTROL_PORT		 	 GPIOG
 #define PIN_CONTROL				 	 GPIO_Pin_12
@@ -127,13 +133,21 @@ GPIOPin controlPin;
 
 /* Private function prototypes -----------------------------------------------*/
 /* Private functions ---------------------------------------------------------*/
-int prv_read_error() {
+int prv_read_error(int error_byte)
+{
+  if (error_byte & 1) return INPUT_VOLTAGE_ERROR;
+  else if ((error_byte & (int) 2))  return ANGLE_LIMIT_ERROR;
+  else if ((error_byte & (int) 4))  return OVERHEATING_ERROR;
+  else if ((error_byte & (int) 8))  return RANGE_ERROR;
+  else if ((error_byte & (int) 16))  return CHECKSUM_ERROR_SERVO;
+  else if ((error_byte & (int) 32))  return OVERLOAD_ERROR;
+  else if ((error_byte & (int) 64))  return UNDEFINED_ERROR;
 
-	return 0;
+  return -99;
 }
 /* Exported functions definitions --------------------------------------------*/
 
-/** \brief Inicializa USART6 conectada ao barramento dos servos e o pino de controle.
+/** \brief Inicializa RXUSART conectada ao barramento dos servos e o pino de controle.
   * Desliga interrupt de recebimento (feito via pooling neste caso).
   *
   * \todo Generalizar a inicialização para qualquer USART.
@@ -184,9 +198,33 @@ int c_io_rx24f_move(unsigned char ID, int position) {
     c_common_usart_putchar(RXUSART, checksum);
     while( !(RXUSART->SR & 0x00000040) );
     c_common_gpio_reset(controlPin);
-    //receive answer...
+    
+    int volatile pass_time = (int)xTaskGetTickCount();
+    while((int)xTaskGetTickCount()-pass_time<=1){}
+    int buffer[12]={}; 
 
-	return 1;
+    for (int i = 0; c_common_usart_available(RXUSART)==1 && i<12; ++i)
+    {
+      buffer[i]=(int)c_common_usart_read(RXUSART);
+    }
+
+    if(buffer[4]!=0)
+      return prv_read_error(buffer[4]);    
+
+    if(buffer[0]==0XFF && buffer[1]==0XFF && buffer[2]==(int)ID)
+    {
+
+      TChecksum=buffer[2]+buffer[3]+buffer[4];
+      while ( TChecksum >= 255) TChecksum -= 255;
+      TChecksum= 0xFF - TChecksum;
+
+      if(buffer[5]==TChecksum)
+        return 0; //ok
+      else
+        return CHECKSUM_ERROR;
+    }
+    else 
+      return STARTX_ERROR;
 }
 
 /** \brief Move o servo para posição desejada, em graus.
@@ -221,10 +259,34 @@ int c_io_rx24f_setLed(unsigned char ID, unsigned char value) {
     while( !(RXUSART->SR & 0x00000040) );
     c_common_gpio_reset(controlPin);
 
+    int volatile pass_time = (int)xTaskGetTickCount();
+    while((int)xTaskGetTickCount()-pass_time<=1){}
+    int buffer[12]={}; 
 
+    for (int i = 0; c_common_usart_available(RXUSART)==1 && i<12; ++i)
+    {
+      buffer[i]=(int)c_common_usart_read(RXUSART);
+    }
 
-	return 1;
-}
+    if(buffer[4]!=0)
+      return prv_read_error(buffer[4]);    
+
+    if(buffer[0]==0XFF && buffer[1]==0XFF && buffer[2]==(int)ID)
+    {
+
+      TChecksum=buffer[2]+buffer[3]+buffer[4];
+      while ( TChecksum >= 255) TChecksum -= 255;
+      TChecksum= 0xFF - TChecksum;
+
+      if(buffer[5]==TChecksum)
+        return 0; //ok
+      else
+        return CHECKSUM_ERROR; 
+    }
+    else 
+      return STARTX_ERROR;
+  }
+
 
 /** \brief Lê a posição atual do servo, em graus.
   * Retorna um valor negativo (\em - erro \em) em caso de falha.
@@ -245,7 +307,7 @@ int  c_io_rx24f_readPosition(unsigned char ID) {
     unsigned char checksum = 0xFF - TChecksum;
 
     c_common_gpio_set(controlPin);
-    for(int i=0xFFFF; i>0; i--);
+    for(unsigned int i=0xFFFF; i>0; i--);        
     c_common_usart_putchar(RXUSART, AX_START);
     c_common_usart_putchar(RXUSART, AX_START);
     c_common_usart_putchar(RXUSART, ID);
@@ -256,9 +318,36 @@ int  c_io_rx24f_readPosition(unsigned char ID) {
     c_common_usart_putchar(RXUSART, checksum);
     while( !(RXUSART->SR & 0x00000040) );
     c_common_gpio_reset(controlPin);
-    //receive answer...
 
-	return 1;
+
+    int volatile pass_time = (int)xTaskGetTickCount();
+    while((int)xTaskGetTickCount()-pass_time<=1){}
+    int buffer[12]={}; 
+
+    for (int i = 0; c_common_usart_available(RXUSART)==1 && i<12; ++i)
+    {
+      buffer[i]=(int)c_common_usart_read(RXUSART);
+    }
+
+    if(buffer[4]!=0)
+      return prv_read_error(buffer[4]);    
+
+    if(buffer[0]==0XFF && buffer[1]==0XFF && buffer[2]==(int)ID)
+    {
+      int Position_L = buffer[5];
+      int Position_H = buffer[6]<<8;
+
+      TChecksum=buffer[2]+buffer[3]+buffer[4]+buffer[5]+buffer[6];
+      while ( TChecksum >= 255) TChecksum -= 255;
+      TChecksum= 0xFF - TChecksum;
+
+      if(buffer[7]==TChecksum)
+        return (int)round(c_common_utils_map((Position_L+Position_H),0,1023,0,300));
+      else
+        return CHECKSUM_ERROR; 
+    }
+    else 
+      return STARTX_ERROR;
 }
 
 /* IRQ handlers ------------------------------------------------------------- */

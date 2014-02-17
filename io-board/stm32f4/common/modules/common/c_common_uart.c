@@ -244,6 +244,8 @@ void c_common_usart_putchar(USART_TypeDef* USARTx, volatile char c){
 bool c_common_usart_available(USART_TypeDef* USARTx) {
 	if(USARTx == USART2)
 		return usart2_available_flag;
+	else if(USARTx == USART3)
+		return usart3_available_flag;
 	else if(USARTx == USART6)
 		return usart6_available_flag;
 	else
@@ -262,6 +264,13 @@ unsigned char c_common_usart_read(USART_TypeDef* USARTx) {
 		else	usart2_rb_out = 0;
 		if(usart2_rb_in == usart2_rb_out) usart2_available_flag = false;
 		return ret;
+	}
+	if(USARTx == USART3) {
+			uint8_t ret = usart3_recv_buffer[usart3_rb_out];
+			if(usart3_rb_out < RECV_BUFFER_SIZE-1) usart3_rb_out++;
+			else	usart3_rb_out = 0;
+			if(usart3_rb_in == usart3_rb_out) usart3_available_flag = false;
+			return ret;
 	}
 	else if(USARTx == USART6) {
 		uint8_t ret = usart6_recv_buffer[usart6_rb_out];
@@ -286,9 +295,23 @@ void c_common_usart_flush(USART_TypeDef* USARTx)
 	if(USARTx == USART2)
 		for(i=0;i < RECV_BUFFER_SIZE-1;i++)
 			usart2_recv_buffer[i]=0;
+		usart2_rb_in=0;
+		usart2_rb_out=0;
+		usart2_available_flag=0;
+	if(USARTx == USART3)
+			for(i=0;i < RECV_BUFFER_SIZE-1;i++)
+				usart3_recv_buffer[i]=0;
+			usart3_rb_in=0;
+			usart3_rb_out=0;
+			usart3_available_flag=0;
 	if(USARTx == USART6) 
+	{
 		for(i=0;i < RECV_BUFFER_SIZE-1;i++)
 			usart6_recv_buffer[i]=0;
+		usart6_rb_in=0;
+		usart6_rb_out=0;
+		usart6_available_flag=0;
+	}
 }
 
 /* IRQ handlers ------------------------------------------------------------- */

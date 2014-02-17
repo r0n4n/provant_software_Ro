@@ -14,12 +14,29 @@
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f4xx_conf.h"
 
+#include "c_common_gpio.h"
+#include "c_common_uart.h"
+#include "c_common_utils.h"
+
+#include <math.h>
+
 #ifdef __cplusplus
  extern "C" {
 #endif
 
 /* Includes ------------------------------------------------------------------*/
 /* Exported types ------------------------------------------------------------*/
+/* Private define ------------------------------------------------------------*/
+#define STARTX_ERROR 			-1
+#define CHECKSUM_ERROR 			-2
+#define INPUT_VOLTAGE_ERROR		-3
+#define OVERHEATING_ERROR		-4
+#define RANGE_ERROR				-5
+#define CHECKSUM_ERROR_SERVO	-6
+#define OVERLOAD_ERROR			-7
+#define INSTRUCTION_ERROR		-8
+#define UNDEFINED_ERROR			-9
+#define ANGLE_LIMIT_ERROR	    -10
 /* Exported constants --------------------------------------------------------*/
 /* Exported macro ------------------------------------------------------------*/
 

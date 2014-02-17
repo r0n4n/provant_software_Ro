@@ -55,7 +55,7 @@ void module_io_init() {
 	/* Inicialização do hardware do módulo */
 	c_common_i2c_init();
 
-	c_common_usart2_init(9600);
+	c_common_usart2_init(115200);
 	c_io_rx24f_init(1000000);
 
 	C_COMMON_UTILS_1MS_DELAY //delay para inicialização da IMU
@@ -91,7 +91,7 @@ void module_io_run() {
 
 		xQueueReceive(pv_interface_io.iActuation, &iActuation, 0);
 
-		c_io_blctrl_setSpeed(BLCTRL_ADDR, 1700-iActuation.escLeftSpeed);
+		c_io_blctrl_setSpeed(0, 1700-iActuation.escLeftSpeed);
 		c_io_rx24f_move(2, iActuation.servoLeft);
 
 		vTaskDelayUntil( &lastWakeTime, MODULE_PERIOD / portTICK_RATE_MS);
