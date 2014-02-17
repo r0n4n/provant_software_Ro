@@ -92,7 +92,15 @@ void module_io_run() {
 		xQueueReceive(pv_interface_io.iActuation, &iActuation, 0);
 
 		c_io_blctrl_setSpeed(0, 1700-iActuation.escLeftSpeed);
-		c_io_rx24f_move(2, iActuation.servoLeft);
+		c_io_blctrl_setSpeed(1, 1700-iActuation.escLeftSpeed);
+
+		if(iActuation.servoLeft > 60) iActuation.servoLeft = 60.0;
+		if(iActuation.servoLeft < 0)  iActuation.servoLeft =  0.0;
+		if(iActuation.servoRight > 60) iActuation.servoRight = 60.0;
+		if(iActuation.servoRight < 0)  iActuation.servoRight =  0.0;
+
+		c_io_rx24f_move(2, 190 - iActuation.servoLeft);
+		c_io_rx24f_move(1, 190 - iActuation.servoRight);
 
 		vTaskDelayUntil( &lastWakeTime, MODULE_PERIOD / portTICK_RATE_MS);
 	}
