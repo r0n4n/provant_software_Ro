@@ -123,6 +123,9 @@ OBJS = $(SRCS:.c=.o)
 
 all: directories lib proj
 
+%.o : %.c
+	$(CC) $(CFLAGS) -c -o $@ $^
+
 doc:
 	cd $(PRJDIR)/doc && $(DOXYGEN)
 	cd ..

@@ -115,9 +115,10 @@ int  c_io_blctrl_updateBuffer(uint8_t ID)
   for(i=0;i<BLCTRL_BUFFER_SIZE;i++)
   {
     c_common_i2c_start(ID<<1, I2C_Direction_Receiver);
+    //c_common_i2c_stop();
+    for(int i=0; i--; i<0xFFFFFF) { __asm("NOP"); }
     blctrl_buffer[i]=c_common_i2c_readNack();
-    int b=0;
-    for(b=0;b<1000;b++); // gastar tempo para conseguir ler varios enderecos
+    for(int i=0; i--; i<0xFFFFFF) { __asm("NOP"); }
   }
   
   return 1;

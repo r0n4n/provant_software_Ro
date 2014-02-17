@@ -142,7 +142,7 @@ void blctrl_task(void *pvParameters)
 	c_common_usart_puts(USART2, "Starting blctrl_task main loop!");
 
     vTaskDelay(10/portTICK_RATE_MS);
-    c_io_blctrl_updateBuffer(BLCTRL_ADDR);
+    //c_io_blctrl_updateBuffer(BLCTRL_ADDR);
 
     sprintf(str, "esc rpm: %d \n\r",(int)c_io_blctrl_readSpeed(BLCTRL_ADDR) );
     c_common_usart_puts(USART2, str);
@@ -151,7 +151,8 @@ void blctrl_task(void *pvParameters)
     c_common_usart_puts(USART2, str);
 
     vTaskDelay(100/portTICK_RATE_MS);
-    c_io_blctrl_setSpeed(BLCTRL_ADDR, 195);
+    c_io_blctrl_setSpeed(BLCTRL_ADDR, 500);
+    //c_io_blctrl_setSpeed(BLCTRL_ADDR+1, 500);
   }
 }
 
@@ -165,15 +166,6 @@ void sonar_task(void *pvParameters)
     c_common_usart_puts(USART2, str);
     vTaskDelay(300/portTICK_RATE_MS);
   }
-}
-
-void prvHardwareInit()
-{
-	c_common_i2c_init();
-	c_common_usart2_init(9600);
-	c_io_sonar_init();
-	//c_io_rx24f_init(1000000);
-	//c_rc_receiver_init();
 }
 
 void matrix_task(void *pvParameters)
@@ -196,45 +188,11 @@ void matrix_task(void *pvParameters)
 /* Main ----------------------------------------------------------------------*/
 int main(void)
 {
-	FPU_init();
-
 	/* Init system and trace */
 	SystemInit();
-
-	// Teste Rodrigo -----------------------------------------------------------------------------
-	c_common_usart2_init(9600);
-	c_common_usart_puts(USART2, "Iniciado!\n\r");
-
-	int it, it2;
-	GPIOPin test = c_common_gpio_init(GPIOB, GPIO_Pin_11, GPIO_Mode_OUT);
-
-	pv_msg_io_actuation   actuation = {0,0.0f,0.0f,0.0f,0.0f};
-	pv_msg_datapr_attitude attitude = {0.0f,0.0f,0.0f,0.0f,0.0f,0.0f};
-	pv_msg_datapr_attitude attitude_reference = {0.0f,0.0f,0.0f,0.0f,0.0f,0.0f};
-	pv_msg_datapr_position position = {0.0f,0.0f,0.0f,0.0f,0.0f,0.0f};
-	pv_msg_datapr_position position_reference = {0.0f,0.0f,0.0f,0.0f,0.0f,0.0f};
-
-	attitude_reference.roll = 1.0f;
-
-	while(1) {
-		actuation = RC_controller(attitude,
-						attitude_reference,
-						position,
-						position_reference);
-		c_common_gpio_toggle(test);
-	}
-
-	char str[64];
-	sprintf(str, "%4.4f %4.4f %4.4f %4.4f\n\r", (float)actuation.escLeftSpeed,
-												(float)actuation.escRightSpeed,
-												(float)actuation.servoLeft,
-												(float)actuation.servoRight);
-	c_common_usart_puts(USART2, str);
-
-	//---------------------------------------------------------------------------------------------
+	FPU_init();
 
 	vTraceInitTraceData();
-
 	vTraceConsoleMessage("Starting application...");
 	if (! uiTraceStart() )
 		vTraceConsoleMessage("Could not start recorder!");
@@ -245,16 +203,17 @@ int main(void)
 
 	/* Connect modules */
 	//pv_interface_rc.oAngularRefs = pv_interface_io.iServoSetpoints;
+	//pv_interface_io. ...
+	//...
 
-	c_common_usart_puts(USART2, "Iniciado!\n\r");
-
+	c_common_usart_puts(USART2, "Iniciando!\n\r");
 	/* create tasks */
 	xTaskCreate(blink_led_task, (signed char *)"Blink led", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+1, NULL);
 	//xTaskCreate(module_rc_task, (signed char *)"module_rc", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+1, NULL);
-	xTaskCreate(module_io_task, (signed char *)"module_io", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+1, NULL);
+	//xTaskCreate(module_io_task, (signed char *)"module_io", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+1, NULL);
 	//xTaskCreate(sonar_task, (signed char *)"Sonar task", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+1, NULL);
 	xTaskCreate(matrix_task   , (signed char *)"matrixinv", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+1, NULL);
-	//xTaskCreate(blctrl_task, (signed char *)"blctr", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+1, NULL);
+	xTaskCreate(blctrl_task, (signed char *)"blctr", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+1, NULL);
 
 	/* Start the scheduler. */
 	vTaskStartScheduler();

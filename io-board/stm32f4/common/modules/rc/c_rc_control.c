@@ -16,8 +16,34 @@
 
 /** @addtogroup Module_RC_Component_Control
   * \brief Controle de estabilização para o modo de operação RC.
+  *
+  * O controlador pode ser testado fazendo-se, por exemplo:
+  * \code
+  * GPIOPin test = c_common_gpio_init(GPIOB, GPIO_Pin_11, GPIO_Mode_OUT);
+  *
+  * pv_msg_io_actuation   actuation = {0,0.0f,0.0f,0.0f,0.0f};
+  * pv_msg_datapr_attitude attitude = {0.0f,0.0f,0.0f,0.0f,0.0f,0.0f};
+  * pv_msg_datapr_attitude attitude_reference = {0.0f,0.0f,0.0f,0.0f,0.0f,0.0f};
+  * pv_msg_datapr_position position = {0.0f,0.0f,0.0f,0.0f,0.0f,0.0f};
+  * pv_msg_datapr_position position_reference = {0.0f,0.0f,0.0f,0.0f,0.0f,0.0f};
+  *
+  * attitude_reference.roll = 1.0f;
+  *
+  * while(1) {
+  *   	actuation = RC_controller(attitude,
+  * 					attitude_reference,
+  * 					position,
+  * 					position_reference);
+  * 	    c_common_gpio_toggle(test);
+  * }
+  * \endcode
+  *
+  * A frequência de cálculo pode ser vista então se olhando o pino comutado no osciloscópio.
+  * Para o exemplo acima, gira em torno de 80us.
   * @{
   */
+
+		//---------------------------------------------------------------------------------------------
 
 /* Exported functions definitions --------------------------------------------*/
 

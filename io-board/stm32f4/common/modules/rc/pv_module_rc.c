@@ -43,15 +43,20 @@ portTickType lastWakeTime;
   * @retval None
   */
 void module_rc_init() {
+	/* Inicialização do hardware do módulo */
 	c_rc_receiver_init();
 
-	pv_interface_rc.iAttitude = xQueueCreate(1, sizeof(pv_msg_datapr_attitude));
+	/* Inicialização das filas do módulo. Apenas inboxes (i*!) são criadas! */
+	pv_interface_rc.iAttitude  = xQueueCreate(1, sizeof(pv_msg_datapr_attitude));
 
-	actuation.servoTorqueControlEnable = 0;
-	actuation.escLeftSpeed  = 0.0;
-	actuation.escRightSpeed = 0.0;
-	actuation.servoLeft	    = 0.0;
-	actuation.servoRight    = 0.0;
+	/* Inicializando outboxes em 0 */
+	pv_interface_rc.oActuation = 0;
+
+	/* Verificação de criação correta das filas */
+	if(pv_interface_rc.iAttitude == 0) {
+		vTraceConsoleMessage("Could not create queue in pv_interface_io!");
+		while(1);
+	}
 }
 
 /** \brief Função principal do módulo de RC.

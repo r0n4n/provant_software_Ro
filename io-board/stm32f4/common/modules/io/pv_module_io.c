@@ -25,8 +25,11 @@
 
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
+#define MODULE_PERIOD	   10//ms
+
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
+portTickType lastWakeTime;
 int  accRaw[3], gyroRaw[3], magRaw[3];
 char str[64];
 
@@ -42,23 +45,29 @@ char str[64];
   * @retval None
   */
 void module_io_init() {
+	/* Inicialização do hardware do módulo */
 	c_common_i2c_init();
 
 	c_common_usart2_init(9600);
 	c_io_rx24f_init(1000000);
 
-	//for(int i=0; i<0xFFFFFF; i++) { __asm("NOP"); }
 	C_COMMON_UTILS_1MS_DELAY //delay para inicialização da IMU
-	c_io_imu_init();
+	//c_io_imu_init();
 
 	c_io_blctrl_init();
-	// Init queues
-	//pv_interface_io.iServoSetpoints = xQueueCreate(1, sizeof(pv_msg_io_servoSetpoints));
 
-	//if(pv_interface_io.iServoSetpoints == 0) {
-	//	vTraceConsoleMessage("Could not create queue in pv_interface_io!");
-	//	while(1);
-	//}
+	/* Inicialização das filas do módulo. Apenas inboxes (i*!) são criadas! */
+	pv_interface_io.iActuation = xQueueCreate(1, sizeof(pv_msg_io_actuation));
+
+	/* Inicializando outboxes em 0 */
+	pv_interface_io.oAttitude = 0;
+	pv_interface_io.oPosition = 0;
+
+	/* Verificação de criação correta das filas */
+	if(pv_interface_io.iActuation == 0) {
+		vTraceConsoleMessage("Could not create queue in pv_interface_io!");
+		while(1);
+	}
 }
 
 /** \brief Função principal do módulo de IO.
@@ -72,13 +81,14 @@ void module_io_run() {
 	float rpy[3];
 
 	while(1) {
+		lastWakeTime = xTaskGetTickCount();
 		//xQueueReceive(pv_interface_io.iServoSetpoints, &recvsetp, 0);
 		/*
 		c_io_imu_getComplimentaryRPY(rpy);
 		//sprintf(str, "RP: %d %d\n\r", (int)(100.0*rpy[0]), (int)(100.0*rpy[1]));
 		//c_common_usart_puts(USART2, str);
 		*/
-		vTaskDelay(250/portTICK_RATE_MS);
+		vTaskDelayUntil( &lastWakeTime, MODULE_PERIOD / portTICK_RATE_MS);
 	}
 }
 /* IRQ handlers ------------------------------------------------------------- */

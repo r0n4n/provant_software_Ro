@@ -42,7 +42,9 @@
    * setpoints ou comandos para atuadores.
    */
 struct pv_interface_io {
-	xQueueHandle iServoSetpoints;
+	xQueueHandle oAttitude;		/** Output da Orientação do VANT. Tipo pv_msg_datapr_attitude . **/
+	xQueueHandle oPosition;		/** \todo Implementar output da posição do VANT. **/
+	xQueueHandle iActuation;	/** Sinais de atuação para módulo de IO. Tipo pv_msg_io_actuation . **/
 } pv_interface_io;
 
 /* Exported constants --------------------------------------------------------*/
