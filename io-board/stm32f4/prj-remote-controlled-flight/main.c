@@ -138,25 +138,24 @@ void module_io_task(void *pvParameters)
 	}
 }
 
-
 void blctrl_task(void *pvParameters)
 {
   char str[30];
-  c_common_usart_puts(USART2, "esc task !\n\r");
-  c_io_blctrl_setSpeed(BLCTRL_ADDR, 0);
+  c_common_usart_puts(USART2, "esc task !!\n\r");
+  c_io_blctrl_setSpeed(1, 0);
   while(1)
   {
     vTaskDelay(10/portTICK_RATE_MS);
-    c_io_blctrl_updateBuffer(BLCTRL_ADDR);
+    c_io_blctrl_updateBuffer(1);
 
-    sprintf(str, "esc rpm: %d \n\r",(int)c_io_blctrl_readSpeed(BLCTRL_ADDR) );
+    sprintf(str, "esc rpm: %d \n\r",(int)c_io_blctrl_readSpeed(1) );
     c_common_usart_puts(USART2, str);
 
-    sprintf(str, "esc Voltage: %d \n\r",(int)c_io_blctrl_readVoltage(BLCTRL_ADDR) );
+    sprintf(str, "esc Voltage: %d \n\r",(int)c_io_blctrl_readVoltage(1) );
     c_common_usart_puts(USART2, str);
 
     vTaskDelay(100/portTICK_RATE_MS);
-    c_io_blctrl_setSpeed(BLCTRL_ADDR, 195);
+    c_io_blctrl_setSpeed(1, 195);
   }
 }
 
@@ -270,7 +269,7 @@ int main(void)
 	LED = c_common_gpio_init(GPIOC, GPIO_Pin_13, GPIO_Mode_OUT);
 
 	/* Connect modules */
-	pv_interface_rc.oAngularRefs = pv_interface_io.iServoSetpoints;
+	//pv_interface_rc.oAngularRefs = pv_interface_io.iServoSetpoints;
 
 	c_common_usart_puts(USART2, "Iniciado!\n\r");
 
