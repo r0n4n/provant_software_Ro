@@ -31,6 +31,12 @@ pv_msg_io_actuation actuation;
 pv_type_receiverChannels receiver;
 portTickType lastWakeTime;
 
+/* Inboxes buffers */
+pv_msg_datapr_attitude iAttitude;
+
+/* Outboxes buffers*/
+pv_msg_io_actuation    oActuation;
+
 /* Private function prototypes -----------------------------------------------*/
 /* Private functions ---------------------------------------------------------*/
 /* Exported functions definitions --------------------------------------------*/
@@ -67,20 +73,15 @@ void module_rc_init() {
   * via interface.
   */
 void module_rc_run() {
+
 	while(1) {
 		lastWakeTime = xTaskGetTickCount();
-		/*
-		//get radio-control channel values
-		for(int i=0; i<8; i++)
-			receiver.channel[i] = c_rc_receiver_getChannel(i);
 
-		actuation.escLeftSpeed  = 20.0;
-		actuation.escRightSpeed = 20.0;
+		oActuation.escLeftSpeed = c_rc_receiver_getChannel(C_RC_CHANNEL_THROTTLE);
 
-		//send actuation values
 		if(pv_interface_rc.oActuation != 0)
-			xQueueOverwrite(pv_interface_rc.oActuation, &actuation);
-		*/
+			xQueueOverwrite(pv_interface_rc.oActuation, &oActuation);
+
         vTaskDelayUntil( &lastWakeTime, MODULE_PERIOD / portTICK_RATE_MS);
 	}
 }

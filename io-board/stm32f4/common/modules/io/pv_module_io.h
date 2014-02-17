@@ -29,6 +29,7 @@
 #include "c_common_uart.h"
 #include "c_common_utils.h"
 
+#include "c_io_blctrl.h"
 #include "c_io_rx24f.h"
 #include "c_io_imu.h"
 

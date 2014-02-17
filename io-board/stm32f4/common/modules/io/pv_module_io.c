@@ -33,6 +33,13 @@ portTickType lastWakeTime;
 int  accRaw[3], gyroRaw[3], magRaw[3];
 char str[64];
 
+/* Inboxes buffers */
+pv_msg_io_actuation    iActuation;
+
+/* Outboxes buffers*/
+pv_msg_datapr_attitude oAttitude;
+pv_msg_datapr_position oPosition;
+
 /* Private function prototypes -----------------------------------------------*/
 /* Private functions ---------------------------------------------------------*/
 /* Exported functions definitions --------------------------------------------*/
@@ -78,16 +85,14 @@ void module_io_init() {
   *
   */
 void module_io_run() {
-	float rpy[3];
 
 	while(1) {
 		lastWakeTime = xTaskGetTickCount();
-		//xQueueReceive(pv_interface_io.iServoSetpoints, &recvsetp, 0);
-		/*
-		c_io_imu_getComplimentaryRPY(rpy);
-		//sprintf(str, "RP: %d %d\n\r", (int)(100.0*rpy[0]), (int)(100.0*rpy[1]));
-		//c_common_usart_puts(USART2, str);
-		*/
+
+		xQueueReceive(pv_interface_io.iActuation, &iActuation, 0);
+
+		c_io_blctrl_setSpeed(BLCTRL_ADDR, 1700-iActuation.escLeftSpeed);
+
 		vTaskDelayUntil( &lastWakeTime, MODULE_PERIOD / portTICK_RATE_MS);
 	}
 }

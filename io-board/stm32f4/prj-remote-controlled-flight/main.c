@@ -201,19 +201,20 @@ int main(void)
 	module_io_init(); //IO precisa ser inicializado antes de outros.
 	module_rc_init();
 
-	/* Connect modules */
-	//pv_interface_rc.oAngularRefs = pv_interface_io.iServoSetpoints;
-	//pv_interface_io. ...
-	//...
+	/* Connect modules: interface1.o* = interface2.i* */
+	pv_interface_io.oAttitude  = pv_interface_rc.iAttitude;
+	pv_interface_rc.oActuation = pv_interface_io.iActuation;
 
 	c_common_usart_puts(USART2, "Iniciando!\n\r");
+
 	/* create tasks */
 	xTaskCreate(blink_led_task, (signed char *)"Blink led", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+1, NULL);
-	//xTaskCreate(module_rc_task, (signed char *)"module_rc", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+1, NULL);
-	//xTaskCreate(module_io_task, (signed char *)"module_io", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+1, NULL);
+	xTaskCreate(module_rc_task, (signed char *)"module_rc", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+1, NULL);
+	xTaskCreate(module_io_task, (signed char *)"module_io", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+1, NULL);
+
 	//xTaskCreate(sonar_task, (signed char *)"Sonar task", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+1, NULL);
-	xTaskCreate(matrix_task   , (signed char *)"matrixinv", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+1, NULL);
-	xTaskCreate(blctrl_task, (signed char *)"blctr", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+1, NULL);
+	//xTaskCreate(matrix_task   , (signed char *)"matrixinv", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+1, NULL);
+	//xTaskCreate(blctrl_task, (signed char *)"blctr", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+1, NULL);
 
 	/* Start the scheduler. */
 	vTaskStartScheduler();
