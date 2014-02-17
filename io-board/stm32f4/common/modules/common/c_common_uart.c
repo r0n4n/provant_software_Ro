@@ -37,15 +37,20 @@
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
 unsigned char usart2_recv_buffer[RECV_BUFFER_SIZE]; //! Ring-Buffer de recebimento de USART2.
+unsigned char usart3_recv_buffer[RECV_BUFFER_SIZE]; //! Ring-Buffer de recebimento de USART3.
 unsigned char usart6_recv_buffer[RECV_BUFFER_SIZE]; //! Ring-Buffer de recebimento de USART6.
 
 int usart2_rb_in  = 0; //! Index do Ring-Buffer para recebimento na USART2.
 int usart2_rb_out = 0; //! Index para leitura do Ring-Buffer da USART2.
 
+int usart3_rb_in  = 0; //! Index do Ring-Buffer para recebimento na USART3.
+int usart3_rb_out = 0; //! Index para leitura do Ring-Buffer da USART3.
+
 int usart6_rb_in  = 0; //! Index do Ring-Buffer para recebimento na USART2.
 int usart6_rb_out = 0; //! Index para leitura do Ring-Buffer da USART2.
 
 bool usart2_available_flag = 0;	//! Flag de recebimento de USART2.
+bool usart3_available_flag = 0;	//! Flag de recebimento de USART3.
 bool usart6_available_flag = 0;	//! Flag de recebimento de USART6.
 
 /* Private function prototypes -----------------------------------------------*/
@@ -101,6 +106,58 @@ void c_common_usart6_init(int baudrate) {
 	// finally this enables the complete USART6 peripheral
 	USART_Cmd(USART6, ENABLE);
 }
+
+/** \brief Inicializa a USART3 com o Baurate desejado em modo 8-N-1.
+ * 	Instala USART2 nos pinos PB10 e PB11 (TX e RX, respectivamente) - pinos D9 e UEXT9
+ * 	do layout do Arduino (no Olimex-STM32-H407);
+  * Tratador de interrupções para recebimento já é instalado automaticamente.
+  *
+  * @param  baudrate a ser inicializado.
+  * @retval None
+  */
+void c_common_usart3_init(int baudrate) {
+	GPIO_InitTypeDef GPIO_InitStructure;
+	USART_InitTypeDef USART_InitStructure;
+	NVIC_InitTypeDef NVIC_InitStructure;
+
+	/* enable peripheral clock for USART2 */
+	RCC_APB1PeriphClockCmd(RCC_APB1Periph_USART3, ENABLE);
+
+	/* GPIOA clock enable */
+	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOB, ENABLE);
+
+	/* GPIOA Configuration:  USART2 TX on PA2, RX on PA3 */
+	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_10 | GPIO_Pin_11;
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;
+	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+	GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
+	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP ;
+	GPIO_Init(GPIOB, &GPIO_InitStructure);
+
+	/* Connect USART2 pins to AF2 */
+	// TX = PA2
+	GPIO_PinAFConfig(GPIOB, GPIO_PinSource10, GPIO_AF_USART3);
+	GPIO_PinAFConfig(GPIOB, GPIO_PinSource11, GPIO_AF_USART3);
+
+	USART_InitStructure.USART_BaudRate = baudrate;
+	USART_InitStructure.USART_WordLength = USART_WordLength_8b;
+	USART_InitStructure.USART_StopBits = USART_StopBits_1;
+	USART_InitStructure.USART_Parity = USART_Parity_No;
+	USART_InitStructure.USART_HardwareFlowControl = USART_HardwareFlowControl_None;
+	USART_InitStructure.USART_Mode = USART_Mode_Tx | USART_Mode_Rx;
+	USART_Init(USART3, &USART_InitStructure);
+
+	USART_ITConfig(USART3, USART_IT_RXNE, ENABLE); // enable the USART1 receive interrupt
+
+	NVIC_InitStructure.NVIC_IRQChannel = USART3_IRQn;		 // we want to configure the USART1 interrupts
+	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 1;// this sets the priority group of the USART1 interrupts
+	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 1;		 // this sets the subpriority inside the group
+	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;			 // the USART1 interrupts are globally enabled
+	NVIC_Init(&NVIC_InitStructure);							 // the properties are passed to the NVIC_Init function which takes care of the low level stuff
+
+	USART_Cmd(USART3, ENABLE); // enable USART2
+}
+
 
 /** \brief Inicializa a USART2 com o Baurate desejado em modo 8-N-1.
  * 	Instala USART2 nos pinos PA2 e PA3 (TX e RX, respectivamente) - pinos D1 e D0
@@ -255,6 +312,27 @@ void USART2_IRQHandler(void){
 		USART_ClearITPendingBit(USART2, USART_IT_RXNE);
 	}
 }
+
+/** \brief Tratador de interrupção para o recebimento de um byte em USART2.
+  * Armazena os bytes lidos no buffer usart2_recv_buffer e seta o flag
+  * usart2_available_flag .
+  *
+  * @param  None
+  * @retval None
+  */
+void USART3_IRQHandler(void){
+	// check if the USART1 receive interrupt flag was set
+	if( USART_GetITStatus(USART3, USART_IT_RXNE) ){
+		usart3_available_flag = 1;
+		usart3_recv_buffer[usart3_rb_in] = USART_ReceiveData(USART3);
+		if(usart3_rb_in < RECV_BUFFER_SIZE-1) usart3_rb_in++;
+		else	usart3_rb_in = 0;
+
+		USART_ClearFlag(USART3, USART_IT_RXNE);
+		USART_ClearITPendingBit(USART3, USART_IT_RXNE);
+	}
+}
+
 
 /** \brief Tratador de interrupção para o recebimento de um byte em USART6.
   * Armazena os bytes lidos no buffer usart2_recv_buffer e seta o flag

@@ -142,7 +142,7 @@ void blctrl_task(void *pvParameters)
 	c_common_usart_puts(USART2, "Starting blctrl_task main loop!");
 
     vTaskDelay(10/portTICK_RATE_MS);
-    //c_io_blctrl_updateBuffer(BLCTRL_ADDR);
+    c_io_blctrl_updateBuffer(BLCTRL_ADDR);
 
     sprintf(str, "esc rpm: %d \n\r",(int)c_io_blctrl_readSpeed(BLCTRL_ADDR) );
     c_common_usart_puts(USART2, str);
@@ -206,6 +206,13 @@ int main(void)
 	pv_interface_rc.oActuation = pv_interface_io.iActuation;
 
 	c_common_usart_puts(USART2, "Iniciando!\n\r");
+
+	// UART3 test --------------------------------------
+	//c_common_usart3_init(9600);
+
+	GPIOPin pino = c_common_gpio_init(GPIOG, GPIO_Pin_12, GPIO_Mode_OUT);
+
+	// UART3 test --------------------------------------
 
 	/* create tasks */
 	xTaskCreate(blink_led_task, (signed char *)"Blink led", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+1, NULL);

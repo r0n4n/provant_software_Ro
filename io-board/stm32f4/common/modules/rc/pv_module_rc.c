@@ -78,6 +78,7 @@ void module_rc_run() {
 		lastWakeTime = xTaskGetTickCount();
 
 		oActuation.escLeftSpeed = c_rc_receiver_getChannel(C_RC_CHANNEL_THROTTLE);
+		oActuation.servoLeft    = (c_rc_receiver_getChannel(C_RC_CHANNEL_ROLL)-1000.0f)/5.0f;
 
 		if(pv_interface_rc.oActuation != 0)
 			xQueueOverwrite(pv_interface_rc.oActuation, &oActuation);

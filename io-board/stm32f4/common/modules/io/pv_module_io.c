@@ -92,6 +92,7 @@ void module_io_run() {
 		xQueueReceive(pv_interface_io.iActuation, &iActuation, 0);
 
 		c_io_blctrl_setSpeed(BLCTRL_ADDR, 1700-iActuation.escLeftSpeed);
+		c_io_rx24f_move(2, iActuation.servoLeft);
 
 		vTaskDelayUntil( &lastWakeTime, MODULE_PERIOD / portTICK_RATE_MS);
 	}

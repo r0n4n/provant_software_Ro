@@ -117,9 +117,9 @@
 #define TIME_OUT                    10
 #define TX_DELAY_TIME		    	 400
 
-#define PIN_CONTROL_PORT		 	 GPIOC
-#define PIN_CONTROL				 	 GPIO_Pin_0
-#define RXUSART						 USART6
+#define PIN_CONTROL_PORT		 	 GPIOG
+#define PIN_CONTROL				 	 GPIO_Pin_12
+#define RXUSART						 USART3
 
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
@@ -142,7 +142,7 @@ int prv_read_error() {
   * @retval None
   */
 void c_io_rx24f_init(int baudrate) {
-	c_common_usart6_init(baudrate);
+	c_common_usart3_init(baudrate);
 	c_common_usart_it_set(RXUSART, USART_IT_RXNE, ENABLE);
 	controlPin = c_common_gpio_init(PIN_CONTROL_PORT, PIN_CONTROL, GPIO_Mode_OUT);
 }

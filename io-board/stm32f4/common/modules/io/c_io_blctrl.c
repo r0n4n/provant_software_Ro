@@ -116,7 +116,7 @@ int  c_io_blctrl_updateBuffer(uint8_t ID)
   {
     c_common_i2c_start(ID<<1, I2C_Direction_Receiver);
     //c_common_i2c_stop();
-    for(int i=0; i--; i<0xFFFFFF) { __asm("NOP"); }
+    //for(int i=0; i--; i<0xFFFFFF) { __asm("NOP"); }
     blctrl_buffer[i]=c_common_i2c_readNack();
     for(int i=0; i--; i<0xFFFFFF) { __asm("NOP"); }
   }

@@ -74,6 +74,8 @@ GPIOPin c_common_gpio_init(GPIO_TypeDef* GPIOx, uint16_t GPIO_Pin, GPIOMode_Type
 		RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOE, ENABLE);
 	if(GPIOx == GPIOF)
 		RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOF, ENABLE);
+	if(GPIOx == GPIOG)
+		RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOG, ENABLE);
 
 	switch(GPIO_Mode)
 	{

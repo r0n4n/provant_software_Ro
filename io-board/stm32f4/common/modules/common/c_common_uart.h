@@ -29,6 +29,7 @@
 
 /* Exported functions ------------------------------------------------------- */
 void c_common_usart2_init(int baudrate);
+void c_common_usart3_init(int baudrate);
 void c_common_usart6_init(int baudrate);
 void c_common_usart_puts(USART_TypeDef* USARTx, volatile char *s);
 void c_common_usart_putchar(USART_TypeDef* USARTx, volatile char c);
