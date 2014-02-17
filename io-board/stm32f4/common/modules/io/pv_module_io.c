@@ -44,7 +44,7 @@ char str[64];
   * @retval None
   */
 void module_io_init() {
-	//c_common_i2c_init();
+	c_common_i2c_init();
 	//c_io_imu_init();
 
 	c_common_usart2_init(115200);

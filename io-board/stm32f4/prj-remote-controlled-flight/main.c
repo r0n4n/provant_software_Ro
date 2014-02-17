@@ -142,6 +142,7 @@ void module_io_task(void *pvParameters)
 void blctrl_task(void *pvParameters)
 {
   char str[30];
+  c_common_usart_puts(USART2, "esc task !\n\r");
   c_io_blctrl_setSpeed(BLCTRL_ADDR, 0);
   while(1)
   {
@@ -259,8 +260,14 @@ int main(void)
 		vTraceConsoleMessage("Could not start recorder!");
 
 	/* Init modules */
-	module_io_init(); //IO precisa ser inicializado antes de outros.
-	module_rc_init();
+	//module_io_init(); //IO precisa ser inicializado antes de outros.
+	//module_rc_init();
+	c_common_i2c_init();
+	c_common_usart2_init(115200);
+  	c_io_sonar_init();
+	//c_io_rx24f_init(1000000);
+	//c_rc_receiver_init();
+	LED = c_common_gpio_init(GPIOC, GPIO_Pin_13, GPIO_Mode_OUT);
 
 	/* Connect modules */
 	pv_interface_rc.oAngularRefs = pv_interface_io.iServoSetpoints;
@@ -269,11 +276,11 @@ int main(void)
 
 	/* create tasks */
 	xTaskCreate(blink_led_task, (signed char *)"Blink led", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+1, NULL);
-	xTaskCreate(servo_task, (signed char *)"servo_task", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+1, NULL);
+	//xTaskCreate(servo_task, (signed char *)"servo_task", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+1, NULL);
 	//xTaskCreate(module_rc_task, (signed char *)"module_rc", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+1, NULL);
 	//xTaskCreate(module_io_task, (signed char *)"module_io", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+1, NULL);
 	//xTaskCreate(sonar_task, (signed char *)"Sonar task", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+1, NULL);
-	//xTaskCreate(matrix_task   , (signed char *)"matrixinv", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+1, NULL);
+	xTaskCreate(blctrl_task   , (signed char *)"blctrl_task", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+1, NULL);
 
 	/* Start the scheduler. */
 	vTaskStartScheduler();
