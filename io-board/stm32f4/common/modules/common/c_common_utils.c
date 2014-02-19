@@ -81,6 +81,26 @@ void  c_common_utils_delayms(int ms) {
 	do { t2 = CORE_GetSysTick(); } while((t2-t1) < ms);
 }
 
+/** \brief Formata um float para impressão via printf, UART, etc.
+ *
+ * Complementa o sprintf - que não é identico ao PC no ambiente embedded.
+ *
+ * @param num Número float a ser formatado.
+ * @param *outbuf Buffer no qual o resultado será armazenado.
+ * @param decplaces Quantidade de casas após a vírgula a serem mostrada (não implementado).
+ */
+void c_common_utils_floatToString(float num, char * outbuf, char decplaces) {
+	int bComma, aComma; //before and after Comma
+
+	bComma = num; 	//truncates number automatically
+	num -= bComma; 	//leaves only digits after the comma
+	aComma = ((int)(num*10000.0f));
+	if(num > 0.0)
+		sprintf(outbuf, "%d.%04d", bComma, aComma);
+	else
+		sprintf(outbuf, "%-d.%04d", bComma, aComma);
+}
+
 /**
   * @}
   */

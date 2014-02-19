@@ -28,11 +28,12 @@
 /* Exported types ------------------------------------------------------------*/
 /* Exported constants --------------------------------------------------------*/
 /* Exported macro ------------------------------------------------------------*/
-#define C_IO_IMU_USE_ITG_ADXL_HMC
+//#define C_IO_IMU_USE_ITG_ADXL_HMC
+#define C_IO_IMU_USE_MPU6050_HMC5883
 
 /* Exported functions ------------------------------------------------------- */
 void c_io_imu_init();
-void c_io_imu_getRaw(int * accRaw, int * gyroRaw, int * magRaw);
+void c_io_imu_getRaw(float  * accRaw, float * gyrRaw, float * magRaw);
 void c_io_imu_getComplimentaryRPY(float * rpy);
 void c_io_imu_calibrate();
 

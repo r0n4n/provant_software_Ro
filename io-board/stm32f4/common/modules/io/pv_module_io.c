@@ -69,7 +69,7 @@ void module_io_init() {
 	c_io_rx24f_setSpeed(2, 70);
 
 	c_common_utils_delayms(100);
-	//c_io_imu_init();
+	c_io_imu_init();
 
 	c_io_blctrl_init();
 
@@ -95,20 +95,27 @@ void module_io_init() {
   *
   */
 void module_io_run() {
-	int accRaw[3], gyrRaw[3], magRaw[3];
+	float accRaw[3], gyrRaw[3], magRaw[3];
+	char  ax[16], ay[16], az[16];
 
 	while(1) {
 		lastWakeTime = xTaskGetTickCount();
 
 		xQueueReceive(pv_interface_io.iActuation, &iActuation, 0);
-		c_common_usart_puts(USART2, "module_io_run\n\r");
 
-		c_io_blctrl_setSpeed(0, 700);//1700-iActuation.escLeftSpeed);
+//		c_io_blctrl_setSpeed(0, 700);//1700-iActuation.escLeftSpeed);
 //		c_io_blctrl_setSpeed(1, 700);//1700-iActuation.escLeftSpeed);
 
-		vTaskDelay( 10 / portTICK_RATE_MS );
+		//vTaskDelay( 10 / portTICK_RATE_MS );
 
-		//c_io_imu_getRaw(accRaw, gyrRaw, magRaw);
+		c_io_imu_getRaw(accRaw, gyrRaw, magRaw);
+
+		c_common_utils_floatToString(accRaw[0], ax, 4);
+		c_common_utils_floatToString(accRaw[1], ay, 4);
+		c_common_utils_floatToString(accRaw[2], az, 4);
+
+		sprintf(str, "%s \t %s \t %s\n\r", ax, ay, az);
+		c_common_usart_puts(USART2, str);
 		//if(iActuation.servoLeft > 60) iActuation.servoLeft = 60.0;
 		//if(iActuation.servoLeft < 0)  iActuation.servoLeft =  0.0;
 		//if(iActuation.servoRight > 60) iActuation.servoRight = 60.0;
@@ -117,7 +124,7 @@ void module_io_run() {
 		//c_io_rx24f_move(2, iActuation.servoLeft);
 		//c_io_rx24f_move(1, iActuation.servoRight-10);
 
-		//vTaskDelayUntil( &lastWakeTime, MODULE_PERIOD / portTICK_RATE_MS);
+		vTaskDelayUntil( &lastWakeTime, (MODULE_PERIOD / portTICK_RATE_MS));
 	}
 }
 /* IRQ handlers ------------------------------------------------------------- */
