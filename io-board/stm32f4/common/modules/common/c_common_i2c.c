@@ -15,7 +15,9 @@
   */
 
 /** @addtogroup Common_Components_I2C
-  *  \brief Funções para uso da I2C (I2C1).
+  *  \brief Funções para uso da I2C (I2C1)
+  *
+  *  \todo Embutir timeouts nos whiles (travam a thread quando o dipositivo desejado não está no bus).
   *
   *  Posto que apenas a I2C1 será usada, as funções terão esta "hard-coded", via define:
   *
@@ -222,6 +224,20 @@ void c_common_i2c_writeByte(uint8_t device, uint8_t address, uint8_t byteToWrite
 	c_common_i2c_write(address);
 	c_common_i2c_write(byteToWrite);
 	c_common_i2c_stop();
+}
+
+/** \brief Escreve apenas um bit em um dado endereço de um dispositivo.
+ *
+ * @param device Endereço do dispositivo no barramento.
+ * @param address Endereço do byte no qual o bit será escrito.
+ * @param bit Posição do bit a ser escrito (0..7).
+ * @param value Valor do bit a ser escrito (0 ou 1).
+ */
+void c_common_i2c_writeBit(uint8_t device, uint8_t address, uint8_t bit, bool value) {
+	uint8_t byteBuffer;
+	c_common_i2c_readBytes(device, address, 1, byteBuffer);
+	byteBuffer = (value == 0)? (byteBuffer & (1<<bit)) : (byteBuffer | (1<<bit));
+	c_common_i2c_writeByte(device, address,byteBuffer);
 }
 
 /* IRQ handlers ------------------------------------------------------------- */
