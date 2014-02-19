@@ -28,7 +28,10 @@
 #define C_COMMON_UTILS_1MS_DELAY for(int i=0; i--; i<168000) { __asm("NOP"); }
 
 /* Exported functions ------------------------------------------------------- */
-long c_common_utils_map(long x, long in_min, long in_max, long out_min, long out_max);
+float c_common_utils_map(float x, float in_min, float in_max, float out_min, float out_max);
+float c_common_utils_sat(float x, float min, float max);
+void  c_common_utils_delayms(int  ms);
+void  c_common_utils_delayus(long us);
 
 /* Header-defined wrapper functions ----------------------------------------- */
 

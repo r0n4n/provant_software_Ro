@@ -25,7 +25,7 @@
 
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
-#define MODULE_PERIOD	   10//ms
+#define MODULE_PERIOD	   100//ms
 
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
@@ -56,9 +56,19 @@ void module_io_init() {
 	c_common_i2c_init();
 
 	c_common_usart2_init(115200);
-	c_io_rx24f_init(1000000);
 
-	C_COMMON_UTILS_1MS_DELAY //delay para inicialização da IMU
+	/* Inicializar os servos */
+	c_io_rx24f_init(1000000);
+	c_io_rx24f_setSpeed(1, 20);
+	c_io_rx24f_setSpeed(2, 20);
+	c_common_utils_delayms(1);
+	c_io_rx24f_move(1, 150);
+	c_io_rx24f_move(2, 140);
+	c_common_utils_delayms(1);
+	c_io_rx24f_setSpeed(1, 70);
+	c_io_rx24f_setSpeed(2, 70);
+
+	c_common_utils_delayms(100);
 	//c_io_imu_init();
 
 	c_io_blctrl_init();
@@ -85,24 +95,29 @@ void module_io_init() {
   *
   */
 void module_io_run() {
+	int accRaw[3], gyrRaw[3], magRaw[3];
 
 	while(1) {
 		lastWakeTime = xTaskGetTickCount();
 
 		xQueueReceive(pv_interface_io.iActuation, &iActuation, 0);
+		c_common_usart_puts(USART2, "module_io_run\n\r");
 
-		c_io_blctrl_setSpeed(0, 1700-iActuation.escLeftSpeed);
-		c_io_blctrl_setSpeed(1, 1700-iActuation.escLeftSpeed);
+		c_io_blctrl_setSpeed(0, 700);//1700-iActuation.escLeftSpeed);
+//		c_io_blctrl_setSpeed(1, 700);//1700-iActuation.escLeftSpeed);
 
-		if(iActuation.servoLeft > 60) iActuation.servoLeft = 60.0;
-		if(iActuation.servoLeft < 0)  iActuation.servoLeft =  0.0;
-		if(iActuation.servoRight > 60) iActuation.servoRight = 60.0;
-		if(iActuation.servoRight < 0)  iActuation.servoRight =  0.0;
+		vTaskDelay( 10 / portTICK_RATE_MS );
 
-		c_io_rx24f_move(2, 190 - iActuation.servoLeft);
-		c_io_rx24f_move(1, 190 - iActuation.servoRight);
+		//c_io_imu_getRaw(accRaw, gyrRaw, magRaw);
+		//if(iActuation.servoLeft > 60) iActuation.servoLeft = 60.0;
+		//if(iActuation.servoLeft < 0)  iActuation.servoLeft =  0.0;
+		//if(iActuation.servoRight > 60) iActuation.servoRight = 60.0;
+		//if(iActuation.servoRight < 0)  iActuation.servoRight =  0.0;
 
-		vTaskDelayUntil( &lastWakeTime, MODULE_PERIOD / portTICK_RATE_MS);
+		//c_io_rx24f_move(2, iActuation.servoLeft);
+		//c_io_rx24f_move(1, iActuation.servoRight-10);
+
+		//vTaskDelayUntil( &lastWakeTime, MODULE_PERIOD / portTICK_RATE_MS);
 	}
 }
 /* IRQ handlers ------------------------------------------------------------- */

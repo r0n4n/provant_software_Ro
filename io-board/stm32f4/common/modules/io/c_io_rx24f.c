@@ -11,11 +11,11 @@
 #include "c_io_rx24f.h"
 
 
-/*
+
 #define CORE_SysTickEn()    (*((u32*)0xE0001000)) = 0x40000001
 #define CORE_SysTickDis()   (*((u32*)0xE0001000)) = 0x40000000
 #define CORE_GetSysTick()   (*((u32*)0xE0001004))
-*/
+
 
 /** @addtogroup Module_IO
   * @{
@@ -199,8 +199,9 @@ int c_io_rx24f_move(unsigned char ID, int position) {
     while( !(RXUSART->SR & 0x00000040) );
     c_common_gpio_reset(controlPin);
     
-    int volatile pass_time = (int)xTaskGetTickCount();
-    while((int)xTaskGetTickCount()-pass_time<=1){}
+    //int volatile pass_time = (int)CORE_GetSysTick();
+    //while((int)CORE_GetSysTick()-pass_time<=1){}
+    //c_common_utils_delayms(1);
     int buffer[12]={}; 
 
     for (int i = 0; c_common_usart_available(RXUSART)==1 && i<12; ++i)
@@ -259,8 +260,9 @@ int c_io_rx24f_setLed(unsigned char ID, unsigned char value) {
     while( !(RXUSART->SR & 0x00000040) );
     c_common_gpio_reset(controlPin);
 
-    int volatile pass_time = (int)xTaskGetTickCount();
-    while((int)xTaskGetTickCount()-pass_time<=1){}
+    //int volatile pass_time = (int)CORE_GetSysTick();
+    //while((int)CORE_GetSysTick()-pass_time<=1){}
+    //c_common_utils_delayms(1);
     int buffer[12]={}; 
 
     for (int i = 0; c_common_usart_available(RXUSART)==1 && i<12; ++i)
@@ -320,8 +322,9 @@ int  c_io_rx24f_readPosition(unsigned char ID) {
     c_common_gpio_reset(controlPin);
 
 
-    int volatile pass_time = (int)xTaskGetTickCount();
-    while((int)xTaskGetTickCount()-pass_time<=1){}
+    //int volatile pass_time = (int)CORE_GetSysTick();
+    //while((int)CORE_GetSysTick()-pass_time<=1){}
+    //c_common_utils_delayms(1);
     int buffer[12]={}; 
 
     for (int i = 0; c_common_usart_available(RXUSART)==1 && i<12; ++i)
@@ -347,6 +350,76 @@ int  c_io_rx24f_readPosition(unsigned char ID) {
         return CHECKSUM_ERROR; 
     }
     else 
+      return STARTX_ERROR;
+}
+
+/** \brief Seta a velocidade de deslocamento do servo (implementado APENAS para modo servo).
+  * Retorna um valor negativo (\em - erro \em) em caso de falha.
+  *
+  * @param  ID ID do servo.
+  * @param  speed_in_rpm Velocidade em rpm (no intervalo [0.1, 114]). Se setado 0, a
+  * 		velocidade usada é a máxima possível (sem controle de velocidade).
+  * @retval Status ou erro.
+  */
+int  c_io_rx24f_setSpeed(unsigned char ID, float speed_in_rpm) {
+	speed_in_rpm = c_common_utils_sat(speed_in_rpm, 0, 114);
+
+	int hexSpeed = round(c_common_utils_map(speed_in_rpm,0,114,0,1023));
+    unsigned char Speed_H, Speed_L;
+    Speed_H = hexSpeed >> 8;
+    Speed_L = 0x00FF & hexSpeed;
+
+    unsigned int TChecksum = (ID +
+                             AX_GOAL_LENGTH +
+                             AX_WRITE_DATA +
+                             AX_GOAL_SPEED_L +
+                             Speed_L +
+                             Speed_H);
+    if ( TChecksum >= 255){
+    	TChecksum = TChecksum & 0xFF;
+    }
+
+    unsigned char checksum = 0xFF - TChecksum;
+
+    c_common_gpio_set(controlPin);
+    c_common_usart_putchar(RXUSART, AX_START);
+    c_common_usart_putchar(RXUSART, AX_START);
+    c_common_usart_putchar(RXUSART, ID);
+    c_common_usart_putchar(RXUSART, AX_GOAL_LENGTH);
+    c_common_usart_putchar(RXUSART, AX_WRITE_DATA);
+    c_common_usart_putchar(RXUSART, AX_GOAL_SPEED_L);
+    c_common_usart_putchar(RXUSART, Speed_L);
+    c_common_usart_putchar(RXUSART, Speed_H);
+    c_common_usart_putchar(RXUSART, checksum);
+    while( !(RXUSART->SR & 0x00000040) );
+    c_common_gpio_reset(controlPin);
+
+    //int volatile pass_time = (int)CORE_GetSysTick();
+    //while((int)CORE_GetSysTick()-pass_time<=1){}
+    //c_common_utils_delayms(1);
+    int buffer[12]={};
+
+    for (int i = 0; c_common_usart_available(RXUSART)==1 && i<12; ++i)
+    {
+      buffer[i]=(int)c_common_usart_read(RXUSART);
+    }
+
+    if(buffer[4]!=0)
+      return prv_read_error(buffer[4]);
+
+    if(buffer[0]==0XFF && buffer[1]==0XFF && buffer[2]==(int)ID)
+    {
+
+      TChecksum=buffer[2]+buffer[3]+buffer[4];
+      while ( TChecksum >= 255) TChecksum -= 255;
+      TChecksum= 0xFF - TChecksum;
+
+      if(buffer[5]==TChecksum)
+        return 0; //ok
+      else
+        return CHECKSUM_ERROR;
+    }
+    else
       return STARTX_ERROR;
 }
 

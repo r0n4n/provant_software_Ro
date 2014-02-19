@@ -43,6 +43,7 @@
 #include "c_common_gpio.h"
 #include "c_io_blctrl.h"
 #include "c_io_sonar.h"
+#include "c_io_rx24f.h"
 
 /** @addtogroup ProVANT_Modules
   * \brief Ponto de entrada do software geral do VANT.
@@ -100,7 +101,8 @@ void blink_led_task(void *pvParameters)
 
     while(1) {
         c_common_gpio_toggle(LED_builtin);
-        vTaskDelay(100/portTICK_RATE_MS);
+        //vTaskDelay(100/portTICK_RATE_MS);
+        c_common_utils_delayms(100);
     }
 }
 
@@ -141,22 +143,22 @@ void blctrl_task(void *pvParameters)
 {
   char str[30];
   c_common_usart_puts(USART2, "esc task !!\n\r");
-  c_io_blctrl_setSpeed(1, 0);
+  c_io_blctrl_setSpeed(0, 0);
   while(1)
   {
 	c_common_usart_puts(USART2, "Starting blctrl_task main loop!");
 
     vTaskDelay(10/portTICK_RATE_MS);
-    c_io_blctrl_updateBuffer(1);
+    //c_io_blctrl_updateBuffer(0);
 
-    sprintf(str, "esc rpm: %d \n\r",(int)c_io_blctrl_readSpeed(1) );
+    sprintf(str, "esc rpm: %d \n\r",(int)c_io_blctrl_readSpeed(0) );
     c_common_usart_puts(USART2, str);
 
-    sprintf(str, "esc Voltage: %d \n\r",(int)c_io_blctrl_readVoltage(1) );
+    sprintf(str, "esc Voltage: %d \n\r",(int)c_io_blctrl_readVoltage(0) );
     c_common_usart_puts(USART2, str);
 
     vTaskDelay(100/portTICK_RATE_MS);
-    c_io_blctrl_setSpeed(BLCTRL_ADDR, 500);
+    c_io_blctrl_setSpeed(0, 500);
     //c_io_blctrl_setSpeed(BLCTRL_ADDR+1, 500);
   }
 }
@@ -189,6 +191,13 @@ void matrix_task(void *pvParameters)
 	}
 }
 
+void delay(int ms) {
+	CORE_SysTickEn();
+	ms = ms*(SystemCoreClock / 1000);
+	vu32 t1,t2;
+	t1 = CORE_GetSysTick();
+	do { t2 = CORE_GetSysTick(); } while((t2-t1) < ms);
+}
 
 /* Main ----------------------------------------------------------------------*/
 int main(void)
@@ -212,14 +221,18 @@ int main(void)
 
 	c_common_usart_puts(USART2, "Iniciando!\n\r");
 
+	//-----------------------------------------------------------------------
+
+	//-----------------------------------------------------------------------
+
 	/* create tasks */
 	xTaskCreate(blink_led_task, (signed char *)"Blink led", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+1, NULL);
-	xTaskCreate(module_rc_task, (signed char *)"module_rc", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+1, NULL);
-	xTaskCreate(module_io_task, (signed char *)"module_io", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+1, NULL);
+	//xTaskCreate(module_rc_task, (signed char *)"module_rc", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+1, NULL);
+	//xTaskCreate(module_io_task, (signed char *)"module_io", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+1, NULL);
 
 	//xTaskCreate(sonar_task, (signed char *)"Sonar task", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+1, NULL);
 	//xTaskCreate(matrix_task   , (signed char *)"matrixinv", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+1, NULL);
-	//xTaskCreate(blctrl_task, (signed char *)"blctr", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+1, NULL);
+	xTaskCreate(blctrl_task, (signed char *)"blctr", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+1, NULL);
 	//xTaskCreate(servo_task   , (signed char *)"servo", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+1, NULL);
 
 	/* Start the scheduler. */

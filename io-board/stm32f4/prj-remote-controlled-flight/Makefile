@@ -99,7 +99,7 @@ OBJDUMP = $(TOOLCHAIN_PREFIX)objdump
 NM      = $(TOOLCHAIN_PREFIX)nm
 
 # compiler flags
-CFLAGS  = -g -O2 -Wall -T$(COMMON)/system/stm32_flash.ld 
+CFLAGS  = -g -Wall -T$(COMMON)/system/stm32_flash.ld 
 CFLAGS += -mlittle-endian -mthumb -mcpu=$(MCU) -mthumb-interwork
 CFLAGS += -mfloat-abi=hard -mfpu=fpv4-sp-d16
 CFLAGS += -I. $(patsubst %,-I%,$(INCDIRS))

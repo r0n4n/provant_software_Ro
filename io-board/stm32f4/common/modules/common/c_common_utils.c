@@ -37,14 +37,49 @@
 /* Private functions ---------------------------------------------------------*/
 /* Exported functions definitions --------------------------------------------*/
 
-/**brief Função de mapeamento de variável de um intervalo a outro.
+/** \brief Função de mapeamento de variável de um intervalo a outro.
  *
- * Mapeia a variável x de um intervalo [ \b in_min , \b in_max ] para [ \b out_min , \b out_max ].
+ * Mapeia a variável \f$ x \f$ de um intervalo \f$ [in_{min} , in_{max}] \f$ para \f$ [out_{min} , out_{max}] \f$.
  */
-long c_common_utils_map(long x, long in_min, long in_max, long out_min, long out_max) {
+float c_common_utils_map(float x, float in_min, float in_max, float out_min, float out_max) {
 	return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
 }
 
+/** \brief Satura a variável x entre [min, max].
+ *
+ * Para \f$ x \in [min, max], x = x \f$. Para \f$ x > max, x = max \f$; para \f$ x < min, x = min \f$.
+ *
+ * @retval x após saturação.
+ */
+float c_common_utils_sat(float x, float min, float max) {
+	if (x > max) return max;
+	else if (x < min) return min;
+	else return x;
+}
+
+/** \brief Delay de us baseado em SysTick.
+ *
+ * Ainda implementado como busy waiting! Alterar...
+ */
+void  c_common_utils_delayus(long us) {
+	CORE_SysTickEn();
+	us = us*(SystemCoreClock / 1000000);
+	vu32 t1,t2;
+	t1 = CORE_GetSysTick();
+	do { t2 = CORE_GetSysTick(); } while((t2-t1) < us);
+}
+
+/** \brief Delay de ms baseado em SysTick.
+ *
+ * Ainda implementado como busy waiting! Alterar...
+ */
+void  c_common_utils_delayms(int ms) {
+	CORE_SysTickEn();
+	ms = ms*(SystemCoreClock / 1000);
+	vu32 t1,t2;
+	t1 = CORE_GetSysTick();
+	do { t2 = CORE_GetSysTick(); } while((t2-t1) < ms);
+}
 
 /**
   * @}

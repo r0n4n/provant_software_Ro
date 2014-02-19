@@ -45,6 +45,7 @@ void c_io_rx24f_init(int baudrate);
 int  c_io_rx24f_move(unsigned char ID, int position);
 int  c_io_rx24f_readPosition(unsigned char ID);
 int  c_io_rx24f_setLed(unsigned char ID, unsigned char value);
+int  c_io_rx24f_setSpeed(unsigned char ID, float speed_in_rpm);
 
 #ifdef __cplusplus
 }
