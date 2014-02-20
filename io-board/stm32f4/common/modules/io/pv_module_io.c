@@ -95,15 +95,16 @@ void module_io_init() {
   *
   */
 void module_io_run() {
-	float accRaw[3], gyrRaw[3], magRaw[3], rpy[3];
+	float accRaw[3], gyrRaw[3], magRaw[3];
 	char  ax[16], ay[16], az[16], r[16], p[16];
+	float rpy[] = {0,0,0};
 
 	while(1) {
 		lastWakeTime = xTaskGetTickCount();
 
 		xQueueReceive(pv_interface_io.iActuation, &iActuation, 0);
 
-//		c_io_blctrl_setSpeed(0, 700);//1700-iActuation.escLeftSpeed);
+		//c_io_blctrl_setSpeed(0, 700);//1700-iActuation.escLeftSpeed);
 //		c_io_blctrl_setSpeed(1, 700);//1700-iActuation.escLeftSpeed);
 
 		//vTaskDelay( 10 / portTICK_RATE_MS );
@@ -119,7 +120,7 @@ void module_io_run() {
 		c_common_utils_floatToString(RAD_TO_DEG*rpy[PV_IMU_ROLL ], r, 4);
 		c_common_utils_floatToString(RAD_TO_DEG*rpy[PV_IMU_PITCH], p, 4);
 
-		sprintf(str, "%s \t %s\n\r", r, p);
+		sprintf(str, "Time: %ld \t %s \t\t %s\n\r", c_common_utils_millis(), r, p);
 		c_common_usart_puts(USART2, str);
 		//if(iActuation.servoLeft > 60) iActuation.servoLeft = 60.0;
 		//if(iActuation.servoLeft < 0)  iActuation.servoLeft =  0.0;

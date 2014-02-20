@@ -58,6 +58,7 @@
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
 uint8_t imuBuffer[16];
+long lastIntegrationTime; /** Último valor do SysTick quando a função de filtragem foi chamada - para integracão numérica */
 unsigned char ACCL_ID = 0;
 unsigned char GYRO_ID = 0;
 unsigned char MAGN_ID = 0;
@@ -172,9 +173,9 @@ void c_io_imu_getRaw(float  * accRaw, float * gyrRaw, float * magRaw) {
     ***********************************************/
     float gyrScale = 131.0f;
 
-    gyrRaw[0] = (float)(((signed char)buffer[8])  << 8) | ((uint8_t)buffer[9]  & 0xFF)/gyrScale;
-    gyrRaw[1] = (float)(((signed char)buffer[10]) << 8) | ((uint8_t)buffer[11] & 0xFF)/gyrScale;
-    gyrRaw[2] = (float)(((signed char)buffer[12]) << 8) | ((uint8_t)buffer[13] & 0xFF)/gyrScale;
+    gyrRaw[0] = (float)((((signed char)buffer[8])  << 8) | ((uint8_t)buffer[9]  & 0xFF))/gyrScale;
+    gyrRaw[1] = (float)((((signed char)buffer[10]) << 8) | ((uint8_t)buffer[11] & 0xFF))/gyrScale;
+    gyrRaw[2] = (float)((((signed char)buffer[12]) << 8) | ((uint8_t)buffer[13] & 0xFF))/gyrScale;
 #endif
 
 }
@@ -187,16 +188,31 @@ void c_io_imu_getRaw(float  * accRaw, float * gyrRaw, float * magRaw) {
  */
 void c_io_imu_getComplimentaryRPY(float * rpy) {
 	float acce_raw[3], gyro_raw[3], magn_raw[3];
+	float acce_rpy[3];
 
 	c_io_imu_getRaw(acce_raw, gyro_raw, magn_raw);
 
-	//float32_t px, py, pz;
-	//arm_sqrt_f32((float32_t)pow(acce_raw[Z],2), pz);
+	//gyro_raw[X] = gyro_raw[X] - mean_gyro_raw[X];
+	//gyro_raw[Y] = gyro_raw[Y] - mean_gyro_raw[Y];
+	//gyro_raw[Z] = gyro_raw[Z] - mean_gyro_raw[Z];
 
-	rpy[PV_IMU_PITCH] = atan2( acce_raw[PV_IMU_X], sqrt(pow(acce_raw[PV_IMU_Y],2)
+	acce_rpy[PV_IMU_PITCH] = atan2( acce_raw[PV_IMU_X], sqrt(pow(acce_raw[PV_IMU_Y],2)
 			+ pow(acce_raw[PV_IMU_Z],2)));// - mean_acce_rpy[ROLL] ;
-	rpy[PV_IMU_ROLL ] = atan2( acce_raw[PV_IMU_Y], sqrt(pow(acce_raw[PV_IMU_X],2)
+	acce_rpy[PV_IMU_ROLL ] = atan2( acce_raw[PV_IMU_Y], sqrt(pow(acce_raw[PV_IMU_X],2)
 			+ pow(acce_raw[PV_IMU_Z],2)));// - mean_acce_rpy[PITCH];
+
+	//Filtro complementar
+	float a = 0.98f;
+
+	rpy[PV_IMU_PITCH] = a*(rpy[PV_IMU_PITCH] + gyro_raw[PV_IMU_PITCH]*(c_common_utils_millis()-lastIntegrationTime)/1000.0)
+			+ (1.0f - a)*acce_rpy[PV_IMU_PITCH];
+	rpy[PV_IMU_ROLL ] = a*(rpy[PV_IMU_ROLL ] + gyro_raw[PV_IMU_ROLL ]*(c_common_utils_millis()-lastIntegrationTime)/1000.0)
+			+ (1.0f - a)*acce_rpy[PV_IMU_ROLL ];
+
+	rpy[PV_IMU_PITCH] = acce_rpy[PV_IMU_PITCH];
+	rpy[PV_IMU_ROLL ] = acce_rpy[PV_IMU_ROLL];
+
+	lastIntegrationTime = c_common_utils_millis();
 }
 
 /** \brief Calibra a IMU considerando o veículo em repouso.

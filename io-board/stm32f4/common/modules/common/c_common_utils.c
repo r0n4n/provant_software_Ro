@@ -102,6 +102,31 @@ void c_common_utils_floatToString(float num, char * outbuf, char decplaces) {
 		sprintf(outbuf, "-%d.%04d", abs(bComma), abs(aComma));
 }
 
+/** \brief Retorna o valor do registrador de Systicks desde o disparo do contador.
+ *
+ */
+long c_common_utils_getSysTickCount() {
+	return CORE_GetSysTick();
+}
+
+/** \brief Habilita o SysTick.
+ *
+ * É compatível com o FreeRTOS e pode ser chamado mesmo com o SysTick já rodando, sem alterar seu valor.
+ */
+void c_common_utils_enSysTick() {
+	CORE_SysTickEn();
+}
+
+/** \brief Retorna o valor em milissegundos desde o disparo do SysTick.
+ *
+ * Caso o Registrador de SysTick não esteja rodando quando a função é chamada, o registrador é ativado
+ * via c_common_utils_enSysTick() .
+ */
+long c_common_utils_millis() {
+	CORE_SysTickEn();
+	return CORE_GetSysTick()/(SystemCoreClock/1000);
+}
+
 /**
   * @}
   */
