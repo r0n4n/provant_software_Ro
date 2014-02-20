@@ -235,7 +235,7 @@ void c_common_i2c_writeByte(uint8_t device, uint8_t address, uint8_t byteToWrite
  */
 void c_common_i2c_writeBit(uint8_t device, uint8_t address, uint8_t bit, bool value) {
 	uint8_t byteBuffer;
-	c_common_i2c_readBytes(device, address, 1, byteBuffer);
+	c_common_i2c_readBytes(device, address, 1, &byteBuffer);
 	byteBuffer = (value == 0)? (byteBuffer & (1<<bit)) : (byteBuffer | (1<<bit));
 	c_common_i2c_writeByte(device, address,byteBuffer);
 }

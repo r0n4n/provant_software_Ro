@@ -54,13 +54,6 @@
 	#error "Define an IMU type in `c_io_imu.h`! C_IO_USE_ITG_ADXL, or other!"
 #endif
 
-#define ROLL        0
-#define PITCH       1
-#define YAW         2
-
-#define X           0
-#define Y           1
-#define Z           2
 
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
@@ -119,6 +112,15 @@ void c_io_imu_init() {
 
 /** \brief Obtem as leituras raw do acelerômetro, giro e magnetômetro.
  *
+ * O output de cada um dos sensores é escrito nos buffers passados para a função. Os buffers passados
+ * devem ter tamanho mínimo 3 (tipo float), e serão escritos sempre com valores dos eixos X, Y e Z
+ * de cada sensor lido.
+ * Os valores retornados para cada eixo de cada sensor estão em  \f$ g \f$ para o \b acelerômetro,
+ * \f$ rad/s \f$ para o \b giroscópio, e \f$ rad \f$ para o \b magnetômetro.
+ *
+ * @param accRaw Buffer onde serão escritos os dados do acelerômetro.
+ * @param gyrRaw Buffer onde serão escritos os dados do giroscópio.
+ * @param magRaw Buffer onde serão escritos os dados do magnetômetro.
  */
 void c_io_imu_getRaw(float  * accRaw, float * gyrRaw, float * magRaw) {
 
@@ -144,49 +146,57 @@ void c_io_imu_getRaw(float  * accRaw, float * gyrRaw, float * magRaw) {
 
 #ifdef C_IO_IMU_USE_MPU6050_HMC5883
     uint8_t  buffer[14];
+    c_common_i2c_readBytes(MPU6050_I2C_ADDRESS, MPU6050_ACCEL_XOUT_H, 14, buffer);
 
-    /*----------------------------------------------
+    /** A sensitividade do acelerômetro da MPU6050 é dada pela tabela (extraída do datasheet):
     AFS_SEL | Full Scale Range | LSB Sensitivity
+    --------|------------------|----------------
     0       | ±2g              | 16384 LSB/g
     1       | ±4g              | 8192 LSB/g
     2       | ±8g              | 4096 LSB/g
     3       | ±16g             | 2048 LSB/g
-    ----------------------------------------------*/
+    ***********************************************/
     float accScale = 16384.0f;
-
-    c_common_i2c_readBytes(MPU6050_I2C_ADDRESS, MPU6050_ACCEL_XOUT_H, 14, buffer);
 
     accRaw[0] = -1.0f*(float)((((signed char)buffer[0]) << 8) | ((uint8_t)buffer[1] & 0xFF))/accScale;
     accRaw[1] = -1.0f*(float)((((signed char)buffer[2]) << 8) | ((uint8_t)buffer[3] & 0xFF))/accScale;
     accRaw[2] =       (float)((((signed char)buffer[4]) << 8) | ((uint8_t)buffer[5] & 0xFF))/accScale;
 
-    gyrRaw[0] = (((signed char)buffer[8])  << 8) | ((uint8_t)buffer[9]  & 0xFF);
-    gyrRaw[1] = (((signed char)buffer[10]) << 8) | ((uint8_t)buffer[11] & 0xFF);
-    gyrRaw[2] = (((signed char)buffer[12]) << 8) | ((uint8_t)buffer[13] & 0xFF);
+    /** A sensitividade do giroscópio da MPU6050 é dada pela tabela (extraída do datasheet):
+    FS_SEL | Full Scale Range | LSB Sensitivity
+    -------|------------------|----------------
+    0      | ± 250 °/s        | 131 LSB/°/s
+    1      | ± 500 °/s        | 65.5 LSB/°/s
+    2      | ± 1000 °/s       | 32.8 LSB/°/s
+    3      | ± 2000 °/s       | 16.4 LSB/°/s
+    ***********************************************/
+    float gyrScale = 131.0f;
 
-    //for(int i=0; i<3; i++)
-    //	accRaw[i] = (0b1000000 & accBuf[i])? (-1*((int16_t)~(0b01111111 & accBuf[i]))) : (int16_t)accBuf[i];
+    gyrRaw[0] = (float)(((signed char)buffer[8])  << 8) | ((uint8_t)buffer[9]  & 0xFF)/gyrScale;
+    gyrRaw[1] = (float)(((signed char)buffer[10]) << 8) | ((uint8_t)buffer[11] & 0xFF)/gyrScale;
+    gyrRaw[2] = (float)(((signed char)buffer[12]) << 8) | ((uint8_t)buffer[13] & 0xFF)/gyrScale;
 #endif
 
 }
 
 /** \brief Retorna os ângulos RPY através de um filtro complementar simples.
  *
+ * Implementa apenas uma fusão simples de dados do Giroscópio e Acelerômetro usando a proposta de um filtro complementar.
  *
+ * \image html complementary_filter_diagram.jpg "Diagrama de blocos simplificado para um filtro complementar." width=4cm
  */
 void c_io_imu_getComplimentaryRPY(float * rpy) {
-	int acce_raw[3], gyro_raw[3], magn_raw[3];
+	float acce_raw[3], gyro_raw[3], magn_raw[3];
 
 	c_io_imu_getRaw(acce_raw, gyro_raw, magn_raw);
 
-	float32_t px, py, pz;
-
+	//float32_t px, py, pz;
 	//arm_sqrt_f32((float32_t)pow(acce_raw[Z],2), pz);
 
-	acce_rpy[ROLL ] = atan2( acce_raw[X], sqrt(pow(acce_raw[Y],2) + pow(acce_raw[Z],2)));// - mean_acce_rpy[ROLL] ;
-	acce_rpy[PITCH] = atan2( acce_raw[Y], sqrt(pow(acce_raw[X],2) + pow(acce_raw[Z],2)));// - mean_acce_rpy[PITCH];
-
-	rpy = acce_rpy;
+	rpy[PV_IMU_PITCH] = atan2( acce_raw[PV_IMU_X], sqrt(pow(acce_raw[PV_IMU_Y],2)
+			+ pow(acce_raw[PV_IMU_Z],2)));// - mean_acce_rpy[ROLL] ;
+	rpy[PV_IMU_ROLL ] = atan2( acce_raw[PV_IMU_Y], sqrt(pow(acce_raw[PV_IMU_X],2)
+			+ pow(acce_raw[PV_IMU_Z],2)));// - mean_acce_rpy[PITCH];
 }
 
 /** \brief Calibra a IMU considerando o veículo em repouso.

@@ -15,6 +15,12 @@
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f4xx_conf.h"
 
+#define ARM_MATH_CM4
+#include "arm_math.h"
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+
 #ifdef __cplusplus
  extern "C" {
 #endif
@@ -23,6 +29,8 @@
 /* Exported types ------------------------------------------------------------*/
 /* Exported constants --------------------------------------------------------*/
 #define PV_CONSTANT_G    9.81 //gravity
+
+#define RAD_TO_DEG 57.2957795131f
 
 /* Exported macro ------------------------------------------------------------*/
 #define C_COMMON_UTILS_1MS_DELAY for(int i=0; i--; i<168000) { __asm("NOP"); }

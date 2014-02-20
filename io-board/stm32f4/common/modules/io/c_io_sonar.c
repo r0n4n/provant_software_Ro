@@ -52,7 +52,7 @@ int  c_io_sonar_read()
   dist[0]=c_common_usart_read(USART6);
   dist[1]=c_common_usart_read(USART6);
   dist[2]=c_common_usart_read(USART6);
-  atoi(dist);
+  return atoi(dist);
 }
 
 /* IRQ handlers ------------------------------------------------------------- */

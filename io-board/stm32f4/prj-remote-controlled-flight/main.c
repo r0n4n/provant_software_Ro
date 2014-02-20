@@ -53,23 +53,10 @@
 
 /* Private typedef -----------------------------------------------------------*/
 GPIOPin LED_builtin;
-GPIOPin LED_Green, LED_Red;
 
 /* Private define ------------------------------------------------------------*/
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
-float32_t largetarget_f32[36];
-
-float32_t large_f32[36] =
-{
-	0.8147,    0.2785,    0.9572,    0.7922,    0.6787,    0.7060,
-	0.9058,    0.5469,    0.4854,    0.9595,    0.7577,    0.0318,
-	0.1270,    0.9575,    0.8003,    0.6557,    0.7431,    0.2769,
-	0.9134,    0.9649,    0.1419,    0.0357,    0.3922,    0.0462,
-	0.6324,    0.1576,    0.4218,    0.8491,    0.6555,    0.0971,
-	0.0975,    0.9706,    0.9157,    0.9340,    0.1712,    0.8235
-};
-
 /* Private function prototypes -----------------------------------------------*/
 void vApplicationTickHook() {};
 void vApplicationIdleHook() {};
@@ -96,34 +83,10 @@ void blink_led_task(void *pvParameters)
 {
 	LED_builtin = c_common_gpio_init(GPIOC, GPIO_Pin_13, GPIO_Mode_OUT);
 
-	char str[64];
-	int  channels[4];
-
     while(1) {
         c_common_gpio_toggle(LED_builtin);
         vTaskDelay(100/portTICK_RATE_MS);
     }
-}
-
-void servo_task(void *pvParameters)
-{
-	char str[64];
-
-    while(1)
-    {
-    	vTaskDelay(500/portTICK_RATE_MS);
-    	sprintf(str, "move 10 -> %d\n\r",c_io_rx24f_move(2,10));
-    	c_common_usart_puts(USART2, str); 
-    	vTaskDelay(500/portTICK_RATE_MS);
-    	sprintf(str, "move 50 -> %d\n\r",c_io_rx24f_move(2,50));
-    	c_common_usart_puts(USART2, str); 
-    	vTaskDelay(500/portTICK_RATE_MS);
-    	c_common_usart_flush(USART6);
-    	vTaskDelay(2/portTICK_RATE_MS);
-    	sprintf(str, "lido -> %d\n\r",c_io_rx24f_readPosition(2));
-        c_common_usart_puts(USART2, str);        
-    }
-
 }
 
 // Module RC task
@@ -138,29 +101,6 @@ void module_io_task(void *pvParameters)
 	module_io_run();
 }
 
-void blctrl_task(void *pvParameters)
-{
-  char str[30];
-  c_common_usart_puts(USART2, "esc task !!\n\r");
-  c_io_blctrl_setSpeed(0, 0);
-  while(1)
-  {
-	c_common_usart_puts(USART2, "Starting blctrl_task main loop!");
-
-    vTaskDelay(10/portTICK_RATE_MS);
-    //c_io_blctrl_updateBuffer(0);
-
-    sprintf(str, "esc rpm: %d \n\r",(int)c_io_blctrl_readSpeed(0) );
-    c_common_usart_puts(USART2, str);
-
-    sprintf(str, "esc Voltage: %d \n\r",(int)c_io_blctrl_readVoltage(0) );
-    c_common_usart_puts(USART2, str);
-
-    vTaskDelay(100/portTICK_RATE_MS);
-    c_io_blctrl_setSpeed(0, 500);
-    //c_io_blctrl_setSpeed(BLCTRL_ADDR+1, 500);
-  }
-}
 
 void sonar_task(void *pvParameters)
 {
@@ -172,30 +112,6 @@ void sonar_task(void *pvParameters)
     c_common_usart_puts(USART2, str);
     vTaskDelay(300/portTICK_RATE_MS);
   }
-}
-
-void matrix_task(void *pvParameters)
-{
-	arm_matrix_instance_f32 l;
-	arm_matrix_instance_f32 lt;
-
-	arm_mat_init_f32(&l, 6, 6, (float32_t *)large_f32);
-	arm_mat_init_f32(&lt, 6, 6, largetarget_f32);
-	vu32 it, it2;
-
-	while(1) {
-		it = CORE_GetSysTick();
-		arm_mat_inverse_f32(&l, &lt);
-		it2 = CORE_GetSysTick() - it;
-	}
-}
-
-void delay(int ms) {
-	CORE_SysTickEn();
-	ms = ms*(SystemCoreClock / 1000);
-	vu32 t1,t2;
-	t1 = CORE_GetSysTick();
-	do { t2 = CORE_GetSysTick(); } while((t2-t1) < ms);
 }
 
 /* Main ----------------------------------------------------------------------*/
@@ -219,10 +135,6 @@ int main(void)
 	pv_interface_rc.oActuation = pv_interface_io.iActuation;
 
 	c_common_usart_puts(USART2, "Iniciando!\n\r");
-
-	//-----------------------------------------------------------------------
-
-	//-----------------------------------------------------------------------
 
 	/* create tasks */
 	xTaskCreate(blink_led_task, (signed char *)"Blink led", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+1, NULL);

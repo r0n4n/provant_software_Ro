@@ -169,7 +169,7 @@ int  c_rc_receiver_getCenteredChannel(int channel_n) {
 			ch2ret = c_rc_receiver_getChannel(channel_n);
 			attempts--;
 			if(ch2ret == -1)
-				C_COMMON_UTILS_1MS_DELAY
+				c_common_utils_delayms(1);
 		}
 		while((ch2ret == -1) && attempts);
 		return ch2ret - channel_center[channel_n];

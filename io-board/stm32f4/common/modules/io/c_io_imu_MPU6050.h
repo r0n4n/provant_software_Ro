@@ -132,7 +132,7 @@
  #define MPU6050_D7 7
 
  // AUX_VDDIO Register
- #define MPU6050_AUX_VDDIO MPU6050_D7  // I2C high: 1=VDD, 0=VLOGIC
+ //#define MPU6050_AUX_VDDIO MPU6050_D7  // I2C high: 1=VDD, 0=VLOGIC
 
  // CONFIG Register
  // DLPF is Digital Low Pass Filter for both gyro and accelerometers.
@@ -536,7 +536,7 @@
  #define MPU6050_FIFO_RESET     MPU6050_D2
  #define MPU6050_I2C_IF_DIS     MPU6050_D4   // must be 0 for MPU-6050
  #define MPU6050_I2C_MST_EN     MPU6050_D5
- #define MPU6050_FIFO_EN        MPU6050_D6
+ #define MPU6050_FIFO_ENB       MPU6050_D6
 
  // PWR_MGMT_1 Register
  // These are the names for the bits.

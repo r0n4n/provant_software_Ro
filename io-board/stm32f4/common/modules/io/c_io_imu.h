@@ -19,6 +19,7 @@
 
 #define ARM_MATH_CM4
 #include "arm_math.h"
+#include <math.h>
 
 #ifdef __cplusplus
  extern "C" {
@@ -27,6 +28,14 @@
 /* Includes ------------------------------------------------------------------*/
 /* Exported types ------------------------------------------------------------*/
 /* Exported constants --------------------------------------------------------*/
+#define PV_IMU_ROLL        0
+#define PV_IMU_PITCH       1
+#define PV_IMU_YAW         2
+
+#define PV_IMU_X           0
+#define PV_IMU_Y           1
+#define PV_IMU_Z           2
+
 /* Exported macro ------------------------------------------------------------*/
 //#define C_IO_IMU_USE_ITG_ADXL_HMC
 #define C_IO_IMU_USE_MPU6050_HMC5883

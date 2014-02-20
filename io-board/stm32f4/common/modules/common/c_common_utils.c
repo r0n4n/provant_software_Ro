@@ -91,14 +91,15 @@ void  c_common_utils_delayms(int ms) {
  */
 void c_common_utils_floatToString(float num, char * outbuf, char decplaces) {
 	int bComma, aComma; //before and after Comma
-
+	float subnum;
 	bComma = num; 	//truncates number automatically
-	num -= bComma; 	//leaves only digits after the comma
-	aComma = ((int)(num*10000.0f));
-	if(num > 0.0)
-		sprintf(outbuf, "%d.%04d", bComma, aComma);
+	subnum = num - bComma; 	//leaves only digits after the comma
+	aComma = ((int)(subnum*10000.0f));
+
+	if(aComma > 0)
+		sprintf(outbuf, "%d.%04d", abs(bComma), abs(aComma));
 	else
-		sprintf(outbuf, "%-d.%04d", bComma, aComma);
+		sprintf(outbuf, "-%d.%04d", abs(bComma), abs(aComma));
 }
 
 /**
