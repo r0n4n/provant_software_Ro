@@ -115,6 +115,8 @@ void module_io_run() {
 		//c_common_utils_floatToString(accRaw[1], ay, 4);
 		//c_common_utils_floatToString(accRaw[2], az, 4);
 
+		#if 1
+		
 		c_io_imu_getComplimentaryRPY(rpy);
 
 		c_common_utils_floatToString(RAD_TO_DEG*rpy[PV_IMU_ROLL ], r, 4);
@@ -122,6 +124,14 @@ void module_io_run() {
 
 		sprintf(str, "Time: %ld \t %s \t\t %s\n\r", c_common_utils_millis(), r, p);
 		c_common_usart_puts(USART2, str);
+
+		
+		#else
+		c_io_imu_getRaw(accRaw, gyrRaw, magRaw);
+		sprintf(str, "%d \t\t %d \t\t %d\n\r", (int)accRaw[0],(int)accRaw[1],(int)accRaw[2]);
+		c_common_usart_puts(USART2, str);
+		#endif
+
 		//if(iActuation.servoLeft > 60) iActuation.servoLeft = 60.0;
 		//if(iActuation.servoLeft < 0)  iActuation.servoLeft =  0.0;
 		//if(iActuation.servoRight > 60) iActuation.servoRight = 60.0;

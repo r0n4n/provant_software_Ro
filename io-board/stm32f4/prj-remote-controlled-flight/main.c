@@ -82,13 +82,11 @@ void FPU_init(){
 void blink_led_task(void *pvParameters)
 {
 	LED_builtin = c_common_gpio_init(GPIOC, GPIO_Pin_13, GPIO_Mode_OUT);
-	long t = 0;
 
-    while(1) {
-    	t = c_common_utils_millis();
+    while(1)
+    {
         c_common_gpio_toggle(LED_builtin);
-        //vTaskDelay(100/portTICK_RATE_MS);
-        while(c_common_utils_millis() - t < 100);
+        vTaskDelay(100/portTICK_RATE_MS);
     }
 }
 
