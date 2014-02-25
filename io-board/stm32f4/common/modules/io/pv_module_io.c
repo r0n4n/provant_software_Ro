@@ -25,7 +25,7 @@
 
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
-#define MODULE_PERIOD	   100//ms
+#define MODULE_PERIOD	   10//ms
 
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
@@ -122,7 +122,7 @@ void module_io_run() {
 		c_common_utils_floatToString(RAD_TO_DEG*rpy[PV_IMU_ROLL ], r, 4);
 		c_common_utils_floatToString(RAD_TO_DEG*rpy[PV_IMU_PITCH], p, 4);
 
-		sprintf(str, "Time: %ld \t %s \t\t %s\n\r", c_common_utils_millis(), r, p);
+		sprintf(str, "\t %s \t\t %s\n\r", r, p);
 		c_common_usart_puts(USART2, str);
 
 		

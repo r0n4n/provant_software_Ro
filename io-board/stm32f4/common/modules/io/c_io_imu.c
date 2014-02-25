@@ -143,7 +143,8 @@ void c_io_imu_getRaw(float  * accRaw, float * gyrRaw, float * magRaw) {
     3       | 2,000°/seg       | 14.375 LSBs °/S
     ***********************************************/
 
-    float accScale = 14.375f;
+    float accScale =14.375f;
+    accScale /= 0.0174532925;//0.0174532925 = PI/180
 
   	c_common_i2c_readBytes(GYRO_ADDR, GYRO_X_ADDR, 6, imuBuffer);
   	gyrRaw[0] =  (float)((int16_t)(imuBuffer[1] | ((int16_t)imuBuffer[0] << 8)))/accScale;
@@ -218,15 +219,15 @@ void c_io_imu_getComplimentaryRPY(float * rpy) {
   acce_rpy[PV_IMU_ROLL ] = atan(acce_raw[PV_IMU_Y]/sqrt(pow(acce_raw[PV_IMU_X],2) + pow(acce_raw[PV_IMU_Z],2)));//*57.295;
   
 	//Filtro complementar
-	float a = 0.5;
+	float a = 0.93;
   long  IntegrationTime = c_common_utils_millis();
   float IntegrationTimeDiff=(float)(((float)IntegrationTime- (float)lastIntegrationTime)/1000.0);
 
-	rpy[PV_IMU_PITCH] = a*(rpy[PV_IMU_PITCH] + gyro_raw[PV_IMU_PITCH]*IntegrationTimeDiff) + (1 - a)*acce_rpy[PV_IMU_PITCH];
-	rpy[PV_IMU_ROLL ] = a*(rpy[PV_IMU_ROLL ] + gyro_raw[PV_IMU_ROLL ]*IntegrationTimeDiff) + (1 - a)*acce_rpy[PV_IMU_ROLL ];
+	rpy[PV_IMU_PITCH] = a*(rpy[PV_IMU_PITCH] + gyro_raw[PV_IMU_PITCH]*IntegrationTimeDiff) + (1.0f - a)*acce_rpy[PV_IMU_PITCH];
+	rpy[PV_IMU_ROLL ] = a*(rpy[PV_IMU_ROLL ] + gyro_raw[PV_IMU_ROLL ]*IntegrationTimeDiff) + (1.0f - a)*acce_rpy[PV_IMU_ROLL ];
   
-  //rpy[PV_IMU_PITCH] = Inte;
-  //rpy[PV_IMU_ROLL ] = IntegrationTimeDiff;
+  //rpy[PV_IMU_PITCH] = acce_rpy[PV_IMU_PITCH];
+  //rpy[PV_IMU_ROLL ] = gyro_raw[PV_IMU_PITCH];
   
   
 
