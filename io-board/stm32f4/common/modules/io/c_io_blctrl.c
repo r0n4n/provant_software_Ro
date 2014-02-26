@@ -26,7 +26,7 @@
 
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
-#define I2Cx_blctrl             I2C2// numero de polos do motor
+//#define I2Cx_blctrl             I2C1// i2c of blctrl
 
 #define BLCTRL_NUM_OF_MAGNETS   14 // numero de polos do motor
 #define BLCTRL_BUFFER_SIZE      10 // tamanho do buffer
@@ -40,6 +40,7 @@
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
 char blctrl_buffer[BLCTRL_BUFFER_L][BLCTRL_BUFFER_SIZE]={};  // buffer para a leitura do esc
+I2C_TypeDef* I2Cx_blctrl; // I2C do blctrl
 
 /* Private function prototypes -----------------------------------------------*/
 /* Private functions ---------------------------------------------------------*/
@@ -52,9 +53,9 @@ char blctrl_buffer[BLCTRL_BUFFER_L][BLCTRL_BUFFER_SIZE]={};  // buffer para a le
   * @param  None
   * @retval None
   */
-void c_io_blctrl_init()
+void c_io_blctrl_init(I2C_TypeDef* I2Cx)
 {
-
+  I2Cx_blctrl=I2Cx;
 }
 
 /** \brief Seta a velocidade desejada, em rpm.

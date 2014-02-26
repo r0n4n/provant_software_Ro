@@ -26,7 +26,7 @@
 
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
-#define I2Cx_imu      I2C1 // i2c of imu
+//#define I2Cx_imu      I2C2 // i2c of imu
 
 #ifdef C_IO_IMU_USE_ITG_ADXL_HMC
 	#define GYRO_ADDR   0x68 // The address of ITG3205
@@ -59,6 +59,7 @@
 
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
+I2C_TypeDef* I2Cx_imu;
 uint8_t imuBuffer[16];
 long lastIntegrationTime=0; /** Último valor do SysTick quando a função de filtragem foi chamada - para integracão numérica */
 unsigned char ACCL_ID = 0;
@@ -76,7 +77,10 @@ float gyro_rpy[3], acce_rpy[3], filt_rpy[3];
  *
  * Seta sensibilidade do acelerômetro e liga o girscópio.
  */
-void c_io_imu_init() {
+void c_io_imu_init(I2C_TypeDef* I2Cx)
+{
+
+  I2Cx_imu=I2Cx;
 
 #ifdef C_IO_IMU_USE_ITG_ADXL_HMC // Inicialização para a IMU selecionada
 	// Get Accelerometer ID
@@ -223,6 +227,7 @@ void c_io_imu_getComplimentaryRPY(float * rpy) {
 	//Filtro complementar
 	float a = 0.93;
   long  IntegrationTime = c_common_utils_millis();
+  if(lastIntegrationTime==0) lastIntegrationTime=IntegrationTime;
   float IntegrationTimeDiff=(float)(((float)IntegrationTime- (float)lastIntegrationTime)/1000.0);
 
 	rpy[PV_IMU_PITCH] = a*(rpy[PV_IMU_PITCH] + gyro_raw[PV_IMU_PITCH]*IntegrationTimeDiff) + (1.0f - a)*acce_rpy[PV_IMU_PITCH];
@@ -230,6 +235,7 @@ void c_io_imu_getComplimentaryRPY(float * rpy) {
   
   //rpy[PV_IMU_PITCH] = acce_rpy[PV_IMU_PITCH];
   //rpy[PV_IMU_ROLL ] = gyro_raw[PV_IMU_PITCH];
+  rpy[PV_IMU_YAW] = IntegrationTimeDiff;
   
   
 

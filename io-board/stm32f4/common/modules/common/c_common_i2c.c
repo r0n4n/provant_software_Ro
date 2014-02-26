@@ -59,7 +59,7 @@ long timeoutCounter = 0;
 bool lastTimeoutExpired  = 0;
 
 /* Private define ------------------------------------------------------------*/
-#define TIMEOUT_MS 2
+#define TIMEOUT_MS 1
 /* Private macro -------------------------------------------------------------*/
 #define while_timout(cond,time)
 /* Private variables ---------------------------------------------------------*/
@@ -75,6 +75,8 @@ bool while_timeout(bool cond, long startime) {
 /* Exported functions definitions --------------------------------------------*/
 
 /** \brief Inicializa a I2C1 em PB8 e PB9 (SCL e SDA).
+ *
+ * @param I2Cx  Escolha da I2C a ser inicializada.
  *
  */
 void c_common_i2c_init(I2C_TypeDef* I2Cx){
@@ -165,6 +167,7 @@ void c_common_i2c_init(I2C_TypeDef* I2Cx){
 
 /** \brief Emite uma condição de início de transmissão e envia o endereço do escravo com o bit de R/W.
  *
+ * @param I2Cx  I2C a ser utilizada.
  * @param address 	Endereço de 7 bits do escravo.
  * @param direction	Direção da transmissão. Pode ser:
  * 						\em I2C_Direction_Transmitter \em para <b> Master transmitter mode </b>, ou
@@ -204,6 +207,7 @@ void c_common_i2c_start(I2C_TypeDef* I2Cx, uint8_t address, uint8_t direction) {
 
 /** \brief Envia um byte ao escravo.
  *
+ * @param I2Cx  I2C a ser utilizada.
  * @param data Byte a ser enviado.
  */
 void c_common_i2c_write(I2C_TypeDef* I2Cx, uint8_t data) {
@@ -215,6 +219,7 @@ void c_common_i2c_write(I2C_TypeDef* I2Cx, uint8_t data) {
 
 /** \brief Lê um byte do escravo e confima (acknowledges) o byte (requisita um próximo).
  *
+ * @param I2Cx  I2C a ser utilizada.
  * @retval Byte lido.
  */
 uint8_t c_common_i2c_readAck(I2C_TypeDef* I2Cx) {
@@ -232,6 +237,7 @@ uint8_t c_common_i2c_readAck(I2C_TypeDef* I2Cx) {
 
 /** \brief Lê um byte do escravo mas não confima (doesn't acknowledges) o byte.
  *
+ * @param I2Cx  I2C a ser utilizada.
  * @retval Byte lido.
  */
 uint8_t c_common_i2c_readNack(I2C_TypeDef* I2Cx) {
@@ -251,7 +257,7 @@ uint8_t c_common_i2c_readNack(I2C_TypeDef* I2Cx) {
 }
 
 /** \brief Emite uma condição de parada e libera o barramento.
- *
+ * @param I2Cx  I2C a ser utilizada.
  */
 void c_common_i2c_stop(I2C_TypeDef* I2Cx) {
         // Send I2C1 STOP Condition
@@ -266,6 +272,7 @@ void c_common_i2c_stop(I2C_TypeDef* I2Cx) {
  *	c_common_i2c_readBytes(0x68, 0x00, 1, &ITG3205_ID);
  *	\endcode
  *
+ *  @param I2Cx  I2C a ser utilizada.
  *	@param device Endereço do dispositivo no barramento.
  *	@param address Endereço de memória a ser lido (comando antes da leitura).
  *	@param bytesToRead Quantos bytes são esperados.
@@ -287,6 +294,7 @@ void c_common_i2c_readBytes(I2C_TypeDef* I2Cx, uint8_t device, uint8_t address, 
 
 /** \brief Escreve um byte num dispositivo com um dado endereço.
  *
+ * @param I2Cx  I2C a ser utilizada.
  * @param device Endereço do dispositivo no barramento.
  * @param address Endereço a ser escrito no dispositivo.
  * @param byteToWrite Byte a ser escrito.
@@ -300,6 +308,7 @@ void c_common_i2c_writeByte(I2C_TypeDef* I2Cx, uint8_t device, uint8_t address, 
 
 /** \brief Escreve apenas um bit em um dado endereço de um dispositivo.
  *
+ * @param I2Cx  I2C a ser utilizada.
  * @param device Endereço do dispositivo no barramento.
  * @param address Endereço do byte no qual o bit será escrito.
  * @param bit Posição do bit a ser escrito (0..7).
