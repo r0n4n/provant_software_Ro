@@ -26,6 +26,8 @@
 
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
+//#define I2Cx_imu      I2C2 // i2c of imu
+
 #ifdef C_IO_IMU_USE_ITG_ADXL_HMC
 	#define GYRO_ADDR   0x68 // The address of ITG3205
 	#define ACCL_ADDR   0x53 // The address of ADXL345
@@ -57,6 +59,7 @@
 
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
+I2C_TypeDef* I2Cx_imu;
 uint8_t imuBuffer[16];
 long lastIntegrationTime=0; /** Último valor do SysTick quando a função de filtragem foi chamada - para integracão numérica */
 unsigned char ACCL_ID = 0;
@@ -74,33 +77,36 @@ float gyro_rpy[3], acce_rpy[3], filt_rpy[3];
  *
  * Seta sensibilidade do acelerômetro e liga o girscópio.
  */
-void c_io_imu_init() {
+void c_io_imu_init(I2C_TypeDef* I2Cx)
+{
+
+  I2Cx_imu=I2Cx;
 
 #ifdef C_IO_IMU_USE_ITG_ADXL_HMC // Inicialização para a IMU selecionada
 	// Get Accelerometer ID
-	c_common_i2c_readBytes(ACCL_ADDR, 0x00, 1, &ACCL_ID);
+	c_common_i2c_readBytes(I2Cx_imu, ACCL_ADDR, 0x00, 1, &ACCL_ID);
 
 	// Accelerometer increase G-range (+/- 16G)
-	c_common_i2c_writeByte(ACCL_ADDR, 0x31, 0x0B);
+	c_common_i2c_writeByte(I2Cx_imu, ACCL_ADDR, 0x31, 0x0B);
 
   //  ADXL345 (Accel) POWER_CTL
-  c_common_i2c_writeByte(ACCL_ADDR, 0x2D, 8);
+  c_common_i2c_writeByte(I2Cx_imu, ACCL_ADDR, 0x2D, 8);
 
   // Gyro ID and setup
-	c_common_i2c_readBytes(GYRO_ADDR, 0x00, 1, &GYRO_ID);
-	c_common_i2c_writeByte(GYRO_ADDR, 0X16, 24); //24 = 0b0001 1000
+	c_common_i2c_readBytes(I2Cx_imu, GYRO_ADDR, 0x00, 1, &GYRO_ID);
+	c_common_i2c_writeByte(I2Cx_imu, GYRO_ADDR, 0X16, 24); //24 = 0b0001 1000
 
   // HMC5883 (Magn) Run in continuous mode
-  c_common_i2c_writeByte(MAGN_ADDR, 0x02, 0x00);
+  c_common_i2c_writeByte(I2Cx_imu, MAGN_ADDR, 0x02, 0x00);
 #endif
 
 #ifdef C_IO_IMU_USE_MPU6050_HMC5883 //Inicialização para a IMU baseada na MPU6050
   // Clear the 'sleep' bit to start the sensor.
-  c_common_i2c_writeByte(MPU6050_I2C_ADDRESS, MPU6050_PWR_MGMT_1, 0);
+  c_common_i2c_writeByte(I2Cx_imu, MPU6050_I2C_ADDRESS, MPU6050_PWR_MGMT_1, 0);
 
   // Alocar o sub i2c -> desligar o I2C Master da MPU, habilitar I2C bypass
-  c_common_i2c_writeBit(MPU6050_I2C_ADDRESS, MPU6050_USER_CTRL, MPU6050_I2C_MST_EN, 0);
-  c_common_i2c_writeBit(MPU6050_I2C_ADDRESS, MPU6050_INT_PIN_CFG, MPU6050_I2C_BYPASS_EN, 1);
+  c_common_i2c_writeBit(I2Cx_imu, MPU6050_I2C_ADDRESS, MPU6050_USER_CTRL, MPU6050_I2C_MST_EN, 0);
+  c_common_i2c_writeBit(I2Cx_imu, MPU6050_I2C_ADDRESS, MPU6050_INT_PIN_CFG, MPU6050_I2C_BYPASS_EN, 1);
 
   /** \todo Implementar e testar o enabling do bus secundário da MPU, para leitura do HMC.*/
   //c_common_i2c_writeByte(0x1E, 0x02, 0x00);
@@ -126,7 +132,7 @@ void c_io_imu_getRaw(float  * accRaw, float * gyrRaw, float * magRaw) {
 #ifdef C_IO_IMU_USE_ITG_ADXL_HMC
     // Read x, y, z acceleration, pack the data.
     uint8_t  buffer[14];
-  	c_common_i2c_readBytes(ACCL_ADDR, ACCL_X_ADDR, 6, imuBuffer);
+  	c_common_i2c_readBytes(I2Cx_imu, ACCL_ADDR, ACCL_X_ADDR, 6, imuBuffer);
 
     accRaw[0] = (int16_t)((imuBuffer[0] | ((int16_t)imuBuffer[1] << 8)));
     accRaw[1] = (int16_t)((imuBuffer[2] | ((int16_t)imuBuffer[3] << 8)));
@@ -146,20 +152,20 @@ void c_io_imu_getRaw(float  * accRaw, float * gyrRaw, float * magRaw) {
     float accScale =14.375f;
     accScale /= 0.0174532925;//0.0174532925 = PI/180
 
-  	c_common_i2c_readBytes(GYRO_ADDR, GYRO_X_ADDR, 6, imuBuffer);
+  	c_common_i2c_readBytes(I2Cx_imu, GYRO_ADDR, GYRO_X_ADDR, 6, imuBuffer);
   	gyrRaw[0] =  (float)((int16_t)(imuBuffer[1] | ((int16_t)imuBuffer[0] << 8)))/accScale;
   	gyrRaw[1] =  (float)((int16_t)(imuBuffer[3] | ((int16_t)imuBuffer[2] << 8)))/accScale;
   	gyrRaw[2] =  (float)((int16_t)(imuBuffer[5] | ((int16_t)imuBuffer[4] << 8)))/accScale;
 
     // Read x, y, z from magnetometer;
-    c_common_i2c_readBytes(MAGN_ADDR, MAGN_X_ADDR, 6, imuBuffer);
+    c_common_i2c_readBytes(I2Cx_imu, MAGN_ADDR, MAGN_X_ADDR, 6, imuBuffer);
     for (unsigned char i =0; i < 3; i++) 
     	buffer[i] = (int)imuBuffer[(i * 2) + 1] | ((int)imuBuffer[i * 2] << 8);
 #endif
 
 #ifdef C_IO_IMU_USE_MPU6050_HMC5883
     uint8_t  buffer[14];
-    c_common_i2c_readBytes(MPU6050_I2C_ADDRESS, MPU6050_ACCEL_XOUT_H, 14, buffer);
+    c_common_i2c_readBytes(I2Cx_imu, MPU6050_I2C_ADDRESS, MPU6050_ACCEL_XOUT_H, 14, buffer);
 
     /** A sensitividade do acelerômetro da MPU6050 é dada pela tabela (extraída do datasheet):
     AFS_SEL | Full Scale Range | LSB Sensitivity
@@ -221,6 +227,7 @@ void c_io_imu_getComplimentaryRPY(float * rpy) {
 	//Filtro complementar
 	float a = 0.93;
   long  IntegrationTime = c_common_utils_millis();
+  if(lastIntegrationTime==0) lastIntegrationTime=IntegrationTime;
   float IntegrationTimeDiff=(float)(((float)IntegrationTime- (float)lastIntegrationTime)/1000.0);
 
 	rpy[PV_IMU_PITCH] = a*(rpy[PV_IMU_PITCH] + gyro_raw[PV_IMU_PITCH]*IntegrationTimeDiff) + (1.0f - a)*acce_rpy[PV_IMU_PITCH];
@@ -228,6 +235,7 @@ void c_io_imu_getComplimentaryRPY(float * rpy) {
   
   //rpy[PV_IMU_PITCH] = acce_rpy[PV_IMU_PITCH];
   //rpy[PV_IMU_ROLL ] = gyro_raw[PV_IMU_PITCH];
+  rpy[PV_IMU_YAW] = IntegrationTimeDiff;
   
   
 

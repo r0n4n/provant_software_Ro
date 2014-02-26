@@ -53,7 +53,8 @@ pv_msg_datapr_position oPosition;
   */
 void module_io_init() {
 	/* Inicialização do hardware do módulo */
-	c_common_i2c_init();
+	c_common_i2c_init(I2C2); //imu
+	c_common_i2c_init(I2C1); //esc
 
 	c_common_usart2_init(115200);
 
@@ -69,9 +70,9 @@ void module_io_init() {
 	c_io_rx24f_setSpeed(2, 70);
 
 	c_common_utils_delayms(100);
-	c_io_imu_init();
 
-	c_io_blctrl_init();
+	c_io_imu_init(I2C1);   
+	c_io_blctrl_init(I2C2);
 
 	/* Inicialização das filas do módulo. Apenas inboxes (i*!) são criadas! */
 	pv_interface_io.iActuation = xQueueCreate(1, sizeof(pv_msg_io_actuation));
@@ -94,43 +95,33 @@ void module_io_init() {
   * Loop que amostra sensores e escreve nos atuadores como necessário.
   *
   */
-void module_io_run() {
+void module_io_run() 
+{
 	float accRaw[3], gyrRaw[3], magRaw[3];
-	char  ax[16], ay[16], az[16], r[16], p[16];
+	char  ax[16], ay[16], az[16], r[16], p[16],y[16];
 	float rpy[] = {0,0,0};
 
-	while(1) {
+	while(1)
+	{
 		lastWakeTime = xTaskGetTickCount();
 
 		xQueueReceive(pv_interface_io.iActuation, &iActuation, 0);
 
-		//c_io_blctrl_setSpeed(0, 700);//1700-iActuation.escLeftSpeed);
-//		c_io_blctrl_setSpeed(1, 700);//1700-iActuation.escLeftSpeed);
+		c_io_blctrl_setSpeed(0, 700);//1700-iActuation.escLeftSpeed);
+		//c_io_blctrl_setSpeed(1, 700);//1700-iActuation.escLeftSpeed);
 
-		//vTaskDelay( 10 / portTICK_RATE_MS );
-
-		//c_io_imu_getRaw(accRaw, gyrRaw, magRaw);
-
-		//c_common_utils_floatToString(accRaw[0], ax, 4);
-		//c_common_utils_floatToString(accRaw[1], ay, 4);
-		//c_common_utils_floatToString(accRaw[2], az, 4);
-
-		#if 1
-		
 		c_io_imu_getComplimentaryRPY(rpy);
-
 		c_common_utils_floatToString(RAD_TO_DEG*rpy[PV_IMU_ROLL ], r, 4);
 		c_common_utils_floatToString(RAD_TO_DEG*rpy[PV_IMU_PITCH], p, 4);
+		c_common_utils_floatToString(RAD_TO_DEG*rpy[PV_IMU_YAW  ], y, 4);
 
-		sprintf(str, "\t %s \t\t %s\n\r", r, p);
+		sprintf(str, "imu -> \t %s \t\t %s \t\t %s\n\r", r, p,y);
 		c_common_usart_puts(USART2, str);
 
-		
-		#else
-		c_io_imu_getRaw(accRaw, gyrRaw, magRaw);
-		sprintf(str, "%d \t\t %d \t\t %d\n\r", (int)accRaw[0],(int)accRaw[1],(int)accRaw[2]);
+		vTaskDelay(2/portTICK_RATE_MS);
+		c_io_blctrl_updateBuffer(0);
+		sprintf(str, "blctrl -> \t %d \n\r",c_io_blctrl_readVoltage(0) );
 		c_common_usart_puts(USART2, str);
-		#endif
 
 		//if(iActuation.servoLeft > 60) iActuation.servoLeft = 60.0;
 		//if(iActuation.servoLeft < 0)  iActuation.servoLeft =  0.0;
@@ -138,7 +129,7 @@ void module_io_run() {
 		//if(iActuation.servoRight < 0)  iActuation.servoRight =  0.0;
 
 		//c_io_rx24f_move(2, iActuation.servoLeft);
-		//c_io_rx24f_move(1, iActuation.servoRight-10);
+		//c_io_rx24f_move(1, iActuation.servoRight-10);				
 
 		vTaskDelayUntil( &lastWakeTime, (MODULE_PERIOD / portTICK_RATE_MS));
 	}
@@ -152,3 +143,4 @@ void module_io_run() {
 /**
   * @}
   */
+
