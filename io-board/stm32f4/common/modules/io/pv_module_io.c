@@ -53,7 +53,7 @@ pv_msg_datapr_position oPosition;
   */
 void module_io_init() {
 	/* Inicialização do hardware do módulo */
-	//c_common_i2c_init(I2C2); //imu
+	c_common_i2c_init(I2C2); //imu
 	c_common_i2c_init(I2C1); //esc
 
 	c_common_usart2_init(115200);
@@ -72,7 +72,7 @@ void module_io_init() {
 	c_common_utils_delayms(100);
 
 	c_io_imu_init(I2C1);   
-	//c_io_blctrl_init(I2C1);
+	c_io_blctrl_init(I2C2);
 
 	/* Inicialização das filas do módulo. Apenas inboxes (i*!) são criadas! */
 	pv_interface_io.iActuation = xQueueCreate(1, sizeof(pv_msg_io_actuation));
@@ -107,16 +107,20 @@ void module_io_run()
 
 		xQueueReceive(pv_interface_io.iActuation, &iActuation, 0);
 
-		//c_io_blctrl_setSpeed(0, 700);//1700-iActuation.escLeftSpeed);
+		c_io_blctrl_setSpeed(0, 700);//1700-iActuation.escLeftSpeed);
 		//c_io_blctrl_setSpeed(1, 700);//1700-iActuation.escLeftSpeed);
 
 		c_io_imu_getComplimentaryRPY(rpy);
-
 		c_common_utils_floatToString(RAD_TO_DEG*rpy[PV_IMU_ROLL ], r, 4);
 		c_common_utils_floatToString(RAD_TO_DEG*rpy[PV_IMU_PITCH], p, 4);
 		c_common_utils_floatToString(RAD_TO_DEG*rpy[PV_IMU_YAW  ], y, 4);
 
 		sprintf(str, "imu -> \t %s \t\t %s \t\t %s\n\r", r, p,y);
+		c_common_usart_puts(USART2, str);
+
+		vTaskDelay(2/portTICK_RATE_MS);
+		c_io_blctrl_updateBuffer(0);
+		sprintf(str, "blctrl -> \t %d \n\r",c_io_blctrl_readVoltage(0) );
 		c_common_usart_puts(USART2, str);
 
 		//if(iActuation.servoLeft > 60) iActuation.servoLeft = 60.0;
@@ -125,7 +129,7 @@ void module_io_run()
 		//if(iActuation.servoRight < 0)  iActuation.servoRight =  0.0;
 
 		//c_io_rx24f_move(2, iActuation.servoLeft);
-		//c_io_rx24f_move(1, iActuation.servoRight-10);
+		//c_io_rx24f_move(1, iActuation.servoRight-10);				
 
 		vTaskDelayUntil( &lastWakeTime, (MODULE_PERIOD / portTICK_RATE_MS));
 	}
