@@ -53,7 +53,8 @@ pv_msg_datapr_position oPosition;
   */
 void module_io_init() {
 	/* Inicialização do hardware do módulo */
-	c_common_i2c_init();
+	c_common_i2c_init(I2C2);
+	c_common_i2c_init(I2C1);
 
 	c_common_usart2_init(115200);
 
@@ -69,7 +70,8 @@ void module_io_init() {
 	c_io_rx24f_setSpeed(2, 70);
 
 	c_common_utils_delayms(100);
-	c_io_imu_init();
+
+	c_io_imu_init();   
 
 	c_io_blctrl_init();
 
@@ -104,7 +106,7 @@ void module_io_run() {
 
 		xQueueReceive(pv_interface_io.iActuation, &iActuation, 0);
 
-		//c_io_blctrl_setSpeed(0, 700);//1700-iActuation.escLeftSpeed);
+		c_io_blctrl_setSpeed(0, 700);//1700-iActuation.escLeftSpeed);
 //		c_io_blctrl_setSpeed(1, 700);//1700-iActuation.escLeftSpeed);
 
 		//vTaskDelay( 10 / portTICK_RATE_MS );
@@ -122,8 +124,14 @@ void module_io_run() {
 		c_common_utils_floatToString(RAD_TO_DEG*rpy[PV_IMU_ROLL ], r, 4);
 		c_common_utils_floatToString(RAD_TO_DEG*rpy[PV_IMU_PITCH], p, 4);
 
-		sprintf(str, "\t %s \t\t %s\n\r", r, p);
+		sprintf(str, "imu -> \t %s \t\t %s\n\r", r, p);
 		c_common_usart_puts(USART2, str);
+		
+		
+		c_common_utils_delayms(10);
+		//sprintf(str, "esc -> \t %d \n\r", c_io_blctrl_readVoltage(0));
+		//c_common_usart_puts(USART2, str);
+		//c_common_utils_delayms(10);
 
 		
 		#else

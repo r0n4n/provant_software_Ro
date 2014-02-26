@@ -26,14 +26,16 @@
 
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
-#define BLCTRL_NUM_OF_MAGNETS 14 // numero de polos do motor
-#define BLCTRL_BUFFER_SIZE 10    // tamanho do buffer
-#define BLCTRL_BUFFER_L     4    // tamanho do buffer
-#define BLCTRL_CURRENT 0         // local da memoria onde esta o valor de corrente
-#define BLCTRL_TEMPERATURE 2     // local da memoria onde esta o valor de temperatura
-#define BLCTRL_MAH 2             // local da memoria onde esta o valor da corrente  em mAh
-#define BLCTRL_SPEED 3           // local da memoria onde esta a velocidade
-#define BLCTRL_VOLTAGE 5         // local da memoria onde esta o valor de tensao
+#define I2Cx_blctrl             I2C2// numero de polos do motor
+
+#define BLCTRL_NUM_OF_MAGNETS   14 // numero de polos do motor
+#define BLCTRL_BUFFER_SIZE      10 // tamanho do buffer
+#define BLCTRL_BUFFER_L         4 // tamanho do buffer
+#define BLCTRL_CURRENT          0 // local da memoria onde esta o valor de corrente
+#define BLCTRL_TEMPERATURE      2 // local da memoria onde esta o valor de temperatura
+#define BLCTRL_MAH              2 // local da memoria onde esta o valor da corrente  em mAh
+#define BLCTRL_SPEED            3 // local da memoria onde esta a velocidade
+#define BLCTRL_VOLTAGE          5 // local da memoria onde esta o valor de tensao
 
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
@@ -70,9 +72,9 @@ int  c_io_blctrl_setSpeed(uint8_t ID, int speed)
 
   if(raw<=255 && raw>=0)
   {
-    c_common_i2c_start((BLCTRL_ADDR+ID)<<1, I2C_Direction_Transmitter);
-    c_common_i2c_write((uint8_t) raw);
-    c_common_i2c_stop();
+    c_common_i2c_start(I2Cx_blctrl, (BLCTRL_ADDR+ID)<<1, I2C_Direction_Transmitter);
+    c_common_i2c_write(I2Cx_blctrl, (uint8_t) raw);
+    c_common_i2c_stop(I2Cx_blctrl);
     return 1;
   }
   else
@@ -114,10 +116,10 @@ int  c_io_blctrl_updateBuffer(uint8_t ID)
 {  
   for(int i=0;i<BLCTRL_BUFFER_SIZE;i++)
   {
-    c_common_i2c_start((BLCTRL_ADDR+ID)<<1, I2C_Direction_Receiver);
-    blctrl_buffer[ID][i]=c_common_i2c_readNack();
+    c_common_i2c_start(I2Cx_blctrl, (BLCTRL_ADDR+ID)<<1, I2C_Direction_Receiver);
+    blctrl_buffer[ID][i]=c_common_i2c_readNack(I2Cx_blctrl);
     for(int b=0;b<1000;b++); // gastar tempo para conseguir ler varios enderecos
-    c_common_i2c_stop();
+    c_common_i2c_stop(I2Cx_blctrl);
   }
   
   return 1;
