@@ -107,7 +107,7 @@ void module_io_run()
 
 		xQueueReceive(pv_interface_io.iActuation, &iActuation, 0);
 
-		c_io_blctrl_setSpeed(0, 700);//1700-iActuation.escLeftSpeed);
+		//c_io_blctrl_setSpeed(0, 700);//1700-iActuation.escLeftSpeed);
 		//c_io_blctrl_setSpeed(1, 700);//1700-iActuation.escLeftSpeed);
 
 		c_io_imu_getComplimentaryRPY(rpy);
@@ -118,10 +118,12 @@ void module_io_run()
 		sprintf(str, "imu -> \t %s \t\t %s \t\t %s\n\r", r, p,y);
 		c_common_usart_puts(USART2, str);
 
-		vTaskDelay(2/portTICK_RATE_MS);
-		c_io_blctrl_updateBuffer(0);
-		sprintf(str, "blctrl -> \t %d \n\r",c_io_blctrl_readVoltage(0) );
+		c_common_utils_floatToString(iActuation.servoRight, r, 4);
+		sprintf(str, "control -> \t %s \n\r", r);
 		c_common_usart_puts(USART2, str);
+
+
+		oAttitude.roll=RAD_TO_DEG*rpy[PV_IMU_ROLL ];
 
 		//if(iActuation.servoLeft > 60) iActuation.servoLeft = 60.0;
 		//if(iActuation.servoLeft < 0)  iActuation.servoLeft =  0.0;
@@ -129,7 +131,10 @@ void module_io_run()
 		//if(iActuation.servoRight < 0)  iActuation.servoRight =  0.0;
 
 		//c_io_rx24f_move(2, iActuation.servoLeft);
-		//c_io_rx24f_move(1, iActuation.servoRight-10);				
+		//c_io_rx24f_move(1, iActuation.servoRight-10);	
+
+		if(pv_interface_io.oAttitude != 0)
+      		xQueueOverwrite(pv_interface_io.oAttitude, &oAttitude);			
 
 		vTaskDelayUntil( &lastWakeTime, (MODULE_PERIOD / portTICK_RATE_MS));
 	}

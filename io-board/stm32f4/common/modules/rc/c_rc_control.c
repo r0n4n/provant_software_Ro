@@ -344,9 +344,9 @@ pv_msg_io_actuation RC_controller(pv_msg_datapr_attitude attitude,
 
 	gamma = PD_gains_step(attitude, attitude_reference);
 
-	tau = torque_calculation_step(attitude, gamma);
+	//tau = torque_calculation_step(attitude, gamma);
 
-	Fzb = altitude_controller_step(position.z, position_reference.z, position.dotZ, position_reference.dotZ, attitude);
+	//Fzb = altitude_controller_step(position.z, position_reference.z, position.dotZ, position_reference.dotZ, attitude);
 
 	return actuators_signals_step(tau, Fzb);
 }

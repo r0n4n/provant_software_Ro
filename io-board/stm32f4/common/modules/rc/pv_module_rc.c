@@ -73,9 +73,37 @@ void module_rc_init() {
   * via interface.
   */
 void module_rc_run() {
-
+    float32_t Fzb;
+    int i=0;
 	while(1) {
 		lastWakeTime = xTaskGetTickCount();
+
+    xQueueReceive(pv_interface_rc.iAttitude, &iAttitude, 0);
+    //while(1){
+    i++;
+    pv_msg_io_actuation   actuation = {0,0.0f,0.0f,0.0f,0.0f};
+    pv_msg_datapr_attitude attitude = {0.0f,0.0f,0.0f,0.0f,0.0f,0.0f};
+    pv_msg_datapr_attitude attitude_reference = {0.0f,0.0f,0.0f,0.0f,0.0f,0.0f};
+    pv_msg_datapr_position position = {0.0f,0.0f,0.0f,0.0f,0.0f,0.0f};
+    pv_msg_datapr_position position_reference = {0.0f,0.0f,0.0f,0.0f,0.0f,0.0f};
+
+    attitude_reference.roll = (float)i;
+
+    /*
+    arm_matrix_instance_f32 gamma;
+    gamma=PD_gains_step(attitude, attitude_reference);
+    arm_matrix_instance_f32 tau;
+    tau = torque_calculation_step(attitude, gamma);
+    Fzb = altitude_controller_step(position.z, position_reference.z, position.dotZ, position_reference.dotZ, attitude);
+    actuation = actuators_signals_step(tau, Fzb);
+    oActuation=actuation;
+    */
+
+
+    char str[64];
+    sprintf(str, "control -> \t %d \n\r", i);
+    c_common_usart_puts(USART2, str);
+    //actuation = RC_controller(attitude,attitude_reference,position,position_reference);
 
     /*
 		oActuation.escLeftSpeed = c_rc_receiver_getChannel(C_RC_CHANNEL_THROTTLE);
@@ -89,7 +117,12 @@ void module_rc_run() {
 			xQueueOverwrite(pv_interface_rc.oActuation, &oActuation);
     */
 
-    vTaskDelayUntil( &lastWakeTime, MODULE_PERIOD / portTICK_RATE_MS);
+
+    oActuation.servoRight=iAttitude.roll+10;
+    if(pv_interface_rc.oActuation != 0)
+      xQueueOverwrite(pv_interface_rc.oActuation, &oActuation);
+
+    //vTaskDelayUntil( &lastWakeTime, MODULE_PERIOD / portTICK_RATE_MS);
 	}
 }
 /* IRQ handlers ------------------------------------------------------------- */
