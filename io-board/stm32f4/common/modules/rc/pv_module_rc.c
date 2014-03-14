@@ -117,7 +117,7 @@ void module_rc_run() {
     if(pv_interface_rc.oActuation != 0)
       xQueueOverwrite(pv_interface_rc.oActuation, &oActuation);
 
-    //vTaskDelayUntil( &lastWakeTime, MODULE_PERIOD / portTICK_RATE_MS);
+    vTaskDelayUntil( &lastWakeTime, MODULE_PERIOD / portTICK_RATE_MS);
 	}
 }
 /* IRQ handlers ------------------------------------------------------------- */

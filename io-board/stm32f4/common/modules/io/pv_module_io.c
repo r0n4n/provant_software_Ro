@@ -111,18 +111,18 @@ void module_io_run()
 		//c_io_blctrl_setSpeed(1, 700);//1700-iActuation.escLeftSpeed);
 		taskENTER_CRITICAL();
 		c_io_imu_getComplimentaryRPY(rpy);
-		c_common_utils_floatToString(RAD_TO_DEG*rpy[PV_IMU_ROLL ], r, 4);
-		c_common_utils_floatToString(RAD_TO_DEG*rpy[PV_IMU_PITCH], p, 4);
-		c_common_utils_floatToString(RAD_TO_DEG*rpy[PV_IMU_YAW  ], y, 4);
+		c_common_utils_floatToString(RAD_TO_DEG*rpy[PV_IMU_ROLL ], ax, 4);
+		c_common_utils_floatToString(RAD_TO_DEG*rpy[PV_IMU_PITCH], ay, 4);
+		c_common_utils_floatToString(RAD_TO_DEG*rpy[PV_IMU_YAW  ], az, 4);
 		taskEXIT_CRITICAL();
-		sprintf(str, "imu -> \t %s \t\t %s \t\t %s\n\r", r, p,y);
-		c_common_usart_puts(USART2, str);
+		//sprintf(str, "imu -> \t %s \t\t %s \t\t %s\n\r", r, p,y);
+		//c_common_usart_puts(USART2, str);
 
-		c_common_utils_floatToString(iActuation.servoRight, r, 4);
-		c_common_utils_floatToString(iActuation.servoLeft, p, 4);
+		c_common_utils_floatToString(iActuation.servoRight*RAD_TO_DEG, r, 4);
+		c_common_utils_floatToString(iActuation.servoLeft*RAD_TO_DEG, p, 4);
 		c_common_utils_floatToString(iActuation.escRightSpeed, y, 4);
 		c_common_utils_floatToString(iActuation.escLeftSpeed, z, 4);
-		sprintf(str, "control -> \t %s \t %s \t %s \t %s \n\r", r,p,y,z);
+		sprintf(str, "control -> (%s,%s) \t %s \t %s \t %s \t %s \n\r",ax,ay, r,p,y,z);
 		c_common_usart_puts(USART2, str);
 
 
@@ -138,8 +138,9 @@ void module_io_run()
 		//c_io_rx24f_move(1, iActuation.servoRight-10);	
 
 		if(pv_interface_io.oAttitude != 0)
-      		xQueueOverwrite(pv_interface_io.oAttitude, &oAttitude);			
-		//vTaskDelayUntil( &lastWakeTime, (MODULE_PERIOD / portTICK_RATE_MS));
+      		xQueueOverwrite(pv_interface_io.oAttitude, &oAttitude);
+
+		vTaskDelayUntil( &lastWakeTime, (MODULE_PERIOD / portTICK_RATE_MS));
 		
 	}
 }
