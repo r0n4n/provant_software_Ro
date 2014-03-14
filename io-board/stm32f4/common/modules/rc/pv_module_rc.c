@@ -87,7 +87,7 @@ void module_rc_run() {
     pv_msg_datapr_position position = {0.0f,0.0f,0.0f,0.0f,0.0f,0.0f};
     pv_msg_datapr_position position_reference = {0.0f,0.0f,0.0f,0.0f,0.0f,0.0f};
 
-    attitude_reference.roll = (float)i;
+    attitude_reference.roll = 0;
 
     /*
     arm_matrix_instance_f32 gamma;
@@ -99,12 +99,8 @@ void module_rc_run() {
     oActuation=actuation;
     */
 
-
-    char str[64];
-    sprintf(str, "control -> \t %d \n\r", i);
-    c_common_usart_puts(USART2, str);
-    //actuation = RC_controller(attitude,attitude_reference,position,position_reference);
-
+    actuation = RC_controller(iAttitude,attitude_reference,position,position_reference);
+    oActuation = actuation;
     /*
 		oActuation.escLeftSpeed = c_rc_receiver_getChannel(C_RC_CHANNEL_THROTTLE);
 		oActuation.servoLeft    = c_rc_receiver_getChannel(C_RC_CHANNEL_ROLL);
@@ -118,7 +114,6 @@ void module_rc_run() {
     */
 
 
-    oActuation.servoRight=iAttitude.roll+10;
     if(pv_interface_rc.oActuation != 0)
       xQueueOverwrite(pv_interface_rc.oActuation, &oActuation);
 
