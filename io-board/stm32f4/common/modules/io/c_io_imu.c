@@ -98,6 +98,9 @@ void c_io_imu_init(I2C_TypeDef* I2Cx)
 
   // HMC5883 (Magn) Run in continuous mode
   c_common_i2c_writeByte(I2Cx_imu, MAGN_ADDR, 0x02, 0x00);
+  // configure the B register to default value of Sensor Input Field Range: 1.2Ga
+  // +/- 1.2Ga <-> +/- 2047
+  c_common_i2c_writeByte(I2Cx_imu, MAGN_ADDR, 0x01, 0x20);
 #endif
 
 #ifdef C_IO_IMU_USE_MPU6050_HMC5883 //Inicialização para a IMU baseada na MPU6050
@@ -159,8 +162,10 @@ void c_io_imu_getRaw(float  * accRaw, float * gyrRaw, float * magRaw) {
 
     // Read x, y, z from magnetometer;
     c_common_i2c_readBytes(I2Cx_imu, MAGN_ADDR, MAGN_X_ADDR, 6, imuBuffer);
-    for (unsigned char i =0; i < 3; i++) 
-    	buffer[i] = (int)imuBuffer[(i * 2) + 1] | ((int)imuBuffer[i * 2] << 8);
+   
+    magRaw[0] =  (float)((int16_t)(imuBuffer[1] | ((int16_t)imuBuffer[0] << 8)));// X
+    magRaw[2] =  (float)((int16_t)(imuBuffer[3] | ((int16_t)imuBuffer[2] << 8)));// Z
+    magRaw[1] =  (float)((int16_t)(imuBuffer[5] | ((int16_t)imuBuffer[4] << 8)));// Y
 #endif
 
 #ifdef C_IO_IMU_USE_MPU6050_HMC5883
@@ -221,10 +226,15 @@ void c_io_imu_getComplimentaryRPY(float * rpy) {
 			+ pow(acce_raw[PV_IMU_Z],2)));// - mean_acce_rpy[PITCH];
   */
 
-  acce_rpy[PV_IMU_PITCH] = atan(acce_raw[PV_IMU_X]/sqrt(pow(acce_raw[PV_IMU_Y],2) + pow(acce_raw[PV_IMU_Z],2)));//*57.295;
-  acce_rpy[PV_IMU_ROLL ] = atan(acce_raw[PV_IMU_Y]/sqrt(pow(acce_raw[PV_IMU_X],2) + pow(acce_raw[PV_IMU_Z],2)));//*57.295;
-  
-	//Filtro complementar
+  magn_raw[PV_IMU_X]=magn_raw[PV_IMU_X]/sqrt(pow(magn_raw[PV_IMU_X],2)+pow(magn_raw[PV_IMU_Y],2)+pow(magn_raw[PV_IMU_Z],2));
+  magn_raw[PV_IMU_Y]=magn_raw[PV_IMU_Y]/sqrt(pow(magn_raw[PV_IMU_X],2)+pow(magn_raw[PV_IMU_Y],2)+pow(magn_raw[PV_IMU_Z],2));
+  magn_raw[PV_IMU_Z]=magn_raw[PV_IMU_Z]/sqrt(pow(magn_raw[PV_IMU_X],2)+pow(magn_raw[PV_IMU_Y],2)+pow(magn_raw[PV_IMU_Z],2));
+
+  acce_rpy[PV_IMU_PITCH] = atan(acce_raw[PV_IMU_X]/sqrt(pow(acce_raw[PV_IMU_Y],2) + pow(acce_raw[PV_IMU_Z],2)));
+  acce_rpy[PV_IMU_ROLL ] = atan(acce_raw[PV_IMU_Y]/sqrt(pow(acce_raw[PV_IMU_X],2) + pow(acce_raw[PV_IMU_Z],2)));
+  acce_rpy[PV_IMU_YAW]   = atan2(magn_raw[PV_IMU_Y],magn_raw[PV_IMU_X]);
+	
+  //Filtro complementar
 	float a = 0.93;
   long  IntegrationTime = c_common_utils_millis();
   if(lastIntegrationTime==0) lastIntegrationTime=IntegrationTime;
@@ -232,11 +242,7 @@ void c_io_imu_getComplimentaryRPY(float * rpy) {
 
 	rpy[PV_IMU_PITCH] = a*(rpy[PV_IMU_PITCH] + gyro_raw[PV_IMU_PITCH]*IntegrationTimeDiff) + (1.0f - a)*acce_rpy[PV_IMU_PITCH];
 	rpy[PV_IMU_ROLL ] = a*(rpy[PV_IMU_ROLL ] + gyro_raw[PV_IMU_ROLL ]*IntegrationTimeDiff) + (1.0f - a)*acce_rpy[PV_IMU_ROLL ];
-  
-  //rpy[PV_IMU_PITCH] = acce_rpy[PV_IMU_PITCH];
-  //rpy[PV_IMU_ROLL ] = gyro_raw[PV_IMU_PITCH];
-  rpy[PV_IMU_YAW] = IntegrationTimeDiff;
-  
+  rpy[PV_IMU_YAW]   = acce_rpy[PV_IMU_YAW];
   
 
 	lastIntegrationTime = IntegrationTime;
