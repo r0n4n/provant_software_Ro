@@ -226,13 +226,12 @@ void c_io_imu_getComplimentaryRPY(float * rpy) {
 			+ pow(acce_raw[PV_IMU_Z],2)));// - mean_acce_rpy[PITCH];
   */
 
-  magn_raw[PV_IMU_X]=magn_raw[PV_IMU_X]/sqrt(pow(magn_raw[PV_IMU_X],2)+pow(magn_raw[PV_IMU_Y],2)+pow(magn_raw[PV_IMU_Z],2));
-  magn_raw[PV_IMU_Y]=magn_raw[PV_IMU_Y]/sqrt(pow(magn_raw[PV_IMU_X],2)+pow(magn_raw[PV_IMU_Y],2)+pow(magn_raw[PV_IMU_Z],2));
-  magn_raw[PV_IMU_Z]=magn_raw[PV_IMU_Z]/sqrt(pow(magn_raw[PV_IMU_X],2)+pow(magn_raw[PV_IMU_Y],2)+pow(magn_raw[PV_IMU_Z],2));
-
   acce_rpy[PV_IMU_PITCH] = atan(acce_raw[PV_IMU_X]/sqrt(pow(acce_raw[PV_IMU_Y],2) + pow(acce_raw[PV_IMU_Z],2)));
   acce_rpy[PV_IMU_ROLL ] = atan(acce_raw[PV_IMU_Y]/sqrt(pow(acce_raw[PV_IMU_X],2) + pow(acce_raw[PV_IMU_Z],2)));
-  acce_rpy[PV_IMU_YAW]   = atan2(magn_raw[PV_IMU_Y],magn_raw[PV_IMU_X]);
+  
+  float xh = magn_raw[PV_IMU_X]*cos(acce_rpy[PV_IMU_PITCH])+magn_raw[PV_IMU_Y]*sin(acce_rpy[PV_IMU_ROLL ])*sin(acce_rpy[PV_IMU_PITCH])-magn_raw[PV_IMU_Z]*cos(acce_rpy[PV_IMU_ROLL ])*sin(acce_rpy[PV_IMU_PITCH]);
+  float yh = magn_raw[PV_IMU_Y]*cos(acce_rpy[PV_IMU_ROLL ])+magn_raw[PV_IMU_Z]*sin(acce_rpy[PV_IMU_ROLL ]);
+  acce_rpy[PV_IMU_YAW ] = atan2(yh, xh);
 	
   //Filtro complementar
 	float a = 0.93;
