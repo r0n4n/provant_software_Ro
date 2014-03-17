@@ -164,8 +164,22 @@ void c_io_imu_getRaw(float  * accRaw, float * gyrRaw, float * magRaw) {
     c_common_i2c_readBytes(I2Cx_imu, MAGN_ADDR, MAGN_X_ADDR, 6, imuBuffer);
    
     magRaw[0] =  (float)((int16_t)(imuBuffer[1] | ((int16_t)imuBuffer[0] << 8)));// X
-    magRaw[2] =  (float)((int16_t)(imuBuffer[3] | ((int16_t)imuBuffer[2] << 8)));// Z
     magRaw[1] =  (float)((int16_t)(imuBuffer[5] | ((int16_t)imuBuffer[4] << 8)));// Y
+    magRaw[2] =  (float)((int16_t)(imuBuffer[3] | ((int16_t)imuBuffer[2] << 8)));// Z
+
+    /** Como dito no link:  http://www.multiwii.com/forum/viewtopic.php?f=8&t=1387&p=10658
+    * temosque encontrar os zeros do mag
+
+         X   |     Y    |     Z
+    ---------|----------|----------------
+    -196/607 | -488/250 | -422/263
+    ***********************************************/
+
+    // -100/100
+    magRaw[1] = (magRaw[1]-(250-488)/2)/3.69;
+    magRaw[0] = (magRaw[0]-(607-196)/2)/4.015;
+    magRaw[2] = (magRaw[2]-(263-422)/2)/3.425;
+
 #endif
 
 #ifdef C_IO_IMU_USE_MPU6050_HMC5883
@@ -228,9 +242,9 @@ void c_io_imu_getComplimentaryRPY(float * rpy) {
 
   acce_rpy[PV_IMU_PITCH] = atan(acce_raw[PV_IMU_X]/sqrt(pow(acce_raw[PV_IMU_Y],2) + pow(acce_raw[PV_IMU_Z],2)));
   acce_rpy[PV_IMU_ROLL ] = atan(acce_raw[PV_IMU_Y]/sqrt(pow(acce_raw[PV_IMU_X],2) + pow(acce_raw[PV_IMU_Z],2)));
-  
+
   float xh = magn_raw[PV_IMU_X]*cos(acce_rpy[PV_IMU_PITCH])+magn_raw[PV_IMU_Y]*sin(acce_rpy[PV_IMU_ROLL ])*sin(acce_rpy[PV_IMU_PITCH])-magn_raw[PV_IMU_Z]*cos(acce_rpy[PV_IMU_ROLL ])*sin(acce_rpy[PV_IMU_PITCH]);
-  float yh = magn_raw[PV_IMU_Y]*cos(acce_rpy[PV_IMU_ROLL ])+magn_raw[PV_IMU_Z]*sin(acce_rpy[PV_IMU_ROLL ]);
+  float yh = magn_raw[PV_IMU_Y]*cos(acce_rpy[PV_IMU_ROLL ])-magn_raw[PV_IMU_Z]*sin(acce_rpy[PV_IMU_ROLL ]);
   acce_rpy[PV_IMU_YAW ] = atan2(yh, xh);
 	
   //Filtro complementar
