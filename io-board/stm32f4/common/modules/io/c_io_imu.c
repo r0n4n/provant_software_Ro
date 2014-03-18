@@ -223,6 +223,7 @@ void c_io_imu_getRaw(float  * accRaw, float * gyrRaw, float * magRaw) {
  *
  * \image html complementary_filter_diagram.jpg "Diagrama de blocos simplificado para um filtro complementar." width=4cm
  */
+float last_rpy[]={0,0,0};
 void c_io_imu_getComplimentaryRPY(float * rpy) {
 	float acce_raw[3], gyro_raw[3], magn_raw[3];
 	float acce_rpy[3];
@@ -250,15 +251,18 @@ void c_io_imu_getComplimentaryRPY(float * rpy) {
   //Filtro complementar
 	float a = 0.93;
   long  IntegrationTime = c_common_utils_millis();
-  if(lastIntegrationTime==0) lastIntegrationTime=IntegrationTime;
+  if(lastIntegrationTime==0) lastIntegrationTime=IntegrationTime+1;
   float IntegrationTimeDiff=(float)(((float)IntegrationTime- (float)lastIntegrationTime)/1000.0);
 
-  rpy[PV_IMU_DPITCH] = (a*(rpy[PV_IMU_PITCH] + gyro_raw[PV_IMU_PITCH]*IntegrationTimeDiff) + (1.0f - a)*acce_rpy[PV_IMU_PITCH] - rpy[PV_IMU_PITCH])/IntegrationTimeDiff;
-  rpy[PV_IMU_DROLL ] = (a*(rpy[PV_IMU_ROLL ] + gyro_raw[PV_IMU_ROLL ]*IntegrationTimeDiff) + (1.0f - a)*acce_rpy[PV_IMU_ROLL ] - rpy[PV_IMU_ROLL ])/IntegrationTimeDiff;
-  rpy[PV_IMU_DYAW  ] = (a*(rpy[PV_IMU_YAW  ] + gyro_raw[PV_IMU_YAW  ]*IntegrationTimeDiff) + (1.0f - a)*acce_rpy[PV_IMU_YAW  ] - rpy[PV_IMU_YAW  ])/IntegrationTimeDiff;
 	rpy[PV_IMU_PITCH ] =  a*(rpy[PV_IMU_PITCH] + gyro_raw[PV_IMU_PITCH]*IntegrationTimeDiff) + (1.0f - a)*acce_rpy[PV_IMU_PITCH];
 	rpy[PV_IMU_ROLL  ] =  a*(rpy[PV_IMU_ROLL ] + gyro_raw[PV_IMU_ROLL ]*IntegrationTimeDiff) + (1.0f - a)*acce_rpy[PV_IMU_ROLL ];
   rpy[PV_IMU_YAW   ] =  a*(rpy[PV_IMU_YAW  ] + gyro_raw[PV_IMU_YAW  ]*IntegrationTimeDiff) + (1.0f - a)*acce_rpy[PV_IMU_YAW  ];
+  rpy[PV_IMU_DPITCH] = (rpy[PV_IMU_PITCH] - last_rpy[PV_IMU_PITCH])/IntegrationTimeDiff;
+  rpy[PV_IMU_DROLL ] = (rpy[PV_IMU_ROLL ] - last_rpy[PV_IMU_ROLL ])/IntegrationTimeDiff;
+  rpy[PV_IMU_DYAW  ] = (rpy[PV_IMU_YAW  ] - last_rpy[PV_IMU_YAW  ])/IntegrationTimeDiff;
+  last_rpy[PV_IMU_PITCH] = rpy[PV_IMU_PITCH];
+  last_rpy[PV_IMU_ROLL ] = rpy[PV_IMU_ROLL ];
+  last_rpy[PV_IMU_YAW  ] = rpy[PV_IMU_YAW  ];
   
 
 	lastIntegrationTime = IntegrationTime;

@@ -82,7 +82,7 @@ void module_rc_run() {
     xQueueReceive(pv_interface_rc.iAttitude, &iAttitude, 0);
     
     /// Controle
-    #if 0
+    #if 1
       pv_msg_io_actuation    actuation = {0,0.0f,0.0f,0.0f,0.0f};
       pv_msg_datapr_attitude attitude  = {0.0f,0.0f,0.0f,0.0f,0.0f,0.0f};
       pv_msg_datapr_attitude attitude_reference = {0.0f,0.0f,0.0f,0.0f,0.0f,0.0f};
@@ -103,7 +103,7 @@ void module_rc_run() {
     /// Receiver control
     #endif
 
-    #if 1
+    #if 0
       taskENTER_CRITICAL();
       oActuation.servoRight=c_rc_receiver_getChannel(C_RC_CHANNEL_YAW);
       oActuation.servoLeft =c_rc_receiver_getChannel(C_RC_CHANNEL_PITCH);

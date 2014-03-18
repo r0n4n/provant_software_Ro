@@ -111,20 +111,21 @@ void module_io_run()
 		//c_io_blctrl_setSpeed(0, 700);//1700-iActuation.escLeftSpeed);
 		//c_io_blctrl_setSpeed(1, 700);//1700-iActuation.escLeftSpeed);
 		
-		
+		#if 1
 		taskENTER_CRITICAL();
 		c_io_imu_getComplimentaryRPY(rpy);
 		taskEXIT_CRITICAL();
+		#endif
 
 		/// DEBUG
-		#if 0    
+		#if 1    
 		// imu data
-		c_common_utils_floatToString(rpy[PV_IMU_ROLL  ]*RAD_TO_DEG, r,  3);
-		c_common_utils_floatToString(rpy[PV_IMU_PITCH ]*RAD_TO_DEG, p,  3);
-		c_common_utils_floatToString(rpy[PV_IMU_YAW   ]*RAD_TO_DEG, y,  3);
-		c_common_utils_floatToString(rpy[PV_IMU_DROLL ]*RAD_TO_DEG, dr, 3);
-		c_common_utils_floatToString(rpy[PV_IMU_DPITCH]*RAD_TO_DEG, dp, 3);
-		c_common_utils_floatToString(rpy[PV_IMU_DYAW  ]*RAD_TO_DEG, dy, 3);
+		c_common_utils_floatToString(rpy[PV_IMU_ROLL  ]*RAD_TO_DEG, r,  4);
+		c_common_utils_floatToString(rpy[PV_IMU_PITCH ]*RAD_TO_DEG, p,  4);
+		c_common_utils_floatToString(rpy[PV_IMU_YAW   ]*RAD_TO_DEG, y,  4);
+		c_common_utils_floatToString(rpy[PV_IMU_DROLL ]*RAD_TO_DEG, dr, 4);
+		c_common_utils_floatToString(rpy[PV_IMU_DPITCH]*RAD_TO_DEG, dp, 4);
+		c_common_utils_floatToString(rpy[PV_IMU_DYAW  ]*RAD_TO_DEG, dy, 4);
 		sprintf(str, "imu -> \t %s \t %s \t %s \t %s \t %s \t %s\n\r", r, p, y, dr, dp, dy);
 		c_common_usart_puts(USART2, str);
 		#endif
@@ -140,13 +141,13 @@ void module_io_run()
 		#endif
 
 		/// SONAR
-		#if 1
+		#if 0
 		sprintf(str, "Distance: %d \n\r", c_io_sonar_read());
     	c_common_usart_puts(USART2, str);
     	#endif
 
 		/// SERVOS		
-		#if 1
+		#if 0
 		// servo actuation
 		taskENTER_CRITICAL();
 		if(abs(iActuation.servoRight)<90)
