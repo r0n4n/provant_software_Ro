@@ -32,6 +32,7 @@
 #include "c_io_blctrl.h"
 #include "c_io_rx24f.h"
 #include "c_io_imu.h"
+#include "c_io_sonar.h"
 
 #include "pv_typedefs.h"
 

@@ -253,9 +253,12 @@ void c_io_imu_getComplimentaryRPY(float * rpy) {
   if(lastIntegrationTime==0) lastIntegrationTime=IntegrationTime;
   float IntegrationTimeDiff=(float)(((float)IntegrationTime- (float)lastIntegrationTime)/1000.0);
 
-	rpy[PV_IMU_PITCH] = a*(rpy[PV_IMU_PITCH] + gyro_raw[PV_IMU_PITCH]*IntegrationTimeDiff) + (1.0f - a)*acce_rpy[PV_IMU_PITCH];
-	rpy[PV_IMU_ROLL ] = a*(rpy[PV_IMU_ROLL ] + gyro_raw[PV_IMU_ROLL ]*IntegrationTimeDiff) + (1.0f - a)*acce_rpy[PV_IMU_ROLL ];
-  rpy[PV_IMU_YAW]   = a*(rpy[PV_IMU_YAW  ] + gyro_raw[PV_IMU_YAW  ]*IntegrationTimeDiff) + (1.0f - a)*acce_rpy[PV_IMU_YAW  ];//acce_rpy[PV_IMU_YAW];
+  rpy[PV_IMU_DPITCH] = (a*(rpy[PV_IMU_PITCH] + gyro_raw[PV_IMU_PITCH]*IntegrationTimeDiff) + (1.0f - a)*acce_rpy[PV_IMU_PITCH] - rpy[PV_IMU_PITCH])/IntegrationTimeDiff;
+  rpy[PV_IMU_DROLL ] = (a*(rpy[PV_IMU_ROLL ] + gyro_raw[PV_IMU_ROLL ]*IntegrationTimeDiff) + (1.0f - a)*acce_rpy[PV_IMU_ROLL ] - rpy[PV_IMU_ROLL ])/IntegrationTimeDiff;
+  rpy[PV_IMU_DYAW  ] = (a*(rpy[PV_IMU_YAW  ] + gyro_raw[PV_IMU_YAW  ]*IntegrationTimeDiff) + (1.0f - a)*acce_rpy[PV_IMU_YAW  ] - rpy[PV_IMU_YAW  ])/IntegrationTimeDiff;
+	rpy[PV_IMU_PITCH ] =  a*(rpy[PV_IMU_PITCH] + gyro_raw[PV_IMU_PITCH]*IntegrationTimeDiff) + (1.0f - a)*acce_rpy[PV_IMU_PITCH];
+	rpy[PV_IMU_ROLL  ] =  a*(rpy[PV_IMU_ROLL ] + gyro_raw[PV_IMU_ROLL ]*IntegrationTimeDiff) + (1.0f - a)*acce_rpy[PV_IMU_ROLL ];
+  rpy[PV_IMU_YAW   ] =  a*(rpy[PV_IMU_YAW  ] + gyro_raw[PV_IMU_YAW  ]*IntegrationTimeDiff) + (1.0f - a)*acce_rpy[PV_IMU_YAW  ];
   
 
 	lastIntegrationTime = IntegrationTime;

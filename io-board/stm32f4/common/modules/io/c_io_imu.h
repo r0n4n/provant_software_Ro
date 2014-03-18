@@ -31,6 +31,9 @@
 #define PV_IMU_ROLL        0
 #define PV_IMU_PITCH       1
 #define PV_IMU_YAW         2
+#define PV_IMU_DROLL       3
+#define PV_IMU_DPITCH      4
+#define PV_IMU_DYAW        5
 
 #define PV_IMU_X           0
 #define PV_IMU_Y           1

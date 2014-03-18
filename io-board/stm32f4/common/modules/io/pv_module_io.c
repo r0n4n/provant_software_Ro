@@ -58,16 +58,17 @@ void module_io_init() {
 
 	c_common_usart2_init(115200);
 
+	/* Inicializar do sonar */
+	c_io_sonar_init();
+
 	/* Inicializar os servos */
 	c_io_rx24f_init(1000000);
-	c_io_rx24f_setSpeed(1, 20);
-	c_io_rx24f_setSpeed(2, 20);
-	c_common_utils_delayms(1);
+	c_common_utils_delayms(2);
 	c_io_rx24f_move(1, 150);
 	c_io_rx24f_move(2, 140);
 	c_common_utils_delayms(1);
-	c_io_rx24f_setSpeed(1, 70);
-	c_io_rx24f_setSpeed(2, 70);
+	c_io_rx24f_setSpeed(1, 20);
+	c_io_rx24f_setSpeed(2, 20);
 
 	c_common_utils_delayms(100);
 
@@ -98,8 +99,8 @@ void module_io_init() {
 void module_io_run() 
 {
 	float accRaw[3], gyrRaw[3], magRaw[3];
-	char  ax[16], ay[16], az[16], r[16], p[16], y[16], z[16];
-	float rpy[] = {0,0,0};
+	char  ax[16], ay[16], az[16], r[16], p[16], y[16], dr[16], dp[16], dy[16];
+	float rpy[] = {0,0,0,0,0,0};
 
 	while(1)
 	{
@@ -109,34 +110,59 @@ void module_io_run()
 
 		//c_io_blctrl_setSpeed(0, 700);//1700-iActuation.escLeftSpeed);
 		//c_io_blctrl_setSpeed(1, 700);//1700-iActuation.escLeftSpeed);
+		
+		
 		taskENTER_CRITICAL();
 		c_io_imu_getComplimentaryRPY(rpy);
-		c_common_utils_floatToString(rpy[PV_IMU_ROLL ]*RAD_TO_DEG, ax, 4);
-		c_common_utils_floatToString(rpy[PV_IMU_PITCH]*RAD_TO_DEG, ay, 4);
-		c_common_utils_floatToString(rpy[PV_IMU_YAW  ]*RAD_TO_DEG, az, 4);
 		taskEXIT_CRITICAL();
-		sprintf(str, "imu -> \t %s \t\t %s \t\t %s\n\r", ax, ay, az);
+
+		/// DEBUG
+		#if 0    
+		// imu data
+		c_common_utils_floatToString(rpy[PV_IMU_ROLL  ]*RAD_TO_DEG, r,  3);
+		c_common_utils_floatToString(rpy[PV_IMU_PITCH ]*RAD_TO_DEG, p,  3);
+		c_common_utils_floatToString(rpy[PV_IMU_YAW   ]*RAD_TO_DEG, y,  3);
+		c_common_utils_floatToString(rpy[PV_IMU_DROLL ]*RAD_TO_DEG, dr, 3);
+		c_common_utils_floatToString(rpy[PV_IMU_DPITCH]*RAD_TO_DEG, dp, 3);
+		c_common_utils_floatToString(rpy[PV_IMU_DYAW  ]*RAD_TO_DEG, dy, 3);
+		sprintf(str, "imu -> \t %s \t %s \t %s \t %s \t %s \t %s\n\r", r, p, y, dr, dp, dy);
 		c_common_usart_puts(USART2, str);
+		#endif
 
-		c_common_utils_floatToString(iActuation.servoRight*RAD_TO_DEG, r, 4);
-		c_common_utils_floatToString(iActuation.servoLeft*RAD_TO_DEG, p, 4);
-		c_common_utils_floatToString(iActuation.escRightSpeed, y, 4);
-		c_common_utils_floatToString(iActuation.escLeftSpeed, z, 4);
-		//sprintf(str, "control -> (%s,%s) \t %s \t %s \t %s \t %s \n\r",ax,ay, r,p,y,z);
-		//c_common_usart_puts(USART2, str);
+		#if 0
+		// control data
+		c_common_utils_floatToString(iActuation.servoRight, r,  3);
+		c_common_utils_floatToString(iActuation.servoLeft , p,  3);
+		c_common_utils_floatToString(iActuation.escRightSpeed, y,  3);
+		c_common_utils_floatToString(iActuation.escLeftSpeed , dr, 3);
+		sprintf(str, "Control -> \t %s \t %s \t %s \t %s \n\r", r, p, y, dr);
+		c_common_usart_puts(USART2, str);
+		#endif
 
+		/// SONAR
+		#if 1
+		sprintf(str, "Distance: %d \n\r", c_io_sonar_read());
+    	c_common_usart_puts(USART2, str);
+    	#endif
 
-		oAttitude.roll=rpy[PV_IMU_ROLL ];
-		oAttitude.pitch=rpy[PV_IMU_ROLL ];
-
-		//if(iActuation.servoLeft > 60) iActuation.servoLeft = 60.0;
-		//if(iActuation.servoLeft < 0)  iActuation.servoLeft =  0.0;
-		//if(iActuation.servoRight > 60) iActuation.servoRight = 60.0;
-		//if(iActuation.servoRight < 0)  iActuation.servoRight =  0.0;
+		/// SERVOS		
+		#if 1
+		// servo actuation
 		taskENTER_CRITICAL();
-		c_io_rx24f_move(2, 150-rpy[PV_IMU_ROLL]*RAD_TO_DEG);
-		c_io_rx24f_move(1, 130+rpy[PV_IMU_ROLL]*RAD_TO_DEG);	
+		if(abs(iActuation.servoRight)<90)
+			c_io_rx24f_move(2, 150 - iActuation.servoRight);
+		if(abs(iActuation.servoLeft)<90)
+			c_io_rx24f_move(1, 130 + iActuation.servoLeft);	
 		taskEXIT_CRITICAL();
+		#endif
+		
+		/// DADOS OUT
+		oAttitude.roll     = rpy[PV_IMU_ROLL  ];
+		oAttitude.pitch    = rpy[PV_IMU_PITCH ];
+		oAttitude.yaw      = rpy[PV_IMU_YAW   ];
+		oAttitude.dotRoll  = rpy[PV_IMU_DROLL ];
+		oAttitude.dotPitch = rpy[PV_IMU_DPITCH];
+		oAttitude.dotYaw   = rpy[PV_IMU_DYAW  ];
 
 		if(pv_interface_io.oAttitude != 0)
       		xQueueOverwrite(pv_interface_io.oAttitude, &oAttitude);
