@@ -82,7 +82,7 @@ void module_rc_run() {
     xQueueReceive(pv_interface_rc.iAttitude, &iAttitude, 0);
     
     /// Controle
-    #if 1
+    #if 0
       pv_msg_io_actuation    actuation = {0,0.0f,0.0f,0.0f,0.0f};
       pv_msg_datapr_attitude attitude  = {0.0f,0.0f,0.0f,0.0f,0.0f,0.0f};
       pv_msg_datapr_attitude attitude_reference = {0.0f,0.0f,0.0f,0.0f,0.0f,0.0f};
@@ -92,7 +92,7 @@ void module_rc_run() {
     #endif
     
     /// Receiver debug
-    #if 0
+    #if 1
       c_common_utils_floatToString(c_rc_receiver_getChannel(C_RC_CHANNEL_THROTTLE), rc_channel[0],  2);
       c_common_utils_floatToString(c_rc_receiver_getChannel(C_RC_CHANNEL_ROLL), rc_channel[1],  2);
       c_common_utils_floatToString(c_rc_receiver_getChannel(C_RC_CHANNEL_YAW), rc_channel[2],  2);

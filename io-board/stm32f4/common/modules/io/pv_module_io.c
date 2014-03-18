@@ -112,14 +112,14 @@ void module_io_run()
 		//c_io_blctrl_setSpeed(1, 700);//1700-iActuation.escLeftSpeed);
 		
 		#if 1
+		// imu data
 		taskENTER_CRITICAL();
 		c_io_imu_getComplimentaryRPY(rpy);
 		taskEXIT_CRITICAL();
 		#endif
 
 		/// DEBUG
-		#if 1    
-		// imu data
+		#if 1
 		c_common_utils_floatToString(rpy[PV_IMU_ROLL  ]*RAD_TO_DEG, r,  4);
 		c_common_utils_floatToString(rpy[PV_IMU_PITCH ]*RAD_TO_DEG, p,  4);
 		c_common_utils_floatToString(rpy[PV_IMU_YAW   ]*RAD_TO_DEG, y,  4);
@@ -130,7 +130,7 @@ void module_io_run()
 		c_common_usart_puts(USART2, str);
 		#endif
 
-		#if 0
+		#if 1
 		// control data
 		c_common_utils_floatToString(iActuation.servoRight, r,  3);
 		c_common_utils_floatToString(iActuation.servoLeft , p,  3);
@@ -141,8 +141,9 @@ void module_io_run()
 		#endif
 
 		/// SONAR
-		#if 0
-		sprintf(str, "Distance: %d \n\r", c_io_sonar_read());
+		#if 1
+		c_common_utils_floatToString(c_io_sonar_read(), r,  3);
+		sprintf(str, "Distance: %s \n\r",r );
     	c_common_usart_puts(USART2, str);
     	#endif
 
