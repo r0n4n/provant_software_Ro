@@ -51,26 +51,26 @@
 /* Private define ------------------------------------------------------------*/
 
 // PD controller gains
-#define KPPHI    1.0f
-#define KVPHI    1.0f
-#define KPTHETA  1.0f
-#define KVTHETA  1.0f
-#define KPPSI    1.0f
-#define KVPSI    1.0f
-#define KVZ		  1.0f
-#define KPZ		  1.0f
+#define KPPHI    100.0f
+#define KVPHI    20.0f
+#define KPTHETA  100.0f
+#define KVTHETA  20.0f
+#define KPPSI    100.0f
+#define KVPSI    20.0f
+#define KVZ		 5.0f
+#define KPZ		 30.0f
 
 // Environment parameters
 #define G    9.81 //gravity
 
 // Aircraft parameters
-#define M    1 // mass
-#define L    1 // aircraft's arm length. Y-axis distance between center of rotation(B) and rotor center of mass.
-#define H    1 // center of mass displacement in Z-axis
-// Aircraft's Moments of IneZrtia
-#define IXX  1
-#define IYY  1
-#define IZZ  1
+#define M    1.672   // mass kg
+#define L    0.27023 // aircraft's arm length. Y-axis distance between center of rotation(B) and rotor center of mass.
+#define H    0.03349 // center of mass displacement in Z-axis
+// Aircraft's Moments of Inertia km*m²
+#define IXX  0.01905797115
+#define IYY  0.00502396129
+#define IZZ  0.01859602726
 
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
@@ -135,9 +135,9 @@ arm_matrix_instance_f32 torque_calculation_step(pv_msg_datapr_attitude attitude,
 	arm_mat_init_f32(&r1, 3, 1, (float32_t *)r1_f32);
 	arm_mat_init_f32(&r2, 3, 1, (float32_t *)r2_f32);
 
-	attitudeVector_f32[0]= attitude.roll;
-	attitudeVector_f32[1]= attitude.pitch;
-	attitudeVector_f32[2]= attitude.yaw;
+	attitudeVector_f32[0]= attitude.dotRoll;
+	attitudeVector_f32[1]= attitude.dotPitch;
+	attitudeVector_f32[2]= attitude.dotYaw;
 
 	arm_mat_init_f32(&tau, 3, 1, (float32_t *)tau_f32);
 	arm_mat_init_f32(&attitudeVector, 3, 1, (float32_t *)attitudeVector_f32);
@@ -174,13 +174,13 @@ pv_msg_io_actuation actuators_signals_step(arm_matrix_instance_f32 tau, float32_
 				pow((-tauData[1] / H + tauData[2] / L), 2)
 				+ pow((Fzb + tauData[0] / L), 2));
 
-	actuation.servoRight = atan(
+	actuation.servoRight = atan2(
 				(tauData[1] / H + tauData[2] / L)
-				/ (Fzb - tauData[0] / L));
+				, (Fzb - tauData[0] / L));
 
-	actuation.servoLeft = atan(
+	actuation.servoLeft = atan2(
 				(tauData[1] / H - tauData[2] / L)
-				/ (Fzb + tauData[0] / L));
+				, (Fzb + tauData[0] / L));
 
 	// Declares that the servos will use angle control, rather than torque control
 	actuation.servoTorqueControlEnable = 0;

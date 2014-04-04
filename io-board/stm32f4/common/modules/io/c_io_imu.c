@@ -263,7 +263,6 @@ void c_io_imu_getComplimentaryRPY(float * rpy) {
   last_rpy[PV_IMU_PITCH] = rpy[PV_IMU_PITCH];
   last_rpy[PV_IMU_ROLL ] = rpy[PV_IMU_ROLL ];
   last_rpy[PV_IMU_YAW  ] = rpy[PV_IMU_YAW  ];
-  
 
 	lastIntegrationTime = IntegrationTime;
 }

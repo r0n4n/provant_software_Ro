@@ -64,12 +64,12 @@ void module_io_init() {
 	/* Inicializar os servos */
 	c_io_rx24f_init(1000000);
 	c_common_utils_delayms(2);
+	c_io_rx24f_setSpeed(1, 20);
+	c_io_rx24f_setSpeed(2, 20);
+	c_common_utils_delayms(2);
 	c_io_rx24f_move(1, 150);
 	c_io_rx24f_move(2, 140);
 	c_common_utils_delayms(1);
-	c_io_rx24f_setSpeed(1, 20);
-	c_io_rx24f_setSpeed(2, 20);
-
 	c_common_utils_delayms(100);
 
 	c_io_imu_init(I2C1);   
@@ -107,9 +107,6 @@ void module_io_run()
 		lastWakeTime = xTaskGetTickCount();
 
 		xQueueReceive(pv_interface_io.iActuation, &iActuation, 0);
-
-		//c_io_blctrl_setSpeed(0, 700);//1700-iActuation.escLeftSpeed);
-		//c_io_blctrl_setSpeed(1, 700);//1700-iActuation.escLeftSpeed);
 		
 		#if 1
 		// imu data
@@ -130,7 +127,7 @@ void module_io_run()
 		c_common_usart_puts(USART2, str);
 		#endif
 
-		#if 1
+		#if 0
 		// control data
 		c_common_utils_floatToString(iActuation.servoRight, r,  3);
 		c_common_utils_floatToString(iActuation.servoLeft , p,  3);
@@ -141,7 +138,7 @@ void module_io_run()
 		#endif
 
 		/// SONAR
-		#if 1
+		#if 0
 		c_common_utils_floatToString(c_io_sonar_read(), r,  3);
 		sprintf(str, "Distance: %s \n\r",r );
     	c_common_usart_puts(USART2, str);
@@ -156,15 +153,35 @@ void module_io_run()
 		if(abs(iActuation.servoLeft)<90)
 			c_io_rx24f_move(1, 130 + iActuation.servoLeft);	
 		taskEXIT_CRITICAL();
+		#else
+		taskENTER_CRITICAL();
+		if(abs(iActuation.servoRight*RAD_TO_DEG)<30)
+			c_io_rx24f_move(2, 150+iActuation.servoRight*RAD_TO_DEG);
+		if(abs(iActuation.servoLeft*RAD_TO_DEG)<30)
+			c_io_rx24f_move(1, 130+iActuation.servoLeft*RAD_TO_DEG);	
+		taskEXIT_CRITICAL();
+		#endif
+
+		#if 0
+		if(iActuation.escRightSpeed > 0 && iActuation.escRightSpeed < 10)
+		{
+			float velo = 395.85*iActuation.escRightSpeed+3223.6; 
+			c_io_blctrl_setSpeed(0, velo);
+		}
+		if(iActuation.escLeftSpeed  > 0 && iActuation.escLeftSpeed  < 10)
+		{
+			float velo = 395.85*iActuation.escLeftSpeed+3223.6 ;
+			c_io_blctrl_setSpeed(1, velo );
+		}
 		#endif
 		
 		/// DADOS OUT
 		oAttitude.roll     = rpy[PV_IMU_ROLL  ];
-		oAttitude.pitch    = rpy[PV_IMU_PITCH ];
-		oAttitude.yaw      = rpy[PV_IMU_YAW   ];
-		oAttitude.dotRoll  = rpy[PV_IMU_DROLL ];
-		oAttitude.dotPitch = rpy[PV_IMU_DPITCH];
-		oAttitude.dotYaw   = rpy[PV_IMU_DYAW  ];
+		oAttitude.pitch    = rpy[PV_IMU_YAW   ]; 
+		oAttitude.yaw      = rpy[PV_IMU_PITCH ];
+		oAttitude.dotRoll  = 0;//rpy[PV_IMU_DROLL ];
+		oAttitude.dotPitch = 0;//rpy[PV_IMU_DPITCH];
+		oAttitude.dotYaw   = 0;//rpy[PV_IMU_DYAW  ];
 
 		if(pv_interface_io.oAttitude != 0)
       		xQueueOverwrite(pv_interface_io.oAttitude, &oAttitude);
