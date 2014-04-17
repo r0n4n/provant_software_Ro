@@ -26,7 +26,7 @@
 
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
-//#define I2Cx_blctrl             I2C1// i2c of blctrl
+//#define I2Cx_blctrl             I2C2// i2c of blctrl
 
 #define BLCTRL_NUM_OF_MAGNETS   14 // numero de polos do motor
 #define BLCTRL_BUFFER_SIZE      10 // tamanho do buffer
@@ -65,12 +65,28 @@ void c_io_blctrl_init(I2C_TypeDef* I2Cx)
   * @param  ID ID do esc.
   * @param  speed velocidade em rpm.
   * @retval sucesso ou nao.
+  * @todo Existe um erro relacionado ao I2C na funcao init.
   */
 int  c_io_blctrl_setSpeed(uint8_t ID, int speed)
 {
+  #if 1
   //RPM = raw * 780 / no. of magnets
   int raw = (int) speed*BLCTRL_NUM_OF_MAGNETS/780;
-
+  if(raw<=255 && raw>=0)
+  {
+    c_common_i2c_start(I2C1, (BLCTRL_ADDR+ID)<<1, I2C_Direction_Transmitter);
+    c_common_i2c_write(I2C1, (uint8_t) raw);
+    c_common_i2c_stop(I2C1);
+    return 1;
+  }
+  else
+  {
+    return -1;
+  }
+  #else
+  //RPM = raw * 780 / no. of magnets
+  int raw = (int) speed*BLCTRL_NUM_OF_MAGNETS/780;
+  if(raw > 151) raw = 161;
   if(raw<=255 && raw>=0)
   {
     c_common_i2c_start(I2Cx_blctrl, (BLCTRL_ADDR+ID)<<1, I2C_Direction_Transmitter);
@@ -82,6 +98,7 @@ int  c_io_blctrl_setSpeed(uint8_t ID, int speed)
   {
     return -1;
   }
+  #endif
 
 }
 

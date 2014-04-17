@@ -134,16 +134,16 @@ void c_io_imu_getRaw(float  * accRaw, float * gyrRaw, float * magRaw) {
 
 #ifdef C_IO_IMU_USE_ITG_ADXL_HMC
     // Read x, y, z acceleration, pack the data.
-    uint8_t  buffer[14];
+    uint8_t  buffer[14]={};
   	c_common_i2c_readBytes(I2Cx_imu, ACCL_ADDR, ACCL_X_ADDR, 6, imuBuffer);
 
-    accRaw[0] = (int16_t)((imuBuffer[0] | ((int16_t)imuBuffer[1] << 8)));
-    accRaw[1] = (int16_t)((imuBuffer[2] | ((int16_t)imuBuffer[3] << 8)));
-    accRaw[2] = (int16_t)((imuBuffer[4] | ((int16_t)imuBuffer[5] << 8)));
+    accRaw[0] = (int16_t)(imuBuffer[0] | (imuBuffer[1] << 8));
+    accRaw[1] = (int16_t)(imuBuffer[2] | (imuBuffer[3] << 8));
+    accRaw[2] = (int16_t)(imuBuffer[4] | (imuBuffer[5] << 8));
 
     // Read x, y, z from gyro, pack the data
 
-    /** A sensitividade do acelerômetro da ITG32000 é dada pela tabela (extraída do datasheet):
+    /** A sensitividade do acelerômetro da ITG3200 é dada pela tabela (extraída do datasheet):
      FS_SEL | Full Scale Range | LSB Sensitivity
     --------|------------------|----------------
     0       | Reservado        | Reservado
@@ -151,22 +151,22 @@ void c_io_imu_getRaw(float  * accRaw, float * gyrRaw, float * magRaw) {
     2       | Reservado        | Reservado
     3       | 2,000°/seg       | 14.375 LSBs °/S
     ***********************************************/
-
+    
     float accScale =14.375f;
-    accScale /= 0.0174532925;//0.0174532925 = PI/180
+    accScale = 0.0174532925f/accScale;//0.0174532925 = PI/180
 
   	c_common_i2c_readBytes(I2Cx_imu, GYRO_ADDR, GYRO_X_ADDR, 6, imuBuffer);
-  	gyrRaw[0] =  (float)((int16_t)(imuBuffer[1] | ((int16_t)imuBuffer[0] << 8)))/accScale;
-  	gyrRaw[1] =  (float)((int16_t)(imuBuffer[3] | ((int16_t)imuBuffer[2] << 8)))/accScale;
-  	gyrRaw[2] =  (float)((int16_t)(imuBuffer[5] | ((int16_t)imuBuffer[4] << 8)))/accScale;
+  	gyrRaw[0] =  (int16_t)((imuBuffer[1] | (imuBuffer[0] << 8)))*accScale;
+  	gyrRaw[1] =  (int16_t)((imuBuffer[3] | (imuBuffer[2] << 8)))*accScale;
+  	gyrRaw[2] =  (int16_t)((imuBuffer[5] | (imuBuffer[4] << 8)))*accScale;
 
     // Read x, y, z from magnetometer;
     c_common_i2c_readBytes(I2Cx_imu, MAGN_ADDR, MAGN_X_ADDR, 6, imuBuffer);
    
-    magRaw[0] =  (float)((int16_t)(imuBuffer[1] | ((int16_t)imuBuffer[0] << 8)));// X
-    magRaw[1] =  (float)((int16_t)(imuBuffer[5] | ((int16_t)imuBuffer[4] << 8)));// Y
-    magRaw[2] =  (float)((int16_t)(imuBuffer[3] | ((int16_t)imuBuffer[2] << 8)));// Z
-
+    magRaw[0] =  (int16_t)((imuBuffer[1] | (imuBuffer[0] << 8)));// X
+    magRaw[1] =  (int16_t)((imuBuffer[5] | (imuBuffer[4] << 8)));// Y
+    magRaw[2] =  (int16_t)((imuBuffer[3] | (imuBuffer[2] << 8)));// Z
+    
     /** Como dito no link:  http://www.multiwii.com/forum/viewtopic.php?f=8&t=1387&p=10658
     * temosque encontrar os zeros do mag
 
@@ -176,10 +176,11 @@ void c_io_imu_getRaw(float  * accRaw, float * gyrRaw, float * magRaw) {
     ***********************************************/
 
     // -100/100
+    
     magRaw[1] = (magRaw[1]-(250-488)/2)/3.69;
     magRaw[0] = (magRaw[0]-(607-196)/2)/4.015;
     magRaw[2] = (magRaw[2]-(263-422)/2)/3.425;
-
+    
 #endif
 
 #ifdef C_IO_IMU_USE_MPU6050_HMC5883
@@ -223,13 +224,15 @@ void c_io_imu_getRaw(float  * accRaw, float * gyrRaw, float * magRaw) {
  *
  * \image html complementary_filter_diagram.jpg "Diagrama de blocos simplificado para um filtro complementar." width=4cm
  */
-float last_rpy[]={0,0,0};
+float last_rpy[]={0,0,0,0,0,0};
 void c_io_imu_getComplimentaryRPY(float * rpy) {
 	float acce_raw[3], gyro_raw[3], magn_raw[3];
 	float acce_rpy[3];
 
 	c_io_imu_getRaw(acce_raw, gyro_raw, magn_raw);
 
+
+  #if 1
 	//gyro_raw[X] = gyro_raw[X] - mean_gyro_raw[X];
 	//gyro_raw[Y] = gyro_raw[Y] - mean_gyro_raw[Y];
 	//gyro_raw[Z] = gyro_raw[Z] - mean_gyro_raw[Z];
@@ -246,25 +249,62 @@ void c_io_imu_getComplimentaryRPY(float * rpy) {
 
   float xh = magn_raw[PV_IMU_X]*cos(acce_rpy[PV_IMU_PITCH])+magn_raw[PV_IMU_Y]*sin(acce_rpy[PV_IMU_ROLL ])*sin(acce_rpy[PV_IMU_PITCH])-magn_raw[PV_IMU_Z]*cos(acce_rpy[PV_IMU_ROLL ])*sin(acce_rpy[PV_IMU_PITCH]);
   float yh = magn_raw[PV_IMU_Y]*cos(acce_rpy[PV_IMU_ROLL ])-magn_raw[PV_IMU_Z]*sin(acce_rpy[PV_IMU_ROLL ]);
-  acce_rpy[PV_IMU_YAW ] = atan2(yh, xh);
+  acce_rpy[PV_IMU_YAW ] = atan2(yh,xh);
+
+  rpy[PV_IMU_ROLL ] = acce_rpy[PV_IMU_ROLL  ];
+  rpy[PV_IMU_PITCH] = acce_rpy[PV_IMU_PITCH ];
+  rpy[PV_IMU_YAW  ] = acce_rpy[PV_IMU_YAW   ];
 	
   //Filtro complementar
 	float a = 0.93;
+  float b = 0.83;
   long  IntegrationTime = c_common_utils_millis();
   if(lastIntegrationTime==0) lastIntegrationTime=IntegrationTime+1;
   float IntegrationTimeDiff=(float)(((float)IntegrationTime- (float)lastIntegrationTime)/1000.0);
 
+  rpy[PV_IMU_ROLL  ] =  a*(rpy[PV_IMU_ROLL ] + gyro_raw[PV_IMU_ROLL ]*IntegrationTimeDiff) + (1.0f - a)*acce_rpy[PV_IMU_ROLL ];
 	rpy[PV_IMU_PITCH ] =  a*(rpy[PV_IMU_PITCH] + gyro_raw[PV_IMU_PITCH]*IntegrationTimeDiff) + (1.0f - a)*acce_rpy[PV_IMU_PITCH];
-	rpy[PV_IMU_ROLL  ] =  a*(rpy[PV_IMU_ROLL ] + gyro_raw[PV_IMU_ROLL ]*IntegrationTimeDiff) + (1.0f - a)*acce_rpy[PV_IMU_ROLL ];
   rpy[PV_IMU_YAW   ] =  a*(rpy[PV_IMU_YAW  ] + gyro_raw[PV_IMU_YAW  ]*IntegrationTimeDiff) + (1.0f - a)*acce_rpy[PV_IMU_YAW  ];
-  rpy[PV_IMU_DPITCH] = (rpy[PV_IMU_PITCH] - last_rpy[PV_IMU_PITCH])/IntegrationTimeDiff;
-  rpy[PV_IMU_DROLL ] = (rpy[PV_IMU_ROLL ] - last_rpy[PV_IMU_ROLL ])/IntegrationTimeDiff;
-  rpy[PV_IMU_DYAW  ] = (rpy[PV_IMU_YAW  ] - last_rpy[PV_IMU_YAW  ])/IntegrationTimeDiff;
+  
+ 
+  rpy[PV_IMU_ROLL ] = (IntegrationTimeDiff/(a+IntegrationTimeDiff))*last_rpy[PV_IMU_ROLL ] + rpy[PV_IMU_ROLL ]*( 1-IntegrationTimeDiff/(a+IntegrationTimeDiff));
+  rpy[PV_IMU_PITCH] = (IntegrationTimeDiff/(a+IntegrationTimeDiff))*last_rpy[PV_IMU_PITCH] + rpy[PV_IMU_PITCH]*( 1-IntegrationTimeDiff/(a+IntegrationTimeDiff));
+  rpy[PV_IMU_YAW  ] = (IntegrationTimeDiff/(a+IntegrationTimeDiff))*last_rpy[PV_IMU_YAW  ] + rpy[PV_IMU_YAW  ]*( 1-IntegrationTimeDiff/(a+IntegrationTimeDiff));
+  last_rpy[PV_IMU_ROLL ]  = rpy[PV_IMU_ROLL ];
+  last_rpy[PV_IMU_PITCH]  = rpy[PV_IMU_PITCH];
+  last_rpy[PV_IMU_YAW  ]  = rpy[PV_IMU_YAW  ];
+
+  rpy[PV_IMU_DROLL ] = (IntegrationTimeDiff/(b+IntegrationTimeDiff))*last_rpy[PV_IMU_DROLL ] + gyro_raw[PV_IMU_ROLL ]*( 1-IntegrationTimeDiff/(b+IntegrationTimeDiff));
+  rpy[PV_IMU_DPITCH] = (IntegrationTimeDiff/(b+IntegrationTimeDiff))*last_rpy[PV_IMU_DPITCH] + gyro_raw[PV_IMU_PITCH]*( 1-IntegrationTimeDiff/(b+IntegrationTimeDiff));
+  rpy[PV_IMU_DYAW  ] = (IntegrationTimeDiff/(b+IntegrationTimeDiff))*last_rpy[PV_IMU_DYAW  ] + gyro_raw[PV_IMU_YAW  ]*( 1-IntegrationTimeDiff/(b+IntegrationTimeDiff));
+  last_rpy[PV_IMU_DROLL ] = rpy[PV_IMU_DROLL ];
+  last_rpy[PV_IMU_DPITCH] = rpy[PV_IMU_DPITCH];
+  last_rpy[PV_IMU_DYAW  ] = rpy[PV_IMU_DYAW  ];
+  
+
+  /*
+  rpy[PV_IMU_DPITCH] = gyro_raw[PV_IMU_PITCH];
+  rpy[PV_IMU_DROLL ] = gyro_raw[PV_IMU_ROLL];
+  rpy[PV_IMU_DYAW  ] = gyro_raw[PV_IMU_YAW];
+  */
+  
+  /*
   last_rpy[PV_IMU_PITCH] = rpy[PV_IMU_PITCH];
   last_rpy[PV_IMU_ROLL ] = rpy[PV_IMU_ROLL ];
   last_rpy[PV_IMU_YAW  ] = rpy[PV_IMU_YAW  ];
+  */
+
 
 	lastIntegrationTime = IntegrationTime;
+  #else
+  rpy[0]=acce_raw[0];
+  rpy[1]=acce_raw[1];
+  rpy[2]=acce_raw[2];
+  rpy[3]=gyro_raw[0];
+  rpy[4]=gyro_raw[1];
+  rpy[5]=gyro_raw[2];
+  #endif
+
 }
 
 /** \brief Calibra a IMU considerando o veículo em repouso.

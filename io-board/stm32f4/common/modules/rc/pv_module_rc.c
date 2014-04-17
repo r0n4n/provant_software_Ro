@@ -72,6 +72,9 @@ void module_rc_init() {
   *
   * Interpreta o recebimento de PPM, calcula sinais de controle e os envia
   * via interface.
+  * Devido as diferenças do modelo matematica com a construção mecanica o sinal do angulo do servo direito deve 
+  * ser adaptado.
+  *
   */
 void module_rc_run() {
   char rc_channel[4][16];
@@ -88,7 +91,9 @@ void module_rc_run() {
       pv_msg_datapr_attitude attitude_reference = {0.0f,0.0f,0.0f,0.0f,0.0f,0.0f};
       pv_msg_datapr_position position  = {0.0f,0.0f,0.0f,0.0f,0.0f,0.0f};
       pv_msg_datapr_position position_reference = {0.0f,0.0f,0.0f,0.0f,0.0f,0.0f};
+
       oActuation = RC_controller(iAttitude,attitude_reference,position,position_reference);
+      oActuation.servoRight = -oActuation.servoRight;  
     #endif
     
     /// Receiver debug

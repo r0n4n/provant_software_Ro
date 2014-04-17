@@ -65,12 +65,24 @@ bool lastTimeoutExpired  = 0;
 /* Private variables ---------------------------------------------------------*/
 /* Private function prototypes -----------------------------------------------*/
 /* Private functions ---------------------------------------------------------*/
+
+/** \brief Funcao para timeout da i2c1
+ *
+ * @param cond        Retorno booleano 
+ * @param startime    Tempo de inicio 
+ *
+ * @retval retorna o booleano da funcao caso esteja dentro do timeoout, caso contrario retorna 0
+ * @todo existe alguns problemas onde nunca si dessa funcao , resolver
+ */
+
 bool while_timeout(bool cond, long startime) {
-	if(c_common_utils_millis() - startime > TIMEOUT_MS)
-		{ lastTimeoutExpired = 1; return 0; }
-	else
-		{ lastTimeoutExpired = 0; return cond; }
+  if( c_common_utils_millis() - startime > TIMEOUT_MS)
+    { lastTimeoutExpired = 1; c_common_i2c_init(I2C1);return 0; }
+  else
+    { lastTimeoutExpired = 0; return cond; }
 }
+
+
 
 /* Exported functions definitions --------------------------------------------*/
 
@@ -120,6 +132,7 @@ void c_common_i2c_init(I2C_TypeDef* I2Cx){
 
         // enable I2C1
         I2C_Cmd(I2C1, ENABLE);
+
   }
   else
   if(I2Cx==I2C2)

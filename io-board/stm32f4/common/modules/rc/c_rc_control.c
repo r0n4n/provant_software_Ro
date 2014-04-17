@@ -50,15 +50,26 @@
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
 
-// PD controller gains
-#define KPPHI    100.0f
-#define KVPHI    20.0f
-#define KPTHETA  100.0f
-#define KVTHETA  20.0f
-#define KPPSI    100.0f
-#define KVPSI    20.0f
-#define KVZ		 5.0f
-#define KPZ		 30.0f
+// PID controller gains
+#if 0
+	#define KPPHI    100.0f
+	#define KVPHI    20.0f
+	#define KPTHETA  100.0f
+	#define KVTHETA  20.0f
+	#define KPPSI    100.0f
+	#define KVPSI    20.0f
+	#define KVZ		 5.0f
+	#define KPZ		 30.0f
+#else
+	#define KPPHI    16.0f
+	#define KVPHI    9.6f
+	#define KPTHETA  16.0f
+	#define KVTHETA  9.6f
+	#define KPPSI    16.0f
+	#define KVPSI    9.6f
+	#define KVZ		 9.6f
+	#define KPZ		 16.0f
+#endif
 
 // Environment parameters
 #define G    9.81 //gravity

@@ -52,11 +52,12 @@ pv_msg_datapr_position oPosition;
   * @retval None
   */
 void module_io_init() {
+	//taskENTER_CRITICAL();
 	/* Inicialização do hardware do módulo */
-	c_common_i2c_init(I2C2); //imu
-	c_common_i2c_init(I2C1); //esc
+	c_common_i2c_init(I2C1); //imu
+	//c_common_i2c_init(I2C2); //esc
 
-	c_common_usart2_init(115200);
+	c_common_usart2_init(460800);
 
 	/* Inicializar do sonar */
 	c_io_sonar_init();
@@ -67,13 +68,13 @@ void module_io_init() {
 	c_io_rx24f_setSpeed(1, 20);
 	c_io_rx24f_setSpeed(2, 20);
 	c_common_utils_delayms(2);
-	c_io_rx24f_move(1, 150);
-	c_io_rx24f_move(2, 140);
+	c_io_rx24f_move(1, 130);
+	c_io_rx24f_move(2, 150);
 	c_common_utils_delayms(1);
 	c_common_utils_delayms(100);
 
 	c_io_imu_init(I2C1);   
-	c_io_blctrl_init(I2C2);
+	//c_io_blctrl_init(I2C1);
 
 	/* Inicialização das filas do módulo. Apenas inboxes (i*!) são criadas! */
 	pv_interface_io.iActuation = xQueueCreate(1, sizeof(pv_msg_io_actuation));
@@ -87,6 +88,7 @@ void module_io_init() {
 		vTraceConsoleMessage("Could not create queue in pv_interface_io!");
 		while(1);
 	}
+	//taskEXIT_CRITICAL();
 }
 
 /** \brief Função principal do módulo de IO.
@@ -101,6 +103,7 @@ void module_io_run()
 	float accRaw[3], gyrRaw[3], magRaw[3];
 	char  ax[16], ay[16], az[16], r[16], p[16], y[16], dr[16], dp[16], dy[16];
 	float rpy[] = {0,0,0,0,0,0};
+	int counte=0;
 
 	while(1)
 	{
@@ -108,85 +111,68 @@ void module_io_run()
 
 		xQueueReceive(pv_interface_io.iActuation, &iActuation, 0);
 		
+		/// IMU DATA
 		#if 1
-		// imu data
-		taskENTER_CRITICAL();
-		c_io_imu_getComplimentaryRPY(rpy);
-		taskEXIT_CRITICAL();
+		 	taskENTER_CRITICAL();
+			c_io_imu_getComplimentaryRPY(rpy);
+			taskEXIT_CRITICAL();
 		#endif
+
+		/// SERVOS
+		#if 1		
+			if(iActuation.servoRight*RAD_TO_DEG<60 || iActuation.servoRight*RAD_TO_DEG>-60)
+				c_io_rx24f_move(2, 150+iActuation.servoRight*RAD_TO_DEG);
+			if(iActuation.servoLeft*RAD_TO_DEG<60 || iActuation.servoLeft*RAD_TO_DEG>-60)
+				c_io_rx24f_move(1, 130+iActuation.servoLeft*RAD_TO_DEG);	
+		#endif
+
+
+		/// ESCS
+		#if 1    	
+			
+			float velo_right = 395.85*iActuation.escRightSpeed+3223.6; 
+			taskENTER_CRITICAL();
+			c_io_blctrl_setSpeed(1, 3000);
+			taskEXIT_CRITICAL();
+			float velo_left = 395.85*iActuation.escLeftSpeed+3223.6 ;
+			taskENTER_CRITICAL();
+			c_io_blctrl_setSpeed(0, 3000 );
+			taskEXIT_CRITICAL();
+			
+		#endif
+		
+		/// SONAR
+		#if 0
+			c_common_utils_floatToString(c_io_sonar_read(), r,  3);
+			sprintf(str, "Distance: %s \n\r",r );
+	    	c_common_usart_puts(USART2, str);
+    	#endif
+
 
 		/// DEBUG
 		#if 1
-		c_common_utils_floatToString(rpy[PV_IMU_ROLL  ]*RAD_TO_DEG, r,  4);
-		c_common_utils_floatToString(rpy[PV_IMU_PITCH ]*RAD_TO_DEG, p,  4);
-		c_common_utils_floatToString(rpy[PV_IMU_YAW   ]*RAD_TO_DEG, y,  4);
-		c_common_utils_floatToString(rpy[PV_IMU_DROLL ]*RAD_TO_DEG, dr, 4);
-		c_common_utils_floatToString(rpy[PV_IMU_DPITCH]*RAD_TO_DEG, dp, 4);
-		c_common_utils_floatToString(rpy[PV_IMU_DYAW  ]*RAD_TO_DEG, dy, 4);
-		sprintf(str, "imu -> \t %s \t %s \t %s \t %s \t %s \t %s\n\r", r, p, y, dr, dp, dy);
-		c_common_usart_puts(USART2, str);
+			//c_common_utils_floatToString(rpy[PV_IMU_ROLL  ]*RAD_TO_DEG, r,  4);
+			//c_common_utils_floatToString(rpy[PV_IMU_PITCH ]*RAD_TO_DEG, p,  4);
+			//c_common_utils_floatToString(rpy[PV_IMU_YAW   ]*RAD_TO_DEG, y,  4);
+			//c_common_utils_floatToString(rpy[PV_IMU_DROLL ]*RAD_TO_DEG, dr, 4);
+			//c_common_utils_floatToString(rpy[PV_IMU_DPITCH]*RAD_TO_DEG, dp, 4);
+			//c_common_utils_floatToString(rpy[PV_IMU_DYAW  ]*RAD_TO_DEG, dy, 4);
+			sprintf(str, "imu -> \t %d \t %d \t %d \t %d \t %d \t %d \t %d \t %d \t %d \n\r" ,(int)(rpy[PV_IMU_ROLL  ]*RAD_TO_DEG), (int)(rpy[PV_IMU_PITCH  ]*RAD_TO_DEG), (int)(rpy[PV_IMU_YAW  ]*RAD_TO_DEG), (int)(rpy[PV_IMU_DROLL  ]*RAD_TO_DEG), (int)(rpy[PV_IMU_DPITCH  ]*RAD_TO_DEG), (int)(rpy[PV_IMU_DYAW  ]*RAD_TO_DEG), (int)velo_right , (int)velo_left, counte);
+			c_common_usart_puts(USART2, str);
+			counte++;
 		#endif
 
-		#if 0
-		// control data
-		c_common_utils_floatToString(iActuation.servoRight, r,  3);
-		c_common_utils_floatToString(iActuation.servoLeft , p,  3);
-		c_common_utils_floatToString(iActuation.escRightSpeed, y,  3);
-		c_common_utils_floatToString(iActuation.escLeftSpeed , dr, 3);
-		sprintf(str, "Control -> \t %s \t %s \t %s \t %s \n\r", r, p, y, dr);
-		c_common_usart_puts(USART2, str);
-		#endif
-
-		/// SONAR
-		#if 0
-		c_common_utils_floatToString(c_io_sonar_read(), r,  3);
-		sprintf(str, "Distance: %s \n\r",r );
-    	c_common_usart_puts(USART2, str);
-    	#endif
-
-		/// SERVOS		
-		#if 0
-		// servo actuation
-		taskENTER_CRITICAL();
-		if(abs(iActuation.servoRight)<90)
-			c_io_rx24f_move(2, 150 - iActuation.servoRight);
-		if(abs(iActuation.servoLeft)<90)
-			c_io_rx24f_move(1, 130 + iActuation.servoLeft);	
-		taskEXIT_CRITICAL();
-		#else
-		taskENTER_CRITICAL();
-		if(abs(iActuation.servoRight*RAD_TO_DEG)<30)
-			c_io_rx24f_move(2, 150+iActuation.servoRight*RAD_TO_DEG);
-		if(abs(iActuation.servoLeft*RAD_TO_DEG)<30)
-			c_io_rx24f_move(1, 130+iActuation.servoLeft*RAD_TO_DEG);	
-		taskEXIT_CRITICAL();
-		#endif
-
-		#if 0
-		if(iActuation.escRightSpeed > 0 && iActuation.escRightSpeed < 10)
-		{
-			float velo = 395.85*iActuation.escRightSpeed+3223.6; 
-			c_io_blctrl_setSpeed(0, velo);
-		}
-		if(iActuation.escLeftSpeed  > 0 && iActuation.escLeftSpeed  < 10)
-		{
-			float velo = 395.85*iActuation.escLeftSpeed+3223.6 ;
-			c_io_blctrl_setSpeed(1, velo );
-		}
-		#endif
-		
 		/// DADOS OUT
 		oAttitude.roll     = rpy[PV_IMU_ROLL  ];
-		oAttitude.pitch    = rpy[PV_IMU_YAW   ]; 
-		oAttitude.yaw      = rpy[PV_IMU_PITCH ];
-		oAttitude.dotRoll  = 0;//rpy[PV_IMU_DROLL ];
-		oAttitude.dotPitch = 0;//rpy[PV_IMU_DPITCH];
-		oAttitude.dotYaw   = 0;//rpy[PV_IMU_DYAW  ];
-
+		oAttitude.pitch    = rpy[PV_IMU_PITCH ];
+		oAttitude.yaw      = rpy[PV_IMU_YAW   ];
+		oAttitude.dotRoll  = rpy[PV_IMU_DROLL ];
+		oAttitude.dotPitch = rpy[PV_IMU_DPITCH];
+		oAttitude.dotYaw   = rpy[PV_IMU_DYAW  ];
 		if(pv_interface_io.oAttitude != 0)
       		xQueueOverwrite(pv_interface_io.oAttitude, &oAttitude);
 
-		vTaskDelayUntil( &lastWakeTime, (MODULE_PERIOD / portTICK_RATE_MS));
+		//vTaskDelayUntil( &lastWakeTime, (MODULE_PERIOD / portTICK_RATE_MS));
 		
 	}
 }
