@@ -27,7 +27,7 @@
 
 /* Exported functions ------------------------------------------------------- */
 void c_io_blctrl_init();
-int  c_io_blctrl_setSpeed(uint8_t ID, int speed);
+int  c_io_blctrl_setSpeed(uint8_t ID, unsigned char speed);
 int  c_io_blctrl_readSpeed(uint8_t ID);
 int  c_io_blctrl_readVoltage(uint8_t ID);
 int  c_io_blctrl_updateBuffer(uint8_t ID);

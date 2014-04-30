@@ -67,15 +67,15 @@ void c_io_blctrl_init(I2C_TypeDef* I2Cx)
   * @retval sucesso ou nao.
   * @todo Existe um erro relacionado ao I2C na funcao init.
   */
-int  c_io_blctrl_setSpeed(uint8_t ID, int speed)
+int  c_io_blctrl_setSpeed(uint8_t ID, unsigned char speed)
 {
   #if 1
   //RPM = raw * 780 / no. of magnets
-  int raw = (int) speed*BLCTRL_NUM_OF_MAGNETS/780;
-  if(raw<=255 && raw>=0)
+  //int raw = (int) speed*BLCTRL_NUM_OF_MAGNETS/780;
+  if(speed<=255 && speed>=0)
   {
     c_common_i2c_start(I2C1, (BLCTRL_ADDR+ID)<<1, I2C_Direction_Transmitter);
-    c_common_i2c_write(I2C1, (uint8_t) raw);
+    c_common_i2c_write(I2C1, (uint8_t) speed);
     c_common_i2c_stop(I2C1);
     return 1;
   }
