@@ -31,7 +31,7 @@
 /* Private variables ---------------------------------------------------------*/
 portTickType lastWakeTime;
 int  accRaw[3], gyroRaw[3], magRaw[3];
-char str[64];
+char str[256];
 
 /* Inboxes buffers */
 pv_msg_io_actuation    iActuation;
@@ -52,9 +52,8 @@ pv_msg_datapr_position oPosition;
   * @retval None
   */
 void module_io_init() {
-	//taskENTER_CRITICAL();
 	/* Inicialização do hardware do módulo */
-	c_common_i2c_init(I2C1); //imu
+	c_common_i2c_init(I2C1); //imu 
 	//c_common_i2c_init(I2C2); //esc
 
 	c_common_usart2_init(460800);
@@ -68,13 +67,21 @@ void module_io_init() {
 	c_io_rx24f_setSpeed(1, 20);
 	c_io_rx24f_setSpeed(2, 20);
 	c_common_utils_delayms(2);
+	/* CCW Compliance Margin e CCW Compliance margin */
+	c_io_rx24f_write(1, 0x1A,0x03);
+	c_io_rx24f_write(1, 0x1B,0x03);
+	c_io_rx24f_write(2, 0x1A,0x03);
+	c_io_rx24f_write(2, 0x1B,0x03);
+	c_common_utils_delayms(2);
 	c_io_rx24f_move(1, 130);
 	c_io_rx24f_move(2, 150);
-	c_common_utils_delayms(1);
 	c_common_utils_delayms(100);
 
 	c_io_imu_init(I2C1);   
 	//c_io_blctrl_init(I2C1);
+
+	//inicializacao dos PPM
+	c_io_blctrl_init_ppm();
 
 	/* Inicialização das filas do módulo. Apenas inboxes (i*!) são criadas! */
 	pv_interface_io.iActuation = xQueueCreate(1, sizeof(pv_msg_io_actuation));
@@ -88,7 +95,6 @@ void module_io_init() {
 		vTraceConsoleMessage("Could not create queue in pv_interface_io!");
 		while(1);
 	}
-	//taskEXIT_CRITICAL();
 }
 
 /** \brief Função principal do módulo de IO.
@@ -110,6 +116,11 @@ void module_io_run()
 		lastWakeTime = xTaskGetTickCount();
 
 		xQueueReceive(pv_interface_io.iActuation, &iActuation, 0);
+
+    	/*
+    	TIM11->CCR1 = 512; 
+    	TIM11->CCR2 = 1024 - velo_left*4; 
+    	*/
 		
 		/// IMU DATA
 		#if 1
@@ -129,16 +140,24 @@ void module_io_run()
 
 		/// ESCS
 		#if 1    	
-			
-			float velo_right = 395.85*iActuation.escRightSpeed+3223.6; 
+			// força para char
+			unsigned char velo_right = (int)(12.256*iActuation.escRightSpeed - 39.441); 
+			unsigned char velo_left  = (int)(12.256*iActuation.escLeftSpeed  - 39.441);
+
 			taskENTER_CRITICAL();
-			c_io_blctrl_setSpeed(1, 3000);
+			if(counte>2500)
+			{
+				c_io_blctrl_setSpeed(0, velo_right );
+				c_common_utils_delayus(10);
+				c_io_blctrl_setSpeed(1, velo_left );
+			}
+			else   //inicializacao do esc
+			{
+				c_io_blctrl_setSpeed(0, (char)(counte/10));
+				c_common_utils_delayus(10);
+				c_io_blctrl_setSpeed(1, (char)(counte/10)); 
+	    	}
 			taskEXIT_CRITICAL();
-			float velo_left = 395.85*iActuation.escLeftSpeed+3223.6 ;
-			taskENTER_CRITICAL();
-			c_io_blctrl_setSpeed(0, 3000 );
-			taskEXIT_CRITICAL();
-			
 		#endif
 		
 		/// SONAR
@@ -157,7 +176,7 @@ void module_io_run()
 			//c_common_utils_floatToString(rpy[PV_IMU_DROLL ]*RAD_TO_DEG, dr, 4);
 			//c_common_utils_floatToString(rpy[PV_IMU_DPITCH]*RAD_TO_DEG, dp, 4);
 			//c_common_utils_floatToString(rpy[PV_IMU_DYAW  ]*RAD_TO_DEG, dy, 4);
-			sprintf(str, "imu -> \t %d \t %d \t %d \t %d \t %d \t %d \t %d \t %d \t %d \n\r" ,(int)(rpy[PV_IMU_ROLL  ]*RAD_TO_DEG), (int)(rpy[PV_IMU_PITCH  ]*RAD_TO_DEG), (int)(rpy[PV_IMU_YAW  ]*RAD_TO_DEG), (int)(rpy[PV_IMU_DROLL  ]*RAD_TO_DEG), (int)(rpy[PV_IMU_DPITCH  ]*RAD_TO_DEG), (int)(rpy[PV_IMU_DYAW  ]*RAD_TO_DEG), (int)velo_right , (int)velo_left, counte);
+			sprintf(str, "imu -> \t %d \t %d \t %d \t %d \t %d \t %d \t %d \t %d \t %d \t %d \t %d \n\r" ,(int)(rpy[PV_IMU_ROLL  ]*RAD_TO_DEG), (int)(rpy[PV_IMU_PITCH  ]*RAD_TO_DEG), (int)(rpy[PV_IMU_YAW  ]*RAD_TO_DEG), (int)(rpy[PV_IMU_DROLL  ]*RAD_TO_DEG), (int)(rpy[PV_IMU_DPITCH  ]*RAD_TO_DEG), (int)(rpy[PV_IMU_DYAW  ]*RAD_TO_DEG), (int)velo_right , (int)velo_left,(int)(iActuation.servoRight*RAD_TO_DEG), (int)(iActuation.servoLeft*RAD_TO_DEG), counte);
 			c_common_usart_puts(USART2, str);
 			counte++;
 		#endif
@@ -173,7 +192,6 @@ void module_io_run()
       		xQueueOverwrite(pv_interface_io.oAttitude, &oAttitude);
 
 		//vTaskDelayUntil( &lastWakeTime, (MODULE_PERIOD / portTICK_RATE_MS));
-		
 	}
 }
 /* IRQ handlers ------------------------------------------------------------- */

@@ -275,7 +275,7 @@ void c_io_imu_getComplimentaryRPY(float * rpy) {
 	
   //Filtro complementar
 	float a = 0.93;
-  float b = 0.83;
+  float b = 0.93;
   long  IntegrationTime = c_common_utils_millis();
   if(lastIntegrationTime==0) lastIntegrationTime=IntegrationTime+1;
   float IntegrationTimeDiff=(float)(((float)IntegrationTime- (float)lastIntegrationTime)/1000.0);
