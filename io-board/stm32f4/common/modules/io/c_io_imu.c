@@ -66,12 +66,30 @@ unsigned char ACCL_ID = 0;
 unsigned char GYRO_ID = 0;
 unsigned char MAGN_ID = 0;
 
-float gyro_rpy[3], acce_rpy[3], filt_rpy[3];
+//float gyro_rpy[3], acce_rpy[3], filt_rpy[3];
+//float32_t attitudeVector_f32[3];
+
+/* Matrizes utilizadas no Filtro de Kalman */
+float32_t TransitionMatrix_f32[7][7];
+float32_t P_f32[7][7]={0};
+float32_t StateVector_f32[7]={1,0,0,0,POL_GYRO_X,POL_GYRO_Y,POL_GYRO_Z};
+//Não tenho certeza se estes arrays podem ser reutilizados como eu quero
+arm_matrix_instance_f32 TransitionMatrix; //Matriz de Transicao (Phi)
+arm_matrix_instance_f32 P; // Matriz da covariancia do erro. Matriz P da funcao de Lyapunov
+arm_matrix_instance_f32 StateVector; //Vetor de estados x=[e0 e1 e2 e3 bp bq br]
+
 
 /* Private function prototypes -----------------------------------------------*/
+
+void c_io_imu_initKalmanFilter();
+void c_io_imu_CalculateTransitionMatrix(float * gyro_raw,float deltat);
+void c_io_imu_CalculateH(float * rpy);
+
+//#define PV_IMU_SAMPLETIME  0.005
 /* Private functions ---------------------------------------------------------*/
 
 /* Exported functions definitions --------------------------------------------*/
+
 
 /** \brief Inicializa a IMU.
  *
@@ -313,6 +331,183 @@ void c_io_imu_getComplimentaryRPY(float * rpy) {
  */
 void c_io_imu_calibrate() {
 
+}
+
+
+
+
+
+/** \brief Inicializa as matrizes do Filtro de Kalman de acordo com a biblioteca de matrizes do CMSIS.
+ *
+ */
+void c_io_imu_initKalmanFilter(){
+
+	float gyro_init[3]={0,0,0};
+
+	c_io_imu_CalculateTransitionMatrix(gyro_init,0.005); //esta funcao já possui a chamada arm_mat_init_f32
+	//arm_mat_init_f32(&TransitionMatrix, 7, 7, (float32_t *)TransitionMatrix_f32);
+	arm_mat_init_f32(&P, 7, 7, (float32_t *)P_f32);
+	arm_mat_init_f32(&StateVector, 7, 1, (float32_t *)StateVector_f32);
+}
+
+/* Calculo da Matriz de Transicao para o filtro de kalman
+ *
+ * Desenvolvido no software Mathematica com a inversa de Laplace para a funcao fb de acordo com
+ * o artigo "Automation of small UAVs using a low cost MEMs sensor and Embedded Computing Platform".
+ * */
+void c_io_imu_CalculateTransitionMatrix(float * gyro_raw, float deltat){
+	float a,b,c,d,e0,e1,e2,e3;
+
+	// Definicoes
+	e0=StateVector[0]; e1=StateVector[1]; e2=StateVector[2]; e3=StateVector[3];
+	a=0.5*(-StateVector[4] + gyro_raw[0]);
+	b=0.5*(-StateVector[5] + gyro_raw[1]);
+	c=0.5*(-StateVector[6] + gyro_raw[2]);
+	d=Power(a,2) + Power(b,2) + Power(c,2);
+
+	// Calculo da matriz de Transicao
+	TransitionMatrix_f32[0][0]=Cos(Sqrt(d)*deltat);
+	TransitionMatrix_f32[0][1]=-((a*Sin(Sqrt(d)*deltat))/Sqrt(d));
+	TransitionMatrix_f32[0][2]=-((b*Sin(Sqrt(d)*deltat))/Sqrt(d));
+	TransitionMatrix_f32[0][3]=-((c*Sin(Sqrt(d)*deltat))/Sqrt(d));
+	TransitionMatrix_f32[0][4]=(-((a*e0 - c*e2 + b*e3)*(-1 + Cos(Sqrt(d)*deltat))) +
+	    Sqrt(d)*e1*Sin(Sqrt(d)*deltat))/(2.*d);
+	TransitionMatrix_f32[0][5]=(-((b*e0 + c*e1 - a*e3)*(-1 + Cos(Sqrt(d)*deltat))) +
+	    Sqrt(d)*e2*Sin(Sqrt(d)*deltat))/(2.*d);
+	TransitionMatrix_f32[0][6]=(-((c*e0 - b*e1 + a*e2)*(-1 + Cos(Sqrt(d)*deltat))) +
+	    Sqrt(d)*e3*Sin(Sqrt(d)*deltat))/(2.*d);
+
+	TransitionMatrix_f32[1][0]=(a*Sin(Sqrt(d)*deltat))/Sqrt(d);
+	TransitionMatrix_f32[1][1]=Cos(Sqrt(d)*deltat);
+	TransitionMatrix_f32[1][2]=(c*Sin(Sqrt(d)*deltat))/Sqrt(d);
+	TransitionMatrix_f32[1][3]=-((b*Sin(Sqrt(d)*deltat))/Sqrt(d));
+	TransitionMatrix_f32[1][4]=-((a*e1 - b*e2 - c*e3)*(-1 + Cos(Sqrt(d)*deltat)) +
+	     Sqrt(d)*e0*Sin(Sqrt(d)*deltat))/(2.*d);
+	TransitionMatrix_f32[1][5]=((c*e0 - b*e1 - a*e2)*(-1 + Cos(Sqrt(d)*deltat)) +
+	    Sqrt(d)*e3*Sin(Sqrt(d)*deltat))/(2.*d);
+	TransitionMatrix_f32[1][6]=-((b*e0 + c*e1 + a*e3)*(-1 + Cos(Sqrt(d)*deltat)) +
+	     Sqrt(d)*e2*Sin(Sqrt(d)*deltat))/(2.*d);
+
+	TransitionMatrix_f32[2][0]=(b*Sin(Sqrt(d)*deltat))/Sqrt(d);
+	TransitionMatrix_f32[2][1]=-((c*Sin(Sqrt(d)*deltat))/Sqrt(d));
+	TransitionMatrix_f32[2][2]=Cos(Sqrt(d)*deltat);
+	TransitionMatrix_f32[2][3]=(a*Sin(Sqrt(d)*deltat))/Sqrt(d);
+	TransitionMatrix_f32[2][4]=-((c*e0 + b*e1 + a*e2)*(-1 + Cos(Sqrt(d)*deltat)) +
+	     Sqrt(d)*e3*Sin(Sqrt(d)*deltat))/(2.*d);
+	TransitionMatrix_f32[2][5]=((a*e1 - b*e2 + c*e3)*(-1 + Cos(Sqrt(d)*deltat)) -
+	    Sqrt(d)*e0*Sin(Sqrt(d)*deltat))/(2.*d);
+	TransitionMatrix_f32[2][6]=((a*e0 - c*e2 - b*e3)*(-1 + Cos(Sqrt(d)*deltat)) +
+	    Sqrt(d)*e1*Sin(Sqrt(d)*deltat))/(2.*d);
+
+	TransitionMatrix_f32[3][0]=(c*Sin(Sqrt(d)*deltat))/Sqrt(d);
+	TransitionMatrix_f32[3][1]=(b*Sin(Sqrt(d)*deltat))/Sqrt(d);
+	TransitionMatrix_f32[3][2]=-((a*Sin(Sqrt(d)*deltat))/Sqrt(d));
+	TransitionMatrix_f32[3][3]=Cos(Sqrt(d)*deltat);
+	TransitionMatrix_f32[3][4]=((b*e0 - c*e1 - a*e3)*(-1 + Cos(Sqrt(d)*deltat)) +
+	    Sqrt(d)*e2*Sin(Sqrt(d)*deltat))/(2.*d);
+	TransitionMatrix_f32[3][5]=-((a*e0 + c*e2 + b*e3)*(-1 + Cos(Sqrt(d)*deltat)) +
+	     Sqrt(d)*e1*Sin(Sqrt(d)*deltat))/(2.*d);
+	TransitionMatrix_f32[3][6]=((a*e1 + b*e2 - c*e3)*(-1 + Cos(Sqrt(d)*deltat)) -
+	    Sqrt(d)*e0*Sin(Sqrt(d)*deltat))/(2.*d);
+
+	TransitionMatrix_f32[4][0]=0;
+	TransitionMatrix_f32[4][1]=0;
+	TransitionMatrix_f32[4][2]=0;
+	TransitionMatrix_f32[4][3]=0;
+	TransitionMatrix_f32[4][4]=1;
+	TransitionMatrix_f32[4][5]=0;
+	TransitionMatrix_f32[4][6]=0;
+	TransitionMatrix_f32[5][0]=0;
+	TransitionMatrix_f32[5][1]=0;
+	TransitionMatrix_f32[5][2]=0;
+	TransitionMatrix_f32[5][3]=0;
+	TransitionMatrix_f32[5][4]=0;
+	TransitionMatrix_f32[5][5]=1;
+	TransitionMatrix_f32[5][6]=0;
+	TransitionMatrix_f32[6][0]=0;
+	TransitionMatrix_f32[6][1]=0;
+	TransitionMatrix_f32[6][2]=0;
+	TransitionMatrix_f32[6][3]=0;
+	TransitionMatrix_f32[6][4]=0;
+	TransitionMatrix_f32[6][5]=0;
+	TransitionMatrix_f32[6][6]=1;
+
+	arm_mat_init_f32(&TransitionMatrix, 7, 7, (float32_t *)TransitionMatrix_f32);
+}
+
+void c_io_imu_CalculateH(float *H){
+	float e0,e1,e2,e3;
+	// Definicoes
+	e0=StateVector[0]; e1=StateVector[1]; e2=StateVector[2]; e3=StateVector[3];
+
+	H[0][0]=-2*e2*G;
+	H[0][1]=2*e3*G;
+	H[0][2]=-2*e0*G;
+	H[0][3]=2*e1*G;
+	H[0][4]=0;
+	H[0][5]=0;
+	H[0][6]=0;
+
+	H[1][0]=2*e1*G;
+	H[1][1]=2*e0*G;
+	H[1][2]=2*e3*G;
+	H[1][3]=2*e2*G;
+	H[1][4]=0;
+	H[1][5]=0;
+	H[1][6]=0;
+
+	H[2][0]=2*e0*G;
+	H[2][1]=-2*e1*G;
+	H[2][2]=-2*e2*G;
+	H[2][3]=2*e3*G;
+	H[2][4]=0;
+	H[2][5]=0;
+	H[2][6]=0;
+
+	H[3][0]=(-2*(2*e0*e1*e2 + (Power(e0,2) - Power(e1,2) + Power(e2,2))*e3 +
+	      Power(e3,3)))/
+	  ((Power(e0 + e2,2) + Power(e1 - e3,2))*
+	    (Power(e0 - e2,2) + Power(e1 + e3,2)));
+	H[3][1]=(-2*(-(Power(e0,2)*e2) + 2*e0*e1*e3 +
+	      e2*(Power(e1,2) + Power(e2,2) + Power(e3,2))))/
+	  ((Power(e0 + e2,2) + Power(e1 - e3,2))*
+	    (Power(e0 - e2,2) + Power(e1 + e3,2)));
+	H[3][2]=(2*e1*(Power(e0,2) + Power(e1,2) + Power(e2,2)) + 4*e0*e2*e3 -
+	    2*e1*Power(e3,2))/
+	  ((Power(e0 + e2,2) + Power(e1 - e3,2))*
+	    (Power(e0 - e2,2) + Power(e1 + e3,2)));
+	H[3][3]=(2*(Power(e0,3) + 2*e1*e2*e3 + e0*(Power(e1,2) - Power(e2,2) + Power(e3,2))))/
+	  ((Power(e0 + e2,2) + Power(e1 - e3,2))*
+	    (Power(e0 - e2,2) + Power(e1 + e3,2)));
+	H[3][4]=0;
+	H[3][5]=0;
+	H[3][6]=0;
+}
+
+
+/** \brief Algoritmo "Attitude Heading Reference System" baseado no artigo "Automation of small UAVS using a
+ * low cost MEMS sensor and embedded computing platform" - J.S.Jang e D. Liccardo.
+ *  Implementa um filtro de kalman para a atitude do VANT através da fusão das medidas provenientes dos gyroscopios,
+ *  acelerometros e magnetometro.
+ *
+ * O retorno da funcão é um array que contem as 3 atitudes estimadas + as 3 velocidades angulares do gyroscopio, esta
+ * última com correcão de bias e passando por um filtro passa baixa de primeira ordem.
+ */
+void c_io_imu_getKalmanFilterRPY(float * rpy) {
+	float acce_raw[3], gyro_raw[3], magn_raw[3];
+
+	c_io_imu_getRaw(acce_raw, gyro_raw, magn_raw);
+
+	// PREDICTION
+	//StateVector=TransitionMatrix*StateVector
+	//arm_mat_mult_f32(&inr_att, &gamma, &r1);
+	//P=TransitionMatrix*P*TransitionMatrix'+Q
+	//calculateTransitionMatrix
+	// CORRECTION
+	//calculateH
+	//K=P*H*Inverse(H*P*H'+R)
+	//StateVector=StateVector+K*([acelerometrox,y,z,PSI_magnetometro]-h(StateVector))
+	//P=(Identity(7)-K*H)*P
 }
 
 /* IRQ handlers ------------------------------------------------------------- */
