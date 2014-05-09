@@ -125,12 +125,14 @@ void module_io_run()
 		/// IMU DATA
 		#if 1
 		 	taskENTER_CRITICAL();
-			c_io_imu_getComplimentaryRPY(rpy);
+			//c_io_imu_getComplimentaryRPY(rpy);
+		 	//c_io_imu_getKalmanFilterRPY(rpy);
+		 	c_io_imu_serialPrintData();
 			taskEXIT_CRITICAL();
 		#endif
 
 		/// SERVOS
-		#if 1		
+		#if 0
 			if(iActuation.servoRight*RAD_TO_DEG<60 || iActuation.servoRight*RAD_TO_DEG>-60)
 				c_io_rx24f_move(2, 150+iActuation.servoRight*RAD_TO_DEG);
 			if(iActuation.servoLeft*RAD_TO_DEG<60 || iActuation.servoLeft*RAD_TO_DEG>-60)
@@ -138,10 +140,12 @@ void module_io_run()
 		#endif
 
 
+
+
 		/// ESCS
-		#if 1    	
+		#if 0
 			// força para char
-			unsigned char velo_right = (int)(12.256*iActuation.escRightSpeed - 39.441); 
+			unsigned char velo_right = (int)(12.256*iActuation.escRightSpeed - 39.441);
 			unsigned char velo_left  = (int)(12.256*iActuation.escLeftSpeed  - 39.441);
 
 			taskENTER_CRITICAL();
@@ -169,16 +173,20 @@ void module_io_run()
 
 
 		/// DEBUG
-		#if 1
+		#if 0
 			//c_common_utils_floatToString(rpy[PV_IMU_ROLL  ]*RAD_TO_DEG, r,  4);
 			//c_common_utils_floatToString(rpy[PV_IMU_PITCH ]*RAD_TO_DEG, p,  4);
 			//c_common_utils_floatToString(rpy[PV_IMU_YAW   ]*RAD_TO_DEG, y,  4);
 			//c_common_utils_floatToString(rpy[PV_IMU_DROLL ]*RAD_TO_DEG, dr, 4);
 			//c_common_utils_floatToString(rpy[PV_IMU_DPITCH]*RAD_TO_DEG, dp, 4);
 			//c_common_utils_floatToString(rpy[PV_IMU_DYAW  ]*RAD_TO_DEG, dy, 4);
-			sprintf(str, "imu -> \t %d \t %d \t %d \t %d \t %d \t %d \t %d \t %d \t %d \t %d \t %d \n\r" ,(int)(rpy[PV_IMU_ROLL  ]*RAD_TO_DEG), (int)(rpy[PV_IMU_PITCH  ]*RAD_TO_DEG), (int)(rpy[PV_IMU_YAW  ]*RAD_TO_DEG), (int)(rpy[PV_IMU_DROLL  ]*RAD_TO_DEG), (int)(rpy[PV_IMU_DPITCH  ]*RAD_TO_DEG), (int)(rpy[PV_IMU_DYAW  ]*RAD_TO_DEG), (int)velo_right , (int)velo_left,(int)(iActuation.servoRight*RAD_TO_DEG), (int)(iActuation.servoLeft*RAD_TO_DEG), counte);
+			sprintf(str, "imu -> \t %d \t %d \t %d \t %d \t %d \t %d \t %d \t %d \t %d \n\r" ,(int)(rpy[PV_IMU_ROLL  ]*RAD_TO_DEG), (int)(rpy[PV_IMU_PITCH  ]*RAD_TO_DEG), (int)(rpy[PV_IMU_YAW  ]*RAD_TO_DEG), (int)(rpy[PV_IMU_DROLL  ]*RAD_TO_DEG), (int)(rpy[PV_IMU_DPITCH  ]*RAD_TO_DEG), (int)(rpy[PV_IMU_DYAW  ]*RAD_TO_DEG),(int)(iActuation.servoRight*RAD_TO_DEG), (int)(iActuation.servoLeft*RAD_TO_DEG), counte);
 			c_common_usart_puts(USART2, str);
 			counte++;
+
+	    	//sprintf(str, "test -> \t %d \t %d \t %d \t %d \t %d \t %d \n\r" ,(int)(10000*rpy[0]),(int)(10000*rpy[1]),(int)(10000*rpy[2]),(int)(10000*rpy[3]),(int)rpy[4],(int)rpy[5]);
+	    	//c_common_usart_puts(USART2, str);
+
 		#endif
 
 		/// DADOS OUT

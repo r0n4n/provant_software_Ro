@@ -15,6 +15,16 @@
  extern "C" {
 #endif
 
+ /** \brief Define que modulos serao utilizados.
+    *
+    * Se ENABLE_* 1 então tal modulo será utilizado
+    *
+    */
+#define ENABLE_IMU		1
+#define ENABLE_SERVO	0
+#define ENABLE_ESC		0
+#define ENABLE_SONAR	0
+#define ENALBE_DEBUG	1
 
 /* Includes ------------------------------------------------------------------*/
 

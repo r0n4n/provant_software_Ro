@@ -66,26 +66,16 @@ unsigned char ACCL_ID = 0;
 unsigned char GYRO_ID = 0;
 unsigned char MAGN_ID = 0;
 
-//float gyro_rpy[3], acce_rpy[3], filt_rpy[3];
-//float32_t attitudeVector_f32[3];
-
-/* Matrizes utilizadas no Filtro de Kalman */
-float32_t TransitionMatrix_f32[7][7];
-float32_t P_f32[7][7]={0};
-float32_t StateVector_f32[7]={1,0,0,0,POL_GYRO_X,POL_GYRO_Y,POL_GYRO_Z};
-//Não tenho certeza se estes arrays podem ser reutilizados como eu quero
-arm_matrix_instance_f32 TransitionMatrix; //Matriz de Transicao (Phi)
-arm_matrix_instance_f32 P; // Matriz da covariancia do erro. Matriz P da funcao de Lyapunov
-arm_matrix_instance_f32 StateVector; //Vetor de estados x=[e0 e1 e2 e3 bp bq br]
-
-
 /* Private function prototypes -----------------------------------------------*/
 
 void c_io_imu_initKalmanFilter();
-void c_io_imu_CalculateTransitionMatrix(float * gyro_raw,float deltat);
-void c_io_imu_CalculateH(float * rpy);
+void c_io_imu_CalculateTransitionMatrix(arm_matrix_instance_f32 StateVector, float * gyro_raw, float deltat);
+void c_io_imu_Calculate_H(arm_matrix_instance_f32 H_k, arm_matrix_instance_f32 StateVector);
+void c_io_imu_Calculate_h(arm_matrix_instance_f32 h_xk, arm_matrix_instance_f32 StateVector);
+float c_io_imu_estimaYaw(float* acce_raw, float* magn_raw);
+void c_io_imu_serialPrintData(); // Usado para salvar dados da IMU. Estes dados serão utilizados para inferir a variância dos ruidos dos sensores.
 
-//#define PV_IMU_SAMPLETIME  0.005
+#define PV_IMU_SAMPLETIME  0.005
 /* Private functions ---------------------------------------------------------*/
 
 /* Exported functions definitions --------------------------------------------*/
@@ -107,7 +97,7 @@ void c_io_imu_init(I2C_TypeDef* I2Cx)
 	// Accelerometer increase G-range (+/- 16G)
 	c_common_i2c_writeByte(I2Cx_imu, ACCL_ADDR, 0x31, 0x0B);
 
-  //  ADXL345 (Accel) POWER_CTL
+  //  ADXL345 (Accel) pow_CTL
   c_common_i2c_writeByte(I2Cx_imu, ACCL_ADDR, 0x2D, 8);
 
   // Gyro ID and setup
@@ -336,152 +326,274 @@ void c_io_imu_calibrate() {
 
 
 
-
-/** \brief Inicializa as matrizes do Filtro de Kalman de acordo com a biblioteca de matrizes do CMSIS.
- *
+/** \brief
+ *  Usado para salvar dados da IMU. Estes dados serão utilizados para inferir a variância dos ruidos dos sensores.
+ *  São printados na orde: acce_x, acce_y, acce_z, gyro_p, gyro_q, gyro_r, magn_Hx, magn_Hy, magn_Hz, timestamp
+ *  A frequencia com que os dados são salvos depende do setado para a thread de io, mas pode ser deduzida pelo timestamp
  */
-void c_io_imu_initKalmanFilter(){
+int timestamp_seconds=-1;
+int timestamp_minutes=0;
+int lastTime=0;
+void c_io_imu_serialPrintData(){
+	float acce_raw[3], gyro_raw[3], magn_raw[3];
+	int factor_acce=10000, factor_gyro=10000, factor_magn=10000, time, deltaT;
+	char str[256];
 
-	float gyro_init[3]={0,0,0};
+	time=(int)c_common_utils_millis();
 
-	c_io_imu_CalculateTransitionMatrix(gyro_init,0.005); //esta funcao já possui a chamada arm_mat_init_f32
-	//arm_mat_init_f32(&TransitionMatrix, 7, 7, (float32_t *)TransitionMatrix_f32);
-	arm_mat_init_f32(&P, 7, 7, (float32_t *)P_f32);
-	arm_mat_init_f32(&StateVector, 7, 1, (float32_t *)StateVector_f32);
+	deltaT=time-lastTime;
+	if (deltaT < 0)
+		deltaT+= 25565; //Valor que dá overflow - REVER valor
+
+	if (timestamp_seconds == -1){
+		timestamp_seconds=time;}//melhorar
+	else
+		timestamp_seconds+=deltaT;
+
+	if (timestamp_seconds >= 60000){
+		timestamp_minutes++;
+		timestamp_seconds-=60000;}
+
+	c_io_imu_getRaw(acce_raw, gyro_raw, magn_raw);
+	sprintf(str, "%d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d \n\r" ,(int)(factor_acce*acce_raw[0]),
+			(int)(factor_acce*acce_raw[1]), (int)(factor_acce*acce_raw[2]),(int)(factor_gyro*gyro_raw[0]),
+			(int)(factor_gyro*gyro_raw[1]),(int)(factor_gyro*gyro_raw[2]), (int)(factor_magn*magn_raw[0]),
+			(int)(factor_magn*magn_raw[1]),(int)(factor_magn*magn_raw[2]), timestamp_minutes, timestamp_seconds);
+
+	c_common_usart_puts(USART2, str);
+
+	lastTime=time;
 }
 
-/* Calculo da Matriz de Transicao para o filtro de kalman
+
+/** \brief ---------------- Matrizes Globais utilizadas no Filtro de Kalman ------------------------------------
+ * kminus1 = k-1, significa que o valor da variável é relativa a iteracão passada.
+ * Abaixo as 3 matrizes que precisamos guardar entre as iteracões, logo foram declaradas como variáveis globais
+ */
+float32_t TransitionMatrix_kminus1_f32[7][7];
+float32_t P_kminus1_f32[7][7];
+float32_t StateVector_kminus1_f32[7]={1,0,0,0,1,1,1};
+// Declaracão das structs para as Matrizes a serem utilizadas no filtro de kalman - alocacão de mamória
+arm_matrix_instance_f32 TransitionMatrix_kminus1; //Matriz de Transicao Phi_(k-1)
+arm_matrix_instance_f32 P_kminus1; // Matriz da covariancia do erro. Matriz P da funcao de Lyapunov
+arm_matrix_instance_f32 StateVector_kminus1; //Vetor de estados x=[e0 e1 e2 e3 bp bq br]
+/* ---------------- FIM DE: Matrizes Globais utilizadas no Filtro de Kalman ------------------------------------ */
+
+
+
+
+/** \brief Calculo da Matriz de Transicao para o filtro de kalman
  *
  * Desenvolvido no software Mathematica com a inversa de Laplace para a funcao fb de acordo com
  * o artigo "Automation of small UAVs using a low cost MEMs sensor and Embedded Computing Platform".
- * */
-void c_io_imu_CalculateTransitionMatrix(float * gyro_raw, float deltat){
+ *
+ * Sempre guarda os valores na matriz global TransictionMatrix_kminus1 - $\Phi_{k-1}$
+ */
+void c_io_imu_CalculateTransitionMatrix(arm_matrix_instance_f32 StateVector, float * gyro_raw, float deltat){
 	float a,b,c,d,e0,e1,e2,e3;
-
+	int m;
+//arm_matrix_instance_f32
 	// Definicoes
-	e0=StateVector[0]; e1=StateVector[1]; e2=StateVector[2]; e3=StateVector[3];
-	a=0.5*(-StateVector[4] + gyro_raw[0]);
-	b=0.5*(-StateVector[5] + gyro_raw[1]);
-	c=0.5*(-StateVector[6] + gyro_raw[2]);
-	d=Power(a,2) + Power(b,2) + Power(c,2);
+	e0=StateVector.pData[0]; e1=StateVector.pData[1]; e2=StateVector.pData[2]; e3=StateVector.pData[3];
+	a=0.5*(-StateVector.pData[4] + gyro_raw[0]);//0.5(p-bp)
+	b=0.5*(-StateVector.pData[5] + gyro_raw[1]);//0.5(q-bq)
+	c=0.5*(-StateVector.pData[6] + gyro_raw[2]);//0.5(r-br)
+	d=pow(a,2) + pow(b,2) + pow(c,2); //d=a^2+b^2+c^2
 
-	// Calculo da matriz de Transicao
-	TransitionMatrix_f32[0][0]=Cos(Sqrt(d)*deltat);
-	TransitionMatrix_f32[0][1]=-((a*Sin(Sqrt(d)*deltat))/Sqrt(d));
-	TransitionMatrix_f32[0][2]=-((b*Sin(Sqrt(d)*deltat))/Sqrt(d));
-	TransitionMatrix_f32[0][3]=-((c*Sin(Sqrt(d)*deltat))/Sqrt(d));
-	TransitionMatrix_f32[0][4]=(-((a*e0 - c*e2 + b*e3)*(-1 + Cos(Sqrt(d)*deltat))) +
-	    Sqrt(d)*e1*Sin(Sqrt(d)*deltat))/(2.*d);
-	TransitionMatrix_f32[0][5]=(-((b*e0 + c*e1 - a*e3)*(-1 + Cos(Sqrt(d)*deltat))) +
-	    Sqrt(d)*e2*Sin(Sqrt(d)*deltat))/(2.*d);
-	TransitionMatrix_f32[0][6]=(-((c*e0 - b*e1 + a*e2)*(-1 + Cos(Sqrt(d)*deltat))) +
-	    Sqrt(d)*e3*Sin(Sqrt(d)*deltat))/(2.*d);
+	//TM=TransitionMatrix_kminus1.pData;
+	m=TransitionMatrix_kminus1.numCols;
 
-	TransitionMatrix_f32[1][0]=(a*Sin(Sqrt(d)*deltat))/Sqrt(d);
-	TransitionMatrix_f32[1][1]=Cos(Sqrt(d)*deltat);
-	TransitionMatrix_f32[1][2]=(c*Sin(Sqrt(d)*deltat))/Sqrt(d);
-	TransitionMatrix_f32[1][3]=-((b*Sin(Sqrt(d)*deltat))/Sqrt(d));
-	TransitionMatrix_f32[1][4]=-((a*e1 - b*e2 - c*e3)*(-1 + Cos(Sqrt(d)*deltat)) +
-	     Sqrt(d)*e0*Sin(Sqrt(d)*deltat))/(2.*d);
-	TransitionMatrix_f32[1][5]=((c*e0 - b*e1 - a*e2)*(-1 + Cos(Sqrt(d)*deltat)) +
-	    Sqrt(d)*e3*Sin(Sqrt(d)*deltat))/(2.*d);
-	TransitionMatrix_f32[1][6]=-((b*e0 + c*e1 + a*e3)*(-1 + Cos(Sqrt(d)*deltat)) +
-	     Sqrt(d)*e2*Sin(Sqrt(d)*deltat))/(2.*d);
+	// Calculo da matriz de Transicao - relembrando que para acessar os elementos -> A(i,j)=pData[i*numCols+j]
+	TransitionMatrix_kminus1.pData[0*m + 0]=cos(sqrt(d)*deltat);
+	TransitionMatrix_kminus1.pData[0*m + 1]=-((a*sin(sqrt(d)*deltat))/sqrt(d));
+	TransitionMatrix_kminus1.pData[0*m + 2]=-((b*sin(sqrt(d)*deltat))/sqrt(d));
+	TransitionMatrix_kminus1.pData[0*m + 3]=-((c*sin(sqrt(d)*deltat))/sqrt(d));
+	TransitionMatrix_kminus1.pData[0*m + 4]=(-((a*e0 - c*e2 + b*e3)*(-1 + cos(sqrt(d)*deltat))) +
+	    sqrt(d)*e1*sin(sqrt(d)*deltat))/(2.*d);
+	TransitionMatrix_kminus1.pData[0*m + 5]=(-((b*e0 + c*e1 - a*e3)*(-1 + cos(sqrt(d)*deltat))) +
+	    sqrt(d)*e2*sin(sqrt(d)*deltat))/(2.*d);
+	TransitionMatrix_kminus1.pData[0*m + 6]=(-((c*e0 - b*e1 + a*e2)*(-1 + cos(sqrt(d)*deltat))) +
+	    sqrt(d)*e3*sin(sqrt(d)*deltat))/(2.*d);
 
-	TransitionMatrix_f32[2][0]=(b*Sin(Sqrt(d)*deltat))/Sqrt(d);
-	TransitionMatrix_f32[2][1]=-((c*Sin(Sqrt(d)*deltat))/Sqrt(d));
-	TransitionMatrix_f32[2][2]=Cos(Sqrt(d)*deltat);
-	TransitionMatrix_f32[2][3]=(a*Sin(Sqrt(d)*deltat))/Sqrt(d);
-	TransitionMatrix_f32[2][4]=-((c*e0 + b*e1 + a*e2)*(-1 + Cos(Sqrt(d)*deltat)) +
-	     Sqrt(d)*e3*Sin(Sqrt(d)*deltat))/(2.*d);
-	TransitionMatrix_f32[2][5]=((a*e1 - b*e2 + c*e3)*(-1 + Cos(Sqrt(d)*deltat)) -
-	    Sqrt(d)*e0*Sin(Sqrt(d)*deltat))/(2.*d);
-	TransitionMatrix_f32[2][6]=((a*e0 - c*e2 - b*e3)*(-1 + Cos(Sqrt(d)*deltat)) +
-	    Sqrt(d)*e1*Sin(Sqrt(d)*deltat))/(2.*d);
+	TransitionMatrix_kminus1.pData[1*m + 0]=(a*sin(sqrt(d)*deltat))/sqrt(d);
+	TransitionMatrix_kminus1.pData[1*m + 1]=cos(sqrt(d)*deltat);
+	TransitionMatrix_kminus1.pData[1*m + 2]=(c*sin(sqrt(d)*deltat))/sqrt(d);
+	TransitionMatrix_kminus1.pData[1*m + 3]=-((b*sin(sqrt(d)*deltat))/sqrt(d));
+	TransitionMatrix_kminus1.pData[1*m + 4]=-((a*e1 - b*e2 - c*e3)*(-1 + cos(sqrt(d)*deltat)) +
+	     sqrt(d)*e0*sin(sqrt(d)*deltat))/(2.*d);
+	TransitionMatrix_kminus1.pData[1*m + 5]=((c*e0 - b*e1 - a*e2)*(-1 + cos(sqrt(d)*deltat)) +
+	    sqrt(d)*e3*sin(sqrt(d)*deltat))/(2.*d);
+	TransitionMatrix_kminus1.pData[1*m + 6]=-((b*e0 + c*e1 + a*e3)*(-1 + cos(sqrt(d)*deltat)) +
+	     sqrt(d)*e2*sin(sqrt(d)*deltat))/(2.*d);
 
-	TransitionMatrix_f32[3][0]=(c*Sin(Sqrt(d)*deltat))/Sqrt(d);
-	TransitionMatrix_f32[3][1]=(b*Sin(Sqrt(d)*deltat))/Sqrt(d);
-	TransitionMatrix_f32[3][2]=-((a*Sin(Sqrt(d)*deltat))/Sqrt(d));
-	TransitionMatrix_f32[3][3]=Cos(Sqrt(d)*deltat);
-	TransitionMatrix_f32[3][4]=((b*e0 - c*e1 - a*e3)*(-1 + Cos(Sqrt(d)*deltat)) +
-	    Sqrt(d)*e2*Sin(Sqrt(d)*deltat))/(2.*d);
-	TransitionMatrix_f32[3][5]=-((a*e0 + c*e2 + b*e3)*(-1 + Cos(Sqrt(d)*deltat)) +
-	     Sqrt(d)*e1*Sin(Sqrt(d)*deltat))/(2.*d);
-	TransitionMatrix_f32[3][6]=((a*e1 + b*e2 - c*e3)*(-1 + Cos(Sqrt(d)*deltat)) -
-	    Sqrt(d)*e0*Sin(Sqrt(d)*deltat))/(2.*d);
+	TransitionMatrix_kminus1.pData[2*m + 0]=(b*sin(sqrt(d)*deltat))/sqrt(d);
+	TransitionMatrix_kminus1.pData[2*m + 1]=-((c*sin(sqrt(d)*deltat))/sqrt(d));
+	TransitionMatrix_kminus1.pData[2*m + 2]=cos(sqrt(d)*deltat);
+	TransitionMatrix_kminus1.pData[2*m + 3]=(a*sin(sqrt(d)*deltat))/sqrt(d);
+	TransitionMatrix_kminus1.pData[2*m + 4]=-((c*e0 + b*e1 + a*e2)*(-1 + cos(sqrt(d)*deltat)) +
+	     sqrt(d)*e3*sin(sqrt(d)*deltat))/(2.*d);
+	TransitionMatrix_kminus1.pData[2*m + 5]=((a*e1 - b*e2 + c*e3)*(-1 + cos(sqrt(d)*deltat)) -
+	    sqrt(d)*e0*sin(sqrt(d)*deltat))/(2*d);
+	TransitionMatrix_kminus1.pData[2*m + 6]=((a*e0 - c*e2 - b*e3)*(-1 + cos(sqrt(d)*deltat)) +
+	    sqrt(d)*e1*sin(sqrt(d)*deltat))/(2.*d);
 
-	TransitionMatrix_f32[4][0]=0;
-	TransitionMatrix_f32[4][1]=0;
-	TransitionMatrix_f32[4][2]=0;
-	TransitionMatrix_f32[4][3]=0;
-	TransitionMatrix_f32[4][4]=1;
-	TransitionMatrix_f32[4][5]=0;
-	TransitionMatrix_f32[4][6]=0;
-	TransitionMatrix_f32[5][0]=0;
-	TransitionMatrix_f32[5][1]=0;
-	TransitionMatrix_f32[5][2]=0;
-	TransitionMatrix_f32[5][3]=0;
-	TransitionMatrix_f32[5][4]=0;
-	TransitionMatrix_f32[5][5]=1;
-	TransitionMatrix_f32[5][6]=0;
-	TransitionMatrix_f32[6][0]=0;
-	TransitionMatrix_f32[6][1]=0;
-	TransitionMatrix_f32[6][2]=0;
-	TransitionMatrix_f32[6][3]=0;
-	TransitionMatrix_f32[6][4]=0;
-	TransitionMatrix_f32[6][5]=0;
-	TransitionMatrix_f32[6][6]=1;
+	TransitionMatrix_kminus1.pData[3*m + 0]=(c*sin(sqrt(d)*deltat))/sqrt(d);
+	TransitionMatrix_kminus1.pData[3*m + 1]=(b*sin(sqrt(d)*deltat))/sqrt(d);
+	TransitionMatrix_kminus1.pData[3*m + 2]=-((a*sin(sqrt(d)*deltat))/sqrt(d));
+	TransitionMatrix_kminus1.pData[3*m + 3]=cos(sqrt(d)*deltat);
+	TransitionMatrix_kminus1.pData[3*m + 4]=((b*e0 - c*e1 - a*e3)*(-1 + cos(sqrt(d)*deltat)) +
+	    sqrt(d)*e2*sin(sqrt(d)*deltat))/(2.*d);
+	TransitionMatrix_kminus1.pData[3*m + 5]=-((a*e0 + c*e2 + b*e3)*(-1 + cos(sqrt(d)*deltat)) +
+	     sqrt(d)*e1*sin(sqrt(d)*deltat))/(2.*d);
+	TransitionMatrix_kminus1.pData[3*m + 6]=((a*e1 + b*e2 - c*e3)*(-1 + cos(sqrt(d)*deltat)) -
+	    sqrt(d)*e0*sin(sqrt(d)*deltat))/(2.*d);
 
-	arm_mat_init_f32(&TransitionMatrix, 7, 7, (float32_t *)TransitionMatrix_f32);
+	TransitionMatrix_kminus1.pData[4*m + 0]=0;
+	TransitionMatrix_kminus1.pData[4*m + 1]=0;
+	TransitionMatrix_kminus1.pData[4*m + 2]=0;
+	TransitionMatrix_kminus1.pData[4*m + 3]=0;
+	TransitionMatrix_kminus1.pData[4*m + 4]=1;
+	TransitionMatrix_kminus1.pData[4*m + 5]=0;
+	TransitionMatrix_kminus1.pData[4*m + 6]=0;
+	TransitionMatrix_kminus1.pData[5*m + 0]=0;
+	TransitionMatrix_kminus1.pData[5*m + 1]=0;
+	TransitionMatrix_kminus1.pData[5*m + 2]=0;
+	TransitionMatrix_kminus1.pData[5*m + 3]=0;
+	TransitionMatrix_kminus1.pData[5*m + 4]=0;
+	TransitionMatrix_kminus1.pData[5*m + 5]=1;
+	TransitionMatrix_kminus1.pData[5*m + 6]=0;
+	TransitionMatrix_kminus1.pData[6*m + 0]=0;
+	TransitionMatrix_kminus1.pData[6*m + 1]=0;
+	TransitionMatrix_kminus1.pData[6*m + 2]=0;
+	TransitionMatrix_kminus1.pData[6*m + 3]=0;
+	TransitionMatrix_kminus1.pData[6*m + 4]=0;
+	TransitionMatrix_kminus1.pData[6*m + 5]=0;
+	TransitionMatrix_kminus1.pData[6*m + 6]=1;
 }
 
-void c_io_imu_CalculateH(float *H){
+
+/** \brief Calcula a matriz H
+ *
+ * \begin{equation}
+ * 		H=\frac{\partial h(x)}{\partial x}\left | _{x=\hat{x}(-)}
+ * \end{equation}
+ *
+ */
+void c_io_imu_Calculate_H(arm_matrix_instance_f32 H_k, arm_matrix_instance_f32 StateVector){
 	float e0,e1,e2,e3;
 	// Definicoes
-	e0=StateVector[0]; e1=StateVector[1]; e2=StateVector[2]; e3=StateVector[3];
+	e0=StateVector.pData[0]; e1=StateVector.pData[1]; e2=StateVector.pData[2]; e3=StateVector.pData[3];
 
-	H[0][0]=-2*e2*G;
-	H[0][1]=2*e3*G;
-	H[0][2]=-2*e0*G;
-	H[0][3]=2*e1*G;
-	H[0][4]=0;
-	H[0][5]=0;
-	H[0][6]=0;
+	H_k.pData[0*H_k.numCols + 0]=-2*e2*G;
+	H_k.pData[0*H_k.numCols + 1]=2*e3*G;
+	H_k.pData[0*H_k.numCols + 2]=-2*e0*G;
+	H_k.pData[0*H_k.numCols + 3]=2*e1*G;
+	H_k.pData[0*H_k.numCols + 4]=0;
+	H_k.pData[0*H_k.numCols + 5]=0;
+	H_k.pData[0*H_k.numCols + 6]=0;
 
-	H[1][0]=2*e1*G;
-	H[1][1]=2*e0*G;
-	H[1][2]=2*e3*G;
-	H[1][3]=2*e2*G;
-	H[1][4]=0;
-	H[1][5]=0;
-	H[1][6]=0;
+	H_k.pData[1*H_k.numCols + 0]=2*e1*G;
+	H_k.pData[1*H_k.numCols + 1]=2*e0*G;
+	H_k.pData[1*H_k.numCols + 2]=2*e3*G;
+	H_k.pData[1*H_k.numCols + 3]=2*e2*G;
+	H_k.pData[1*H_k.numCols + 4]=0;
+	H_k.pData[1*H_k.numCols + 5]=0;
+	H_k.pData[1*H_k.numCols + 6]=0;
 
-	H[2][0]=2*e0*G;
-	H[2][1]=-2*e1*G;
-	H[2][2]=-2*e2*G;
-	H[2][3]=2*e3*G;
-	H[2][4]=0;
-	H[2][5]=0;
-	H[2][6]=0;
+	H_k.pData[2*H_k.numCols + 0]=2*e0*G;
+	H_k.pData[2*H_k.numCols + 1]=-2*e1*G;
+	H_k.pData[2*H_k.numCols + 2]=-2*e2*G;
+	H_k.pData[2*H_k.numCols + 3]=2*e3*G;
+	H_k.pData[2*H_k.numCols + 4]=0;
+	H_k.pData[2*H_k.numCols + 5]=0;
+	H_k.pData[2*H_k.numCols + 6]=0;
 
-	H[3][0]=(-2*(2*e0*e1*e2 + (Power(e0,2) - Power(e1,2) + Power(e2,2))*e3 +
-	      Power(e3,3)))/
-	  ((Power(e0 + e2,2) + Power(e1 - e3,2))*
-	    (Power(e0 - e2,2) + Power(e1 + e3,2)));
-	H[3][1]=(-2*(-(Power(e0,2)*e2) + 2*e0*e1*e3 +
-	      e2*(Power(e1,2) + Power(e2,2) + Power(e3,2))))/
-	  ((Power(e0 + e2,2) + Power(e1 - e3,2))*
-	    (Power(e0 - e2,2) + Power(e1 + e3,2)));
-	H[3][2]=(2*e1*(Power(e0,2) + Power(e1,2) + Power(e2,2)) + 4*e0*e2*e3 -
-	    2*e1*Power(e3,2))/
-	  ((Power(e0 + e2,2) + Power(e1 - e3,2))*
-	    (Power(e0 - e2,2) + Power(e1 + e3,2)));
-	H[3][3]=(2*(Power(e0,3) + 2*e1*e2*e3 + e0*(Power(e1,2) - Power(e2,2) + Power(e3,2))))/
-	  ((Power(e0 + e2,2) + Power(e1 - e3,2))*
-	    (Power(e0 - e2,2) + Power(e1 + e3,2)));
-	H[3][4]=0;
-	H[3][5]=0;
-	H[3][6]=0;
+	H_k.pData[3*H_k.numCols + 0]=(-2*(2*e0*e1*e2 + (pow(e0,2) - pow(e1,2) + pow(e2,2))*e3 +
+	      pow(e3,3)))/
+	  ((pow(e0 + e2,2) + pow(e1 - e3,2))*
+	    (pow(e0 - e2,2) + pow(e1 + e3,2)));
+	H_k.pData[3*H_k.numCols + 1]=(-2*(-(pow(e0,2)*e2) + 2*e0*e1*e3 +
+	      e2*(pow(e1,2) + pow(e2,2) + pow(e3,2))))/
+	  ((pow(e0 + e2,2) + pow(e1 - e3,2))*
+	    (pow(e0 - e2,2) + pow(e1 + e3,2)));
+	H_k.pData[3*H_k.numCols + 2]=(2*e1*(pow(e0,2) + pow(e1,2) + pow(e2,2)) + 4*e0*e2*e3 -
+	    2*e1*pow(e3,2))/
+	  ((pow(e0 + e2,2) + pow(e1 - e3,2))*
+	    (pow(e0 - e2,2) + pow(e1 + e3,2)));
+	H_k.pData[3*H_k.numCols + 3]=(2*(pow(e0,3) + 2*e1*e2*e3 + e0*(pow(e1,2) - pow(e2,2) + pow(e3,2))))/
+	  ((pow(e0 + e2,2) + pow(e1 - e3,2))*
+	    (pow(e0 - e2,2) + pow(e1 + e3,2)));
+	H_k.pData[3*H_k.numCols + 4]=0;
+	H_k.pData[3*H_k.numCols + 5]=0;
+	H_k.pData[3*H_k.numCols + 6]=0;
+}
+
+
+/** brief Funcão não linear da saida h(x), de acordo com o artigo previamente citado.
+ *
+ * \begin{equation}
+ *  h_B(x_B) = \begin{bmatrix}
+ *  		   2g(e_1 e_3 - e_0 e_2)\\
+ *  		   2g(e_2 e_3 + e_0 e_1)\\
+ * 			   g(e_0^2 - e_1^2 - e_2^2 + e_3^2)\\
+ * 			   tan^{-1}\frac{2(e_1 e_2 + e_0 e_3)}{e_0^2 + e_1^2 + e_2^2 + e_3^2}
+ * 			   \end{bmatrix}
+ * \end{equation}
+ *
+ */
+void c_io_imu_Calculate_h(arm_matrix_instance_f32 h_xk, arm_matrix_instance_f32 StateVector){
+	h_xk.pData[0] = 2*(StateVector.pData[1]*StateVector.pData[3] - StateVector.pData[0]*StateVector.pData[2])*G;
+	h_xk.pData[1] = 2*(StateVector.pData[2]*StateVector.pData[3] + StateVector.pData[0]*StateVector.pData[1])*G;
+	h_xk.pData[2] = (pow(StateVector.pData[0],2) - pow(StateVector.pData[1],2) - pow(StateVector.pData[2],2) + pow(StateVector.pData[3],2))*G;
+	h_xk.pData[3] = atan2(2*(StateVector.pData[1]*StateVector.pData[2] + StateVector.pData[0]*StateVector.pData[3]) ,
+			(pow(StateVector.pData[0],2) + pow(StateVector.pData[1],2) - pow(StateVector.pData[2],2) - pow(StateVector.pData[3],2)));
+}
+
+
+/** \brief Faz a estimacão do angulo de guinada (Yaw-$\psi$) com as medicoes do acelerometro e do acelerometro.
+ *
+ *   Para conseguir estimar o angulo de guinada, precisamos primeiro estimar os angulos de rolagem e arfagem. Fazemos isto com as
+ *   medicoes (ax,ay,az) do acelerometro de acordo com as seguintes formulas (segundo artigo "Application of UKF for MEMs and Fluxgate sensors based
+ *   attitude and heading reference system of carriers"):
+ * 		roll_estimado = atan(ay/ax)
+ * 		pitch_estimado = asin(ay/g)
+ *   Estas estimacões são utilizadas SOMENTE para calcular a guinada, não é utilizado em mais nenhum lugar do filtro de kalman. Com isto e
+ *   com a medicão (mx,my,mz) do magnetometro, temos:
+ *   	yaw_estimado = atan( (cos(roll)*my - sin(roll)*mz) / ( cos(pitch)*mx+sin(pitch)*sin(roll)*my+cos(roll)*sin(theta)*mz) )
+ *
+ *   	Estas formulas estão diferentes das utilizadas pelo Patrick no filtro complementar, logo uma discussão seria bom. As
+ *   	equacões aqui usadas ao menos são facilmente derivadas.
+ */
+float c_io_imu_estimaYaw(float* acce_raw, float* magn_raw){
+	float roll_est, pitch_est, Hx, Hy;
+
+	roll_est = atan2(acce_raw[1],acce_raw[2]);
+	pitch_est = atan2(acce_raw[0],G);
+
+	Hx=cos(pitch_est)*magn_raw[0]+sin(roll_est)*sin(pitch_est)*magn_raw[1]+cos(roll_est)*sin(pitch_est)*magn_raw[2];
+	Hy=cos(roll_est)*magn_raw[1] - sin(roll_est)*magn_raw[2];
+
+	return atan2(Hy,Hx); //Retorna o Yaw estimado
+}
+
+/** \brief Inicializa as matrizes globais do Filtro de Kalman de acordo com a biblioteca de matrizes do CMSIS.
+ *
+ */
+void c_io_imu_initKalmanFilter(){
+	//float acce_raw,gyro_raw,magn_raw;
+	//c_io_imu_getRaw(acce_raw, gyro_raw, magn_raw); //para pegar a condicão inicial do gyro.
+	float gyro_raw[3]={0,0,0}; // velocidades angulares iniciais consideradas iguais a zero
+
+	// Inicializa P_{k-1} - os valores foram inicializados na declaracão da variável global
+	// Inicializado em Zero - REVER SE DEVE SER ISTO
+	arm_mat_init_f32(&P_kminus1, 7, 7, (float32_t *)P_kminus1_f32);
+
+	// Inicializa o vetor de estados - os valores foram inicializados na declaracão da variável global
+	arm_mat_init_f32(&StateVector_kminus1, 7, 1, (float32_t *)StateVector_kminus1_f32);
+
+	// Inicializa a matriz de transicão (\Phi_{k-1}) para a condicao inicial do vetor de estado
+	arm_mat_init_f32(&TransitionMatrix_kminus1, 7, 7, (float32_t *)TransitionMatrix_kminus1_f32);
+	c_io_imu_CalculateTransitionMatrix(StateVector_kminus1, gyro_raw, 0.005); // REVER VALOR DELTA_T
 }
 
 
@@ -489,26 +601,236 @@ void c_io_imu_CalculateH(float *H){
  * low cost MEMS sensor and embedded computing platform" - J.S.Jang e D. Liccardo.
  *  Implementa um filtro de kalman para a atitude do VANT através da fusão das medidas provenientes dos gyroscopios,
  *  acelerometros e magnetometro.
+ *  Tentou-se deixar o nome das variáveis o mais fiel possivel em relacão ao artigo.
+ *  Variaveis com o sufixo "kminus1" (k-1): significa que o valor da variável é relativa a iteracão passada.
  *
- * O retorno da funcão é um array que contem as 3 atitudes estimadas + as 3 velocidades angulares do gyroscopio, esta
- * última com correcão de bias e passando por um filtro passa baixa de primeira ordem.
+ * Para o calculo de matrizes é utilizado a struct da biblioteca CMSIS. Isto é vantajoso pois as funcoes de matrizes são
+ * otimizadas e utilizam a FPU do processador ARM. Abaixo sua estrutura:
+ *
+ *   typedef struct
+ *   {
+ *     uint16_t numRows;     // number of rows of the matrix.
+ *     uint16_t numCols;     // number of columns of the matrix.
+ *     float32_t *pData;     // points to the data of the matrix.
+ *   } arm_matrix_instance_f32;
+ *
+ *   Para acessar o elemento (i,j) da matriz utiliza-se:
+ *
+ *   Matriz.pData[i*numCols + j]
+ *
+ *   A funcão
+ *   void arm_mat_init_f32 	( 	arm_matrix_instance_f32 *  	S,
+ *		uint16_t  	nRows,
+ *		uint16_t  	nColumns,
+ *		float32_t *  	pData
+ *	)
+ *	associa a sua matriz S um ponteiro aonde foi previamente alocada uma memória de tamanho nRows*NColumns*sizeof(float32_t)
+ *
+ *	Todas as operacões com matrizes desta biblioteca precisam de uma variável para guardar a resposta da operacão, como por exemplo
+ *	arm_status arm_mat_mult_f32 	( 	const arm_matrix_instance_f32 *  	pSrcA,
+ *		const arm_matrix_instance_f32 *  	pSrcB,
+ *		arm_matrix_instance_f32 *  	pDst
+ *	)
+ *	a varivével pDst recebe o resultado da operacão. Infelizmente não conseguimos fazer operacões "nested", o que implica em várias variáveis
+ *	intermediárias. No final decidiu-se utilizar 3 variáveis auxiliares, reutilizando-as entre as operacões. Também para deixar o código
+ *	mais claro, foi criada uma matriz para cada variável presente no algoritmo (encontrado no artigo). Pode-se pensar em  mais tarde
+ *	otimizar o código (perdendo legibilidade).
+ *
+ *	Em outro momento seria interessante implementar algumas funcões auxiliares, de modo que o programador consiga trabalhar em um nivel mais alto (por exemplo,
+ *	uma pilha com operacões push/pop).
  */
 void c_io_imu_getKalmanFilterRPY(float * rpy) {
-	float acce_raw[3], gyro_raw[3], magn_raw[3];
 
+	float acce_raw[3], gyro_raw[3], magn_raw[3]; // Medicoes da IMU
+	float psi_mag;
+	int error=0, error2=0; //flag setada em 1 caso ocorra erro em alguma operacao de matriz
+
+	/*=======================================   DECLARACÃO DAS MATRIZES   ==========================================================*/
+
+	/*  Para criar e inicializar uma matriz no contexto da biblioteca do CMSIS, 3 passos são necessários:
+	 *  + Criar uma struct do tipo arm_matrix_instance_f32;
+	 *  + Alocar a memória aonde os dados da matriz será guardada. Pode ser feito com: float_f32 exemplo[n][m], que já aloca a memória desejada.
+	 *  + Linkar o ponteiro com a struct criada no primeiro passo com a funcão arm_mat_init_f32
+	 */
+
+
+	/* ----------------------------------  Criacão das structs "arm_matrix_instance_f32" ------------------------ */
+	arm_matrix_instance_f32 H_k; // H_(k)
+	arm_matrix_instance_f32 StateVector_k_minus; //X_(k)(-)
+	//arm_matrix_instance_f32 StateVector_k_plus; //X_(k)(+)
+	arm_matrix_instance_f32 P_k_minus; //P_(k)(-)
+	//arm_matrix_instance_f32 P_k_plus; //P_(k)(+)
+	arm_matrix_instance_f32 KalmanGain_k; //K_(k)
+	arm_matrix_instance_f32 Q; // Matriz de covariancia do ruido dos estados, achada com o metodo de Variancia de Allan
+	arm_matrix_instance_f32 R; // Matriz de covariancia do ruido das medicoes, achada com o metodo de Variancia de Allan
+	arm_matrix_instance_f32 y_k; // Leituras do acelerometro concatenado com o angulo de yaw calculado com as medidas do magnetometro
+	arm_matrix_instance_f32 h_xk_minus; // // h(x_k(-) - funcão nao linear que estima as aceleracoes lineares e o angulo de yaw calculados com a atitude estimada
+	arm_matrix_instance_f32 auxA; // Variavel auxiliar para o calculo com a biblioteca de matrizes do CMSIS
+	arm_matrix_instance_f32 auxB; // Variavel auxiliar para o calculo com a biblioteca de matrizes do CMSIS
+	arm_matrix_instance_f32 auxC; // Variavel auxiliar para o calculo com a biblioteca de matrizes do CMSIS
+	/* --------------------------------- FIM DE: Criacão das structs "arm_matrix_instance_f32" ------------------------ */
+
+
+	/* ----------------------------------  Alocacão de memória para as matrizes --------------------------------------- */
+	// Declaracao das matrizes. Alocacão de memória para as matrizes. Os ponteiros pata tais memórias serão linkadas
+	// com as structs "arm_matrix_instance_f32"
+	float32_t H_k_f32[4][7]; //H_(k)
+	float32_t StateVector_k_minus_f32[7][1]; //X_(k)(-)
+	//float32_t y_k f32[7][1]; //X_(k)(+)
+	float32_t P_k_minus_f32[7][7]; //P_(k)(-)
+	//float32_t P_k_plus_f32[7][7]; //P_(k)(+)
+	float32_t KalmanGain_k_f32[7][4]; //K_(k)
+	float32_t y_k_f32[4]; // Leituras do acelerometro concatenado com o angulo de yaw calculado com as medidas do magnetometro
+	float32_t h_xk_minus_f32[4]; // // h(x_k(-) - funcão nao linear que estima as aceleracoes lineares e o angulo de yaw calculados com a atitude estimada
+	float32_t Q_f32[7]; // Matriz de covariancia do ruido dos estados, achada com o metodo de Variancia de Allan
+	float32_t R_f32[7]; // Matriz de covariancia do ruido das medicoes, achada com o metodo de Variancia de Allan
+	float32_t auxA_f32[7][7]; // Variavel auxiliar para o calculo com a biblioteca de matrizes do CMSIS
+	float32_t auxB_f32[7][7]; // Variavel auxiliar para o calculo com a biblioteca de matrizes do CMSIS
+	float32_t auxC_f32[7][7]; // Variavel auxiliar para o calculo com a biblioteca de matrizes do CMSIS
+	/* --------------------------------- FIM DE: Alocacão de memória para as matrizes --------------------------------- */
+
+
+	/* ------------------------------   Linkagem das memórias com as structs "arm_matrix_instance_f32"   ---------------------------------*/
+	// Os ponteiro para a memória é guardado na váriavel *pData da struct.
+	arm_mat_init_f32(&H_k, 4, 7, (float32_t *)H_k_f32);
+	arm_mat_init_f32(&StateVector_k_minus, 7, 1, (float32_t *)StateVector_k_minus_f32);
+	//arm_mat_init_f32(&StateVector_k_plus, 7, 1, (float32_t *)StateVector_k_plus_f32);
+	arm_mat_init_f32(&P_k_minus, 7, 7, (float32_t *)P_k_minus_f32);
+	//arm_mat_init_f32(&P_k_plus, 7, 7, (float32_t *)P_k_plus_f32);
+	arm_mat_init_f32(&KalmanGain_k, 7, 4, (float32_t *)KalmanGain_k_f32);
+	arm_mat_init_f32(&y_k, 4, 1, (float32_t *)y_k_f32);
+	arm_mat_init_f32(&h_xk_minus, 4, 1, (float32_t *)h_xk_minus_f32);
+	arm_mat_init_f32(&Q, 7, 7, (float32_t *)Q_f32);
+	arm_mat_init_f32(&R, 4, 4, (float32_t *)R_f32);
+	arm_mat_init_f32(&auxA, 7, 7, (float32_t *)auxA_f32);
+	arm_mat_init_f32(&auxB, 7, 7, (float32_t *)auxB_f32);
+	arm_mat_init_f32(&auxC, 7, 7, (float32_t *)auxC_f32);
+	/* ----------------------------- FIM DE: Linkagem das memórias com as structs "arm_matrix_instance_f32"   ----------------------------*/
+
+	/*=======================================   FIM DE: DECLARACÃO DAS MATRIZES  ==========================================================*/
+
+
+	/*=======================================   FILTRO DE KALMAN   ========================================================================*/
+
+	/* --------------------------------------   Condicões Iniciais   ---------------------------------------------------------------------*/
+	// A funcão de inicializacão "c_io_imu_initKalmanFilter()" (a qual deveria ser executada antes de executar a Thread com o FK) já
+	// inicializa as matrizes TransitionMatrix_kminus1, StateVector_kminus1 e P_kminus1
 	c_io_imu_getRaw(acce_raw, gyro_raw, magn_raw);
 
-	// PREDICTION
-	//StateVector=TransitionMatrix*StateVector
-	//arm_mat_mult_f32(&inr_att, &gamma, &r1);
-	//P=TransitionMatrix*P*TransitionMatrix'+Q
-	//calculateTransitionMatrix
-	// CORRECTION
-	//calculateH
-	//K=P*H*Inverse(H*P*H'+R)
-	//StateVector=StateVector+K*([acelerometrox,y,z,PSI_magnetometro]-h(StateVector))
-	//P=(Identity(7)-K*H)*P
+	// O vetor de saida é composto pelos acelerometros e pelo angulo psi calculado com as medidas do magnetometro
+	psi_mag=atan2(magn_raw[1],magn_raw[0]);
+	y_k.pData[0]=acce_raw[0]; y_k.pData[1]=acce_raw[1]; y_k.pData[2]=acce_raw[2]; y_k.pData[3]=c_io_imu_estimaYaw(acce_raw,magn_raw);
+	/* --------------------------------------   FIM DE: Condicões Iniciais   -----------------------------------------------------------*/
+
+
+
+	/* --------------------------------------   Fase de Predicão   ---------------------------------------------------------------------*/
+
+	/* ----- \hat{x}(-) = \Phi_{k-1} * \hat{x}_{k-1}(+) ----------- */
+	if (arm_mat_mult_f32(&TransitionMatrix_kminus1, &StateVector_kminus1, &StateVector_k_minus) != ARM_MATH_SUCCESS)
+		error=-1;
+	/* ----- FIM -------------------------------------------------- */
+
+	/* ----- P_k(-) = \Phi_{k-1} * P_{k-1} * \Phi_{k-1}^T + Q ----- */
+	// 1) auxA = \Phi_{k-1} * P_{k-1}
+	if (arm_mat_mult_f32(&TransitionMatrix_kminus1, &P_kminus1, &auxA) != ARM_MATH_SUCCESS)
+		error=-2;
+	// 2) auxB = \Phi_{k-1}^T
+	if (arm_mat_trans_f32(&TransitionMatrix_kminus1, &auxB) != ARM_MATH_SUCCESS)
+		error=-3;
+	// 3) auxC = auxA * auxB = (\Phi_{k-1} * P_{k-1}) * (\Phi_{k-1}^T)
+	if (arm_mat_mult_f32(&auxA, &auxB, &auxC) != ARM_MATH_SUCCESS)
+		error=-4;
+	// 4) P_k(-) = auxC + Q = [(\Phi_{k-1} * P_{k-1}) * (\Phi_{k-1}^T)] + Q
+	if (arm_mat_add_f32(&auxC, &Q, &P_k_minus) != ARM_MATH_SUCCESS)
+		error=-5;
+	/* ----- FIM -------------------------------------------------- */
+
+	/* ----- \Phi_{k-1} = \Phi_k ---------------------------------- */
+	c_io_imu_CalculateTransitionMatrix(StateVector_k_minus,gyro_raw,0.005); // REVER VALOR DELTA_T
+	/* ----- FIM -------------------------------------------------- */
+
+
+	/* --------------------------------------   Fase de Correcão   ---------------------------------------------------------------------*/
+
+	// Calcula matrix H para x_k(-)
+	c_io_imu_Calculate_H(H_k,StateVector_k_minus);
+	// Calcula vetor h para x_k(-)
+	c_io_imu_Calculate_h(h_xk_minus,StateVector_k_minus);
+
+	/* ----- K_k = P_K(-) * H_k^T * [H_k * P_k(-) * H_k^T + R]^{-1} ---------------------------------- */
+	// 1) auxA = H_k * P_k(-) - Dimensoes de A - 4x7
+	//Ajusta o tamanho do buffer de saida (a memoria alocada continua sendo size(float_32t*7*7))
+	auxA.numRows=4; auxA.numCols=7;
+	if (arm_mat_mult_f32(&H_k, &P_k_minus, &auxA) != ARM_MATH_SUCCESS)
+		error=-6;
+	// 2) auxB = H_k^T - Dimensoes de B - 7x4
+	auxB.numRows=7; auxB.numCols=4;
+	if (arm_mat_trans_f32(&H_k, &auxB) != ARM_MATH_SUCCESS)
+		error=-7;
+	// 3) auxC = auxA * auxB =  H_k * P_k(-) * H_k^T - Dimensoes de C - 4x4
+	auxC.numRows=4; auxC.numCols=4;
+	if (arm_mat_mult_f32(&auxA, &auxB, &auxC) != ARM_MATH_SUCCESS)
+		error=-8;
+	// 4) auxA = auxC + R =  H_k * P_k(-) * H_k^T + R - Dimensoes de A - 4x4
+	auxA.numRows=4; auxA.numCols=4;
+	if (arm_mat_add_f32(&auxC, &R, &auxA) != ARM_MATH_SUCCESS)
+		//error;
+	// 5) auxB = auxA^{-1} =  [H_k * P_k(-) * H_k^T + R]^{-1}- Dimensoes de C - 4x4
+		//auxC.numRows=4; auxC.numCols=4;
+	if (arm_mat_inverse_f32(&auxA, &auxC) == ARM_MATH_SINGULAR)
+		error2=-100;
+	// 6) auxC = auxB * auxC =  H_k * [H_k * P_k(-) * H_k^T + R]^{-1} - Dimensoes de A - 7x4
+		auxA.numRows=7; auxA.numCols=4;
+	if (arm_mat_mult_f32(&auxB, &auxC, &auxA) != ARM_MATH_SUCCESS)
+		error=-10;
+	// 7) K_k = P_k(-) * auxA =  P_k9-) * H_k * [H_k * P_k(-) * H_k^T + R]^{-1} - Dimensoes de K_k - 7x4
+	if (arm_mat_mult_f32(&P_k_minus, &auxA, &KalmanGain_k) != ARM_MATH_SUCCESS)
+		error=-11;
+	/* ----- FIM -------------------------------------------------- */
+
+
+	/* ----- P_k(+) = P_k(-) - (K_k * H_k * P_k(-)) ---------------------------------- */
+	// 1) auxA = H_k * P_k(-) - Dimensoes de A - 4x7
+	auxA.numRows=4; auxA.numCols=7;
+	if (arm_mat_mult_f32(&H_k, &P_k_minus, &auxA) != ARM_MATH_SUCCESS)
+		error=-12;
+	// 2) auxB = K_k * auxA = K_k * H_k * P_k(-) - Dimensoes de B - 7x7
+	auxB.numRows=7; auxB.numCols=7;
+	if (arm_mat_mult_f32(&KalmanGain_k, &auxA, &auxB) != ARM_MATH_SUCCESS)
+		error=-13;
+	// 3) P_k(+) = P_k(-) - auxB = P_k(-) - (K_k * H_k * P_k(-))
+	if (arm_mat_sub_f32(&P_k_minus, &auxB, &P_kminus1) != ARM_MATH_SUCCESS)  //Já guardei no vetor P_{k-1} pois não usaremos mais em nenhum calculo
+		error=-14;
+	/* ----- FIM -------------------------------------------------- */
+
+
+	/* ----- \hat{x}_{k}(+) = \hat{x}_{k}(-) + K_k * [y_k - h(\hat{x}_{k}(-))] ---------------------------------- */
+	// 1) auxA = y_k - h(\hat{x}_{k}(-)) - Dimensoes de A - 4x1
+	auxA.numRows=4; auxA.numCols=1;
+	if (arm_mat_sub_f32(&y_k, &h_xk_minus, &auxA) != ARM_MATH_SUCCESS)
+		error=-15;
+	// 2) auxB = K_k * auxA = K_k * (y_k - h(\hat{x}_{k}(-))) - Dimensoes de A - 7x1
+	auxB.numRows=7; auxB.numCols=1;
+	if (arm_mat_mult_f32(&KalmanGain_k, &auxA, &auxB) != ARM_MATH_SUCCESS)
+		error=-16;
+	// 3) \hat{x}_{k}(+) = \hat{x}_{k}(-) + auxB = \hat{x}_{k}(-) + [K_k * (y_k - h(\hat{x}_{k}(-)))]
+	if (arm_mat_add_f32(&StateVector_kminus1, &auxB, &auxB) != ARM_MATH_SUCCESS)  //Já guardei no vetor x_{k-1} pois não usaremos mais em nenhum calculo
+		error=-17;
+	/* ----- FIM -------------------------------------------------- */
+
+	// Estou passando os angulos em QUATERNIONS para testar - FAZER conversao de quaternions para angulos de Euler
+	rpy[0]=StateVector_kminus1.pData[0];
+	rpy[1]=StateVector_kminus1.pData[1];
+	rpy[2]=StateVector_kminus1.pData[2];
+	rpy[3]=StateVector_kminus1.pData[3];
+	/* FAZER - O Filtro de kalman estima somente a atitude - para estimar a velocidade angular, podemos fazer:
+	 * $[\dot{\phi} \; \dot{\theta} \; \dot{\psi}]^T = \Eta^-1 * [p \; q \; r]^T$
+	 */
+	rpy[4]= error; //Por enquanto só mostra se teve erro
+	rpy[5]= error2; //Por enquanto só mostra se teve erro
 }
+
 
 /* IRQ handlers ------------------------------------------------------------- */
 
