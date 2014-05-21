@@ -5,7 +5,14 @@
   * @version V1.0.0
   * @date    30-November-2013
   * @brief   Startup do projeto.
-  *
+  * @warning Modificar os arquivos 
+    provant-software/io-board/stm32f4/common/modules/common/stm32f4xx_conf.h
+    provant-software/io-board/stm32f4/lib/cmsis/inc/stm32f4xx.h
+    provant-software/io-board/stm32f4/lib/cmsis/inc/stm32f4xx_conf.h
+    dependendo da placa que esta trabalhando.
+    Recompilando com:
+    make allclean
+    make
   *	TODO
   *
   *****************************************************************************/
