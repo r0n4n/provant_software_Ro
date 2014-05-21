@@ -1,16 +1,13 @@
 /**
   ******************************************************************************
   * @file    main/main.c
-  * @author  Martin Vincent Bloedorn
+  * @author  Martin Vincent Bloedorn & Patrick José Pereira
   * @version V1.0.0
   * @date    30-November-2013
   * @brief   Startup do projeto.
   *
   *	TODO
   *
-  * \todo	 1 - Terminar gpio_common.
-  * \todo	 2 - Implementar comunicação com servos.
-  * \todo	 3 - Implementar comunicação com ESCs.
   *****************************************************************************/
 
 /* Includes ------------------------------------------------------------------*/
@@ -86,6 +83,10 @@ void blink_led_task(void *pvParameters)
     while(1)
     {
         c_common_gpio_toggle(LED_builtin);
+        char str[64];
+        sprintf(str, "Distance: \n\r");
+    	c_common_usart_puts(USART3, str);
+    	c_common_usart_puts(USART2, str);
         vTaskDelay(100/portTICK_RATE_MS);
     }
 }
@@ -128,19 +129,21 @@ int main(void)
 		vTraceConsoleMessage("Could not start recorder!");
 
 	/* Init modules */
-	module_io_init(); //IO precisa ser inicializado antes de outros.
-	module_rc_init();
+	//module_io_init(); //IO precisa ser inicializado antes de outros.
+	//module_rc_init();
+	c_common_usart2_init(460800);
+	c_common_usart3_init(460800);
 
 	/* Connect modules: interface1.o* = interface2.i* */
-	pv_interface_io.oAttitude  = pv_interface_rc.iAttitude;
-	pv_interface_rc.oActuation = pv_interface_io.iActuation;
+	//pv_interface_io.oAttitude  = pv_interface_rc.iAttitude;
+	//pv_interface_rc.oActuation = pv_interface_io.iActuation;
 
 	c_common_usart_puts(USART2, "Iniciando!\n\r");
 
 	/* create tasks */
 	xTaskCreate(blink_led_task, (signed char *)"Blink led", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+1, NULL);
-	xTaskCreate(module_rc_task, (signed char *)"module_rc", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+1, NULL);
-	xTaskCreate(module_io_task, (signed char *)"module_io", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+1, NULL);
+	//xTaskCreate(module_rc_task, (signed char *)"module_rc", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+1, NULL);
+	//xTaskCreate(module_io_task, (signed char *)"module_io", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+1, NULL);
 
 	//xTaskCreate(sonar_task, (signed char *)"Sonar task", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+1, NULL);
 
