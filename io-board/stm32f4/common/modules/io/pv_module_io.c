@@ -30,7 +30,7 @@
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
 portTickType lastWakeTime;
-int  accRaw[3], gyroRaw[3], magRaw[3];
+//int  accRaw[3], gyroRaw[3], magRaw[3];
 char str[256];
 
 /* Inboxes buffers */
@@ -52,6 +52,8 @@ pv_msg_datapr_position oPosition;
   * @retval None
   */
 void module_io_init() {
+//	float accRaw[3], gyrRaw[3], magRaw[3]; // TODO Tirar daqui junto com o init
+
 	/* Inicialização do hardware do módulo */
 	c_common_i2c_init(I2C1); //imu 
 	//c_common_i2c_init(I2C2); //esc
@@ -79,6 +81,13 @@ void module_io_init() {
 
 	c_io_imu_init(I2C1);   
 	//c_io_blctrl_init(I2C1);
+
+	// TODO Tirar daqui junto com o init
+//	taskENTER_CRITICAL();
+//	c_io_imu_getRaw(accRaw, gyrRaw, magRaw);
+//	taskEXIT_CRITICAL();
+//	c_io_imu_initKalmanFilter(accRaw, gyrRaw, magRaw); // Inicia o filtro de Kalman
+	// END TODO
 
 	//inicializacao dos PPM
 	c_io_blctrl_init_ppm();
@@ -110,6 +119,7 @@ void module_io_run()
 	char  ax[16], ay[16], az[16], r[16], p[16], y[16], dr[16], dp[16], dy[16];
 	float rpy[] = {0,0,0,0,0,0};
 	int counte=0;
+	float cond;
 
 	while(1)
 	{
@@ -125,10 +135,12 @@ void module_io_run()
 		/// IMU DATA
 		#if 1
 		 	taskENTER_CRITICAL();
+		 	c_io_imu_getRaw(accRaw, gyrRaw, magRaw);
 			//c_io_imu_getComplimentaryRPY(rpy);
-		 	//c_io_imu_getKalmanFilterRPY(rpy);
-		 	c_io_imu_serialPrintData();
+		 	//c_io_imu_serialPrintData();
 			taskEXIT_CRITICAL();
+			//c_io_imu_getKalmanFilterRPY(rpy, accRaw, gyrRaw, magRaw);
+			c_io_imu_getComplimentaryRPY(rpy);
 		#endif
 
 		/// SERVOS
@@ -173,7 +185,7 @@ void module_io_run()
 
 
 		/// DEBUG
-		#if 0
+		#if 1
 			//c_common_utils_floatToString(rpy[PV_IMU_ROLL  ]*RAD_TO_DEG, r,  4);
 			//c_common_utils_floatToString(rpy[PV_IMU_PITCH ]*RAD_TO_DEG, p,  4);
 			//c_common_utils_floatToString(rpy[PV_IMU_YAW   ]*RAD_TO_DEG, y,  4);
@@ -184,8 +196,10 @@ void module_io_run()
 			c_common_usart_puts(USART2, str);
 			counte++;
 
-	    	//sprintf(str, "test -> \t %d \t %d \t %d \t %d \t %d \t %d \n\r" ,(int)(10000*rpy[0]),(int)(10000*rpy[1]),(int)(10000*rpy[2]),(int)(10000*rpy[3]),(int)rpy[4],(int)rpy[5]);
-	    	//c_common_usart_puts(USART2, str);
+	    	//cond=(rpy[0]*rpy[0])+(rpy[1]*rpy[1])+(rpy[2]*rpy[2])+(rpy[3]*rpy[3]);
+//	    	sprintf(str, "test -> \t %d \t %d \t %d \t %d \t %d \t %d \n\r" ,(int)(rpy[0]),(int)(rpy[1]),(int)(rpy[2]),(int)(rpy[3]*1000),(int)(rpy[4]),(int)(rpy[5]));
+	    	//sprintf(str, "test -> \n\r");
+//	    	c_common_usart_puts(USART2, str);
 
 		#endif
 
