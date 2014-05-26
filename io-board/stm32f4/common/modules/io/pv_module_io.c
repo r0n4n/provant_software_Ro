@@ -113,6 +113,13 @@ void module_io_init() {
   * Loop que amostra sensores e escreve nos atuadores como necessário.
   *
   */
+/// SERVOS
+		float servoRightFiltrado=0;
+		float servoLeftFiltrado=0;
+		float a=0.05;
+		float b=0.05;
+		float velo_rightFiltrado=0;
+		float velo_leftFiltrado=0;
 void module_io_run() 
 {
 	float accRaw[3], gyrRaw[3], magRaw[3];
@@ -135,30 +142,68 @@ void module_io_run()
 		/// IMU DATA
 		#if 1
 		 	taskENTER_CRITICAL();
-		 	c_io_imu_getRaw(accRaw, gyrRaw, magRaw);
-			//c_io_imu_getComplimentaryRPY(rpy);
+		 	//c_io_imu_getRaw(accRaw, gyrRaw, magRaw);
+			c_io_imu_getComplimentaryRPY(rpy);
 		 	//c_io_imu_serialPrintData();
 			taskEXIT_CRITICAL();
 			//c_io_imu_getKalmanFilterRPY(rpy, accRaw, gyrRaw, magRaw);
-			c_io_imu_getComplimentaryRPY(rpy);
+			//c_io_imu_getComplimentaryRPY(rpy);
 		#endif
 
 		/// SERVOS
-		#if 0
-			if(iActuation.servoRight*RAD_TO_DEG<60 || iActuation.servoRight*RAD_TO_DEG>-60)
-				c_io_rx24f_move(2, 150+iActuation.servoRight*RAD_TO_DEG);
-			if(iActuation.servoLeft*RAD_TO_DEG<60 || iActuation.servoLeft*RAD_TO_DEG>-60)
-				c_io_rx24f_move(1, 130+iActuation.servoLeft*RAD_TO_DEG);	
+		#if 1
+			// filtro de referencia
+			servoRightFiltrado = servoRightFiltrado + a*(iActuation.servoRight-servoRightFiltrado);
+			servoLeftFiltrado = servoLeftFiltrado + a*(iActuation.servoLeft-servoLeftFiltrado);
+
+			if(servoRightFiltrado*RAD_TO_DEG<60 || servoRightFiltrado*RAD_TO_DEG>-60)
+				c_io_rx24f_move(2, 150+servoRightFiltrado*RAD_TO_DEG);
+			if(servoLeftFiltrado*RAD_TO_DEG<60 || servoLeftFiltrado*RAD_TO_DEG>-60)
+				c_io_rx24f_move(1, 130+servoLeftFiltrado*RAD_TO_DEG);
 		#endif
+//		#if 0
+//			if(iActuation.servoRight*RAD_TO_DEG<60 || iActuation.servoRight*RAD_TO_DEG>-60)
+//				c_io_rx24f_move(2, 150+iActuation.servoRight*RAD_TO_DEG);
+//			if(iActuation.servoLeft*RAD_TO_DEG<60 || iActuation.servoLeft*RAD_TO_DEG>-60)
+//				c_io_rx24f_move(1, 130+iActuation.servoLeft*RAD_TO_DEG);
+//		#endif
 
 
 
 
 		/// ESCS
-		#if 0
-			// força para char
-			unsigned char velo_right = (int)(12.256*iActuation.escRightSpeed - 39.441);
-			unsigned char velo_left  = (int)(12.256*iActuation.escLeftSpeed  - 39.441);
+		#if 1
+			// TODO Esse 8.2 É só para testes! TIRAR
+			if ((iActuation.escRightSpeed-8.2f) < 0)
+				iActuation.escRightSpeed = 0;
+			else
+				iActuation.escRightSpeed=iActuation.escRightSpeed-8.2f;
+
+			if ((iActuation.escLeftSpeed-8.2f) < 0)
+				iActuation.escLeftSpeed = 0;
+			else
+				iActuation.escLeftSpeed=iActuation.escLeftSpeed-8.2f;
+
+
+			velo_rightFiltrado = velo_rightFiltrado + b*(iActuation.escRightSpeed-velo_rightFiltrado);
+			velo_leftFiltrado = velo_leftFiltrado + b*(iActuation.escLeftSpeed-velo_leftFiltrado);
+//			velo_rightFiltrado = 10;
+//			velo_leftFiltrado = 10;
+			/* força para char
+			 *  Foram retirados 2 retas, uma para valores baixos (<6) e uma para valores >6. Na verdade pode-se aproximar a curva inteira
+			 *  por um polinomio de maior ordem
+			 */
+			unsigned char velo_right, velo_left;
+			if (velo_rightFiltrado < 6)
+				velo_right = (int)(20.332*velo_rightFiltrado +1.7466);
+			else
+				velo_right = (int)(12.256*velo_rightFiltrado - 39.441);
+
+			if (velo_leftFiltrado < 6)
+				velo_left = (int)(20.332*velo_leftFiltrado +1.7466);
+			else
+				velo_left = (int)(12.256*velo_leftFiltrado - 39.441);
+
 
 			taskENTER_CRITICAL();
 			if(counte>2500)
@@ -192,7 +237,10 @@ void module_io_run()
 			//c_common_utils_floatToString(rpy[PV_IMU_DROLL ]*RAD_TO_DEG, dr, 4);
 			//c_common_utils_floatToString(rpy[PV_IMU_DPITCH]*RAD_TO_DEG, dp, 4);
 			//c_common_utils_floatToString(rpy[PV_IMU_DYAW  ]*RAD_TO_DEG, dy, 4);
-			sprintf(str, "imu -> \t %d \t %d \t %d \t %d \t %d \t %d \t %d \t %d \t %d \n\r" ,(int)(rpy[PV_IMU_ROLL  ]*RAD_TO_DEG), (int)(rpy[PV_IMU_PITCH  ]*RAD_TO_DEG), (int)(rpy[PV_IMU_YAW  ]*RAD_TO_DEG), (int)(rpy[PV_IMU_DROLL  ]*RAD_TO_DEG), (int)(rpy[PV_IMU_DPITCH  ]*RAD_TO_DEG), (int)(rpy[PV_IMU_DYAW  ]*RAD_TO_DEG),(int)(iActuation.servoRight*RAD_TO_DEG), (int)(iActuation.servoLeft*RAD_TO_DEG), counte);
+			sprintf(str, "imu -> \t %d \t %d \t %d \t %d \t %d \t %d \t %d \t %d \t %d \t %d \t %d \n\r" ,(int)(rpy[PV_IMU_ROLL  ]*RAD_TO_DEG),
+					(int)(rpy[PV_IMU_PITCH  ]*RAD_TO_DEG), (int)(rpy[PV_IMU_YAW  ]*RAD_TO_DEG), (int)(rpy[PV_IMU_DROLL  ]*RAD_TO_DEG),
+					(int)(rpy[PV_IMU_DPITCH  ]*RAD_TO_DEG), (int)(rpy[PV_IMU_DYAW  ]*RAD_TO_DEG),(int)(servoLeftFiltrado*RAD_TO_DEG),
+					(int)(servoRightFiltrado*RAD_TO_DEG),(int)velo_left,(int)velo_right,counte);
 			c_common_usart_puts(USART2, str);
 			counte++;
 

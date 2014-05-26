@@ -233,6 +233,13 @@ void c_io_imu_getRaw(float  * accRaw, float * gyrRaw, float * magRaw) {
 
 }
 
+float abs2(float num){
+	if (num < 0)
+		return -num;
+	else
+		return num;
+}
+
 /** \brief Retorna os ângulos RPY através de um filtro complementar simples.
  *
  * Implementa apenas uma fusão simples de dados do Giroscópio e Acelerômetro usando a proposta de um filtro complementar.
@@ -240,12 +247,21 @@ void c_io_imu_getRaw(float  * accRaw, float * gyrRaw, float * magRaw) {
  * \image html complementary_filter_diagram.jpg "Diagrama de blocos simplificado para um filtro complementar." width=4cm
  */
 float last_rpy[]={0,0,0,0,0,0};
-float lastVarEuler[3]={0,0,0};
+float lastVarEuler[3]={0};
+float gyro_filtro[3]={0};
+float lastGyro_raw[3]={0};
+float acce_filtro[3]={0};
+float magn_filtro[3]={0};
+int first=0;
+float yaw_absoluto;
 void c_io_imu_getComplimentaryRPY(float * rpy) {
 	float acce_raw[3], gyro_raw[3], magn_raw[3];
 	float acce_rpy[3];
 	float varEuler[3]; // Taxa de variacao dos angulos de Euler, MatrizEuler*velocidade angular no eixo do corpo
-	float a,b;
+	float a;
+	float pa=0.05;
+	float pb=0.3;
+	float pb2=0.01;
 	float tau=0.075;
 
 	c_io_imu_getRaw(acce_raw, gyro_raw, magn_raw);
@@ -253,54 +269,88 @@ void c_io_imu_getComplimentaryRPY(float * rpy) {
 
   #if 1
 
-	acce_rpy[PV_IMU_ROLL ] = atan2(acce_raw[PV_IMU_Y],acce_raw[PV_IMU_Z]);
-	acce_rpy[PV_IMU_PITCH] = atan2(-acce_raw[PV_IMU_X]*cos(acce_rpy[PV_IMU_ROLL ]),acce_raw[PV_IMU_Z]);
+	// Fazer a filtragem primeiro
+	// gyro - passa alta
+	  gyro_filtro[PV_IMU_ROLL ] = pa*( gyro_filtro[PV_IMU_ROLL ] + gyro_raw[PV_IMU_ROLL ] - lastGyro_raw[PV_IMU_ROLL ] );
+	  gyro_filtro[PV_IMU_PITCH] = pa*( gyro_filtro[PV_IMU_PITCH] + gyro_raw[PV_IMU_PITCH ] - lastGyro_raw[PV_IMU_PITCH ] );
+	  gyro_filtro[PV_IMU_YAW  ] = pa*( gyro_filtro[PV_IMU_YAW  ] + gyro_raw[PV_IMU_YAW ] - lastGyro_raw[PV_IMU_YAW ] );
 
-  float xh = magn_raw[PV_IMU_X]*cos(acce_rpy[PV_IMU_PITCH])+magn_raw[PV_IMU_Y]*sin(acce_rpy[PV_IMU_ROLL ])*sin(acce_rpy[PV_IMU_PITCH])+magn_raw[PV_IMU_Z]*cos(acce_rpy[PV_IMU_ROLL ])*sin(acce_rpy[PV_IMU_PITCH]);
-  float yh = magn_raw[PV_IMU_Y]*cos(acce_rpy[PV_IMU_ROLL ])-magn_raw[PV_IMU_Z]*sin(acce_rpy[PV_IMU_ROLL ]);
-  acce_rpy[PV_IMU_YAW ] = atan2(yh,xh);
+	// acelerometro - passa baixa
+	  acce_filtro[PV_IMU_ROLL ] = acce_filtro[PV_IMU_ROLL ] + pb*(acce_raw[PV_IMU_ROLL ] - acce_filtro[PV_IMU_ROLL ] );
+	  acce_filtro[PV_IMU_PITCH] = acce_filtro[PV_IMU_PITCH ] + pb*(acce_raw[PV_IMU_PITCH ] - acce_filtro[PV_IMU_PITCH ] );
+	  acce_filtro[PV_IMU_YAW  ] = acce_filtro[PV_IMU_YAW ] + pb*(acce_raw[PV_IMU_YAW ] - acce_filtro[PV_IMU_YAW ] );
 
-//  rpy[PV_IMU_ROLL ] = acce_rpy[PV_IMU_ROLL  ];
-//  rpy[PV_IMU_PITCH] = acce_rpy[PV_IMU_PITCH ];
-//  rpy[PV_IMU_YAW  ] = acce_rpy[PV_IMU_YAW   ];
+	// magnetometro - Fiz um passa baixa - CONFERIR SE EH O FILTRO CORRETO
+	  magn_filtro[PV_IMU_ROLL ] = magn_filtro[PV_IMU_ROLL ] + pb2*(magn_raw[PV_IMU_ROLL ] - magn_filtro[PV_IMU_ROLL ] );
+	  magn_filtro[PV_IMU_PITCH] = magn_filtro[PV_IMU_PITCH ] + pb2*(magn_raw[PV_IMU_PITCH ] - magn_filtro[PV_IMU_PITCH ] );
+	  magn_filtro[PV_IMU_YAW  ] = magn_filtro[PV_IMU_YAW ] + pb2*(magn_raw[PV_IMU_YAW ] - magn_filtro[PV_IMU_YAW ] );
+
+
+// Estimacao de ROLL e PITCH a partir do acelerometro
+	acce_rpy[PV_IMU_ROLL ] = atan2(acce_filtro[PV_IMU_Y],acce_filtro[PV_IMU_Z]);
+	acce_rpy[PV_IMU_PITCH] = atan2(-acce_filtro[PV_IMU_X]*cos(acce_rpy[PV_IMU_ROLL ]),acce_filtro[PV_IMU_Z]);
+
+// Estimacao do YAW a partir do magnetometro
+  float xh = magn_filtro[PV_IMU_X]*cos(acce_rpy[PV_IMU_PITCH])+magn_filtro[PV_IMU_Y]*sin(acce_rpy[PV_IMU_ROLL ])*sin(acce_rpy[PV_IMU_PITCH])+magn_filtro[PV_IMU_Z]*cos(acce_rpy[PV_IMU_ROLL ])*sin(acce_rpy[PV_IMU_PITCH]);
+  float yh = magn_filtro[PV_IMU_Y]*cos(acce_rpy[PV_IMU_ROLL ])-magn_filtro[PV_IMU_Z]*sin(acce_rpy[PV_IMU_ROLL ]);
+  acce_rpy[PV_IMU_YAW ] = -atan2(yh,xh);
+
+  if(first==0){
+	 rpy[PV_IMU_ROLL ] = acce_rpy[PV_IMU_ROLL  ];
+	 rpy[PV_IMU_PITCH] = acce_rpy[PV_IMU_PITCH ];
+	 yaw_absoluto=acce_rpy[PV_IMU_YAW   ];
+	 first=1;
+  }
+
+  //if ( abs2(acce_rpy[PV_IMU_YAW  ] - last_rpy[PV_IMU_YAW  ])*RAD_TO_DEG > 4 )
+	  rpy[PV_IMU_YAW  ] = acce_rpy[PV_IMU_YAW   ]-yaw_absoluto;
+  //else
+	//  rpy[PV_IMU_YAW  ] = last_rpy[PV_IMU_YAW  ];
 
   //Filtro complementar
-//  float a = 0.93;
-//  float b = 0.93;
   long  IntegrationTime = c_common_utils_millis();
   //if(lastIntegrationTime==0) lastIntegrationTime=IntegrationTime+1;
   float IntegrationTimeDiff=(float)( ( (float)IntegrationTime- (float)lastIntegrationTime ) /1000.0);
 
   a=tau/(tau+IntegrationTimeDiff);
 
-  rpy[PV_IMU_ROLL  ] =  a*(last_rpy[PV_IMU_ROLL ] + gyro_raw[PV_IMU_ROLL ]*IntegrationTimeDiff) + (1.0f - a)*acce_rpy[PV_IMU_ROLL ];
-  rpy[PV_IMU_PITCH ] =  a*(last_rpy[PV_IMU_PITCH] + gyro_raw[PV_IMU_PITCH]*IntegrationTimeDiff) + (1.0f - a)*acce_rpy[PV_IMU_PITCH];
-  rpy[PV_IMU_YAW   ] =  a*(last_rpy[PV_IMU_YAW  ] + gyro_raw[PV_IMU_YAW  ]*IntegrationTimeDiff) + (1.0f - a)*acce_rpy[PV_IMU_YAW  ];
+  rpy[PV_IMU_ROLL  ] =  a*(last_rpy[PV_IMU_ROLL ] + gyro_filtro[PV_IMU_ROLL ]*IntegrationTimeDiff) + (1.0f - a)*acce_rpy[PV_IMU_ROLL ];
+  rpy[PV_IMU_PITCH ] =  a*(last_rpy[PV_IMU_PITCH] + gyro_filtro[PV_IMU_PITCH]*IntegrationTimeDiff) + (1.0f - a)*acce_rpy[PV_IMU_PITCH];
+  //rpy[PV_IMU_YAW   ] =  (a*(last_rpy[PV_IMU_YAW  ] - gyro_filtro[PV_IMU_YAW  ]*IntegrationTimeDiff) + (1.0f - a)*(-acce_rpy[PV_IMU_YAW  ]));
 
 //  rpy[PV_IMU_ROLL ] = (IntegrationTimeDiff/(a+IntegrationTimeDiff))*last_rpy[PV_IMU_ROLL ] + rpy[PV_IMU_ROLL ]*( 1-IntegrationTimeDiff/(a+IntegrationTimeDiff));
 //  rpy[PV_IMU_PITCH] = (IntegrationTimeDiff/(a+IntegrationTimeDiff))*last_rpy[PV_IMU_PITCH] + rpy[PV_IMU_PITCH]*( 1-IntegrationTimeDiff/(a+IntegrationTimeDiff));
 //  rpy[PV_IMU_YAW  ] = (IntegrationTimeDiff/(a+IntegrationTimeDiff))*last_rpy[PV_IMU_YAW  ] + rpy[PV_IMU_YAW  ]*( 1-IntegrationTimeDiff/(a+IntegrationTimeDiff));
+
+
+  // Calculando a taxa de variacao dos angulos de Euler a partir da medicao dos gyros
+  varEuler[PV_IMU_ROLL ]= gyro_filtro[PV_IMU_ROLL ] + gyro_filtro[PV_IMU_PITCH ]*sin(rpy[PV_IMU_ROLL ])*tan(rpy[PV_IMU_PITCH ]) + gyro_filtro[PV_IMU_YAW ]*cos(rpy[PV_IMU_ROLL ])*tan(rpy[PV_IMU_PITCH ]);
+  varEuler[PV_IMU_PITCH ]= gyro_filtro[PV_IMU_PITCH ]*cos(rpy[PV_IMU_ROLL ]) - gyro_filtro[PV_IMU_YAW ]*sin(rpy[PV_IMU_ROLL ]);
+  varEuler[PV_IMU_YAW ]= gyro_filtro[PV_IMU_PITCH ]*sin(rpy[PV_IMU_ROLL ])/cos(rpy[PV_IMU_PITCH ]) + gyro_filtro[PV_IMU_YAW ]*cos(rpy[PV_IMU_ROLL ])/cos(rpy[PV_IMU_PITCH ]);
+
+//  rpy[PV_IMU_DROLL ] = b*( last_rpy[PV_IMU_DROLL ] + varEuler[PV_IMU_ROLL ] - lastVarEuler[PV_IMU_ROLL ] );
+//  rpy[PV_IMU_DPITCH] = b*( last_rpy[PV_IMU_DPITCH ] + varEuler[PV_IMU_PITCH ] - lastVarEuler[PV_IMU_PITCH ] );
+//  rpy[PV_IMU_DYAW  ] = b*( last_rpy[PV_IMU_DYAW ] + varEuler[PV_IMU_YAW ] - lastVarEuler[PV_IMU_YAW ] );
+  rpy[PV_IMU_DROLL ] = varEuler[PV_IMU_ROLL ];
+  rpy[PV_IMU_DPITCH] = varEuler[PV_IMU_PITCH ];
+  //rpy[PV_IMU_DYAW  ] = varEuler[PV_IMU_YAW ];
+  rpy[PV_IMU_DYAW  ] = 0;
+
+if ( abs2(rpy[PV_IMU_ROLL ]-last_rpy[PV_IMU_ROLL ])*RAD_TO_DEG < 40){
   last_rpy[PV_IMU_ROLL ]  = rpy[PV_IMU_ROLL ];
   last_rpy[PV_IMU_PITCH]  = rpy[PV_IMU_PITCH];
   last_rpy[PV_IMU_YAW  ]  = rpy[PV_IMU_YAW  ];
-
-  // Calculando a taxa de variacao dos angulos de Euler a partir da medicao dos gyros
-  varEuler[PV_IMU_ROLL ]= gyro_raw[PV_IMU_ROLL ] + gyro_raw[PV_IMU_PITCH ]*sin(rpy[PV_IMU_ROLL ])*tan(rpy[PV_IMU_PITCH ]) + gyro_raw[PV_IMU_YAW ]*cos(rpy[PV_IMU_ROLL ])*tan(rpy[PV_IMU_PITCH ]);
-  varEuler[PV_IMU_PITCH ]= gyro_raw[PV_IMU_PITCH ]*cos(rpy[PV_IMU_ROLL ]) - gyro_raw[PV_IMU_YAW ]*sin(rpy[PV_IMU_ROLL ]);
-  varEuler[PV_IMU_YAW ]= gyro_raw[PV_IMU_PITCH ]*sin(rpy[PV_IMU_ROLL ])/cos(rpy[PV_IMU_PITCH ]) + gyro_raw[PV_IMU_YAW ]*cos(rpy[PV_IMU_ROLL ])/cos(rpy[PV_IMU_PITCH ]);
-
-  rpy[PV_IMU_DROLL ] = b*( last_rpy[PV_IMU_DROLL ] + varEuler[PV_IMU_ROLL ] + lastVarEuler[PV_IMU_ROLL ] );
-  rpy[PV_IMU_DPITCH] = b*( last_rpy[PV_IMU_DPITCH ] + varEuler[PV_IMU_PITCH ] + lastVarEuler[PV_IMU_PITCH ] );
-  rpy[PV_IMU_DYAW  ] = b*( last_rpy[PV_IMU_DYAW ] + varEuler[PV_IMU_YAW ] + lastVarEuler[PV_IMU_YAW ] );
-
   last_rpy[PV_IMU_DROLL ] = rpy[PV_IMU_DROLL ];
   last_rpy[PV_IMU_DPITCH] = rpy[PV_IMU_DPITCH];
   last_rpy[PV_IMU_DYAW  ] = rpy[PV_IMU_DYAW  ];
-  lastVarEuler[PV_IMU_ROLL ] = varEuler[PV_IMU_ROLL ];
-  lastVarEuler[PV_IMU_PITCH ] = varEuler[PV_IMU_PITCH ];
-  lastVarEuler[PV_IMU_YAW ] = varEuler[PV_IMU_YAW ];
+//  lastVarEuler[PV_IMU_ROLL ] = varEuler[PV_IMU_ROLL ];
+//  lastVarEuler[PV_IMU_PITCH ] = varEuler[PV_IMU_PITCH ];
+//  lastVarEuler[PV_IMU_YAW ] = varEuler[PV_IMU_YAW ];
 
-
+  lastGyro_raw[PV_IMU_ROLL ] = gyro_raw[PV_IMU_ROLL ];
+  lastGyro_raw[PV_IMU_PITCH ] = gyro_raw[PV_IMU_PITCH ];
+  lastGyro_raw[PV_IMU_YAW ] = gyro_raw[PV_IMU_YAW ];
+}
   /*
   rpy[PV_IMU_DPITCH] = gyro_raw[PV_IMU_PITCH];
   rpy[PV_IMU_DROLL ] = gyro_raw[PV_IMU_ROLL];

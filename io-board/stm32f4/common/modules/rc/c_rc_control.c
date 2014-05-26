@@ -51,7 +51,7 @@
 /* Private define ------------------------------------------------------------*/
 
 // PID controller gains
-#if 0
+#if 1
 	#define KPPHI    100.0f
 	#define KVPHI    20.0f
 	#define KPTHETA  100.0f
@@ -72,7 +72,7 @@
 #endif
 
 // Environment parameters
-#define G    9.81 //gravity
+#define G   9.81 //gravity
 
 // Aircraft parameters
 #define M    1.672   // mass kg
@@ -109,6 +109,7 @@ float32_t altitude_controller_step(float32_t altitude, float32_t altitude_refere
 
 	Zeta3 = -KPZ*(altitude - altitude_reference) - KVZ*(rateOfClimb - rateOfClimb_reference);
 
+//	return (M * G + M * Zeta3) / (cos(attitude.roll) * cos(attitude.pitch));
 	return (M * G + M * Zeta3) / (cos(attitude.roll) * cos(attitude.pitch));
 }
 
