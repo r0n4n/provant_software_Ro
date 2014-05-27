@@ -93,7 +93,7 @@ void module_rc_run() {
       pv_msg_datapr_position position_reference = {0.0f,0.0f,0.0f,0.0f,0.0f,0.0f};
 
       oActuation = RC_controller(iAttitude,attitude_reference,position,position_reference);
-      oActuation.servoRight = -oActuation.servoRight;  
+      oActuation.servoRight = -oActuation.servoRight;
     #endif
     
     /// Receiver debug

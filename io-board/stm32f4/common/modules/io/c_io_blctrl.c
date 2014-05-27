@@ -82,7 +82,7 @@ void c_io_blctrl_init_ppm()
 
   //timer 168Mhz
   TIM_TimeBaseInitStruct.TIM_Prescaler = (SystemCoreClock/1000000); // 100 KHz 
-  TIM_TimeBaseInitStruct.TIM_Period = 19000;   // 0..999, 100 Hz (us)
+  TIM_TimeBaseInitStruct.TIM_Period = 20000;   // 0..999, 100 Hz (us)
   TIM_TimeBaseInitStruct.TIM_ClockDivision = 0;
   TIM_TimeBaseInitStruct.TIM_CounterMode = TIM_CounterMode_Up;
   TIM_TimeBaseInit(TIM10, &TIM_TimeBaseInitStruct);
@@ -121,7 +121,7 @@ void c_io_blctrl_init_ppm()
 
   //timer 84Mhz
   TIM_TimeBaseInitStruct2.TIM_Prescaler = (SystemCoreClock/2000000); // 100 KHz 
-  TIM_TimeBaseInitStruct2.TIM_Period = 19000;   // 0..999, 100 Hz (us)
+  TIM_TimeBaseInitStruct2.TIM_Period = 20000;   // 0..999, 100 Hz (us)
   TIM_TimeBaseInitStruct2.TIM_ClockDivision = 0;
   TIM_TimeBaseInitStruct2.TIM_CounterMode = TIM_CounterMode_Up;
   TIM_TimeBaseInit(TIM14, &TIM_TimeBaseInitStruct2);
@@ -167,13 +167,13 @@ int  c_io_blctrl_setSpeed(uint8_t ID, unsigned char speed)
     {
       if(ID==0)
       {
-        TIM10->CCR1 = 1000 + speed*3.92;
-        TIM10->CCR2 = 1000 - speed*3.92;
+        TIM10->CCR1 = 1160 + speed*3.92;
+        TIM10->CCR2 = 1160 - speed*3.92;
       }
       if(ID==1)
       {
-        TIM14->CCR1 = 1000 + speed*3.92;
-        TIM14->CCR2 = 1000 - speed*3.92;
+        TIM14->CCR1 = 1090 + speed*3.92;
+        TIM14->CCR2 = 1090 - speed*3.92;
       }
       return 1;
     }
