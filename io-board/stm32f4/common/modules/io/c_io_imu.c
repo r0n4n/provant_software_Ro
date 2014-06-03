@@ -254,17 +254,17 @@ float acce_filtro[3]={0};
 float magn_filtro[3]={0};
 int first=0;
 float yaw_absoluto;
-void c_io_imu_getComplimentaryRPY(float * rpy) {
-	float acce_raw[3], gyro_raw[3], magn_raw[3];
+void c_io_imu_getComplimentaryRPY(float * acce_raw,float * gyro_raw,float * magn_raw, float * rpy) {
+//	float acce_raw[3], gyro_raw[3], magn_raw[3];
 	float acce_rpy[3];
 	float varEuler[3]; // Taxa de variacao dos angulos de Euler, MatrizEuler*velocidade angular no eixo do corpo
 	float a;
-	float pa=0.05;
-	float pb=0.3;
-	float pb2=0.01;
+	float pa=0.8;
+	float pb=0.4;
+	float pb2=0.1;
 	float tau=0.075;
 
-	c_io_imu_getRaw(acce_raw, gyro_raw, magn_raw);
+//	c_io_imu_getRaw(acce_raw, gyro_raw, magn_raw);
 
 
   #if 1
@@ -302,10 +302,10 @@ void c_io_imu_getComplimentaryRPY(float * rpy) {
 	 first=1;
   }
 
-  //if ( abs2(acce_rpy[PV_IMU_YAW  ] - last_rpy[PV_IMU_YAW  ])*RAD_TO_DEG > 4 )
-	  rpy[PV_IMU_YAW  ] = acce_rpy[PV_IMU_YAW   ]-yaw_absoluto;
-  //else
-	//  rpy[PV_IMU_YAW  ] = last_rpy[PV_IMU_YAW  ];
+  if ( abs2(acce_rpy[PV_IMU_YAW  ] - last_rpy[PV_IMU_YAW  ])*RAD_TO_DEG > 4 )
+	  rpy[PV_IMU_YAW  ] =0;// acce_rpy[PV_IMU_YAW   ]-yaw_absoluto;
+  else
+	  rpy[PV_IMU_YAW  ] = last_rpy[PV_IMU_YAW  ];
 
   //Filtro complementar
   long  IntegrationTime = c_common_utils_millis();
@@ -333,8 +333,8 @@ void c_io_imu_getComplimentaryRPY(float * rpy) {
 //  rpy[PV_IMU_DYAW  ] = b*( last_rpy[PV_IMU_DYAW ] + varEuler[PV_IMU_YAW ] - lastVarEuler[PV_IMU_YAW ] );
   rpy[PV_IMU_DROLL ] = varEuler[PV_IMU_ROLL ];
   rpy[PV_IMU_DPITCH] = varEuler[PV_IMU_PITCH ];
-  //rpy[PV_IMU_DYAW  ] = varEuler[PV_IMU_YAW ];
-  rpy[PV_IMU_DYAW  ] = 0;
+  rpy[PV_IMU_DYAW  ] = varEuler[PV_IMU_YAW ];
+  //rpy[PV_IMU_DYAW  ] = 0;
 
 if ( abs2(rpy[PV_IMU_ROLL ]-last_rpy[PV_IMU_ROLL ])*RAD_TO_DEG < 40){
   last_rpy[PV_IMU_ROLL ]  = rpy[PV_IMU_ROLL ];
