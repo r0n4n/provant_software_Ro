@@ -20,6 +20,9 @@ TOOLCHAIN_PREFIX = arm-none-eabi-
 THUMB = -mthumb
 MCU   = cortex-m4
 
+#BOARD =-DSTM32F4_H407
+BOARD =-DSTM32F4_DISCOVERY
+
 # path, root and common dir
 PRJDIR := $(shell pwd)
 PATH   := ${PATH}:$(PRJDIR)
@@ -109,6 +112,7 @@ CFLAGS += -Wunused-value -Wunused-variable -Wunused-but-set-variable #-ftime-rep
 # cpp related flags
 CFLAGS += -Og -O0 -ffunction-sections -fdata-sections -fno-exceptions --specs=nano.specs -Wl,--gc-sections 
 CFLAGS += -std=c99 
+CFLAGS += $(BOARD)
 
 ###################################################
 
