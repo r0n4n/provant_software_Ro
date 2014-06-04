@@ -6,4 +6,10 @@
 # Ignore all temp files from editors 
 *~
 
+# Ignore project files from eclipse
+.cproject
+.project
 
+# Ignore eclipse project files
+.cproject
+.project

@@ -1,6 +1,15 @@
 /*! \mainpage Página principal
 
-\image html provant_small.png "proVANT - Birotor v0.1" width=6cm 
+\image html provant_small.png "proVANT - Remote Controlled Flight v0.1" width=6cm 
+
+Este é a documentacão do projeto de software <b>Remote Controlled Flight</b> do \b proVANT.
+O objetivo deste projeto de software é gerar um firmware para a \em io-board do VANT que permita operá-lo com um controle remoto convencional de
+aeromodelismo. Para tal, são necessárias/previstas o seguinte conjunto de finalidades:
+
++ Comunicação com controle remoto convecional de modelismo, com leitura de 6 ou mais canais via interface PPM.
++ Funcionalidade completa dos ESCs e Servo-motores do VANT.
++ Leitura e tratamento simplificado de dados de uma IMU (a ser escolhida).
++ Algoritmo de controle garantindo estabilidade rotacional para o VANT durante o vôo. 
 
 <b>Status da versão 0.1:</b> 
 + Implementado o esqueleto básico da estrutura do projeto (sistema de <b>modules</b> com um <i>main</i> e um <i>common</i>)
@@ -30,7 +39,7 @@ Para pendências internas no código, ver lista de tarefas auto-gerada (\ref tod
 
 
 
-/*! \page page_naming Nomenclaturas e code-style
+/*! \page page_naming Organização, nomenclaturas e code-style
 
 \section page_naming_sec_codeorganization Organização deste projeto
 
@@ -50,8 +59,8 @@ quam nunc putamus parum claram, anteposuerit litterarum formas humanitatis per s
 Todos os componentes são nomeados seguindo o padrão:
 
 \code{.c} 
-	c_<nome_do_modulo>_<nome_do_componente>.c
-	c_<nome_do_modulo>_<nome_do_componente>.h 
+	c_<nome_do_modulo>_<nomeDoComponente>.c
+	c_<nome_do_modulo>_<nomeDoComponente>.h 
 \endcode
 
 Componentes nomeados desta maneira não devem ser incluídos por arquivos fora do módulo respectivo (como se fossem funcões \b private).
@@ -59,9 +68,12 @@ Componentes públicos de cada módulo (que serão efetivamente incluídos por ou
 (como em \b proVANT) no início:
 
 \code{.c} 
-	pv_<nome_do_modulo>_interface.{h,c}
-	pv_module_<nome_do_modulo>.{h,c} 
+	pv_interface_<nomeDoModulo>.{h,c}
+	pv_module_<nomeDoModulo>.{h,c} 
 \endcode 
+
+É desejado que o módulo tenha um nome compacto - de preferência uma única palavra ou sigla (ex.: \b rc, \b io, \b common) - totalmente minúsculo 
+(ou dividida com letras maísculas e minúsculas; \em "nomeDoModulo"). Acentos e caracteres especiais não devem ser usados. 
 
 Todos os arquivos do projeto devem incluir uma descrição formatada do Doxygen no topo, com nome, data de criação do arquivo e breve descrição,
 como segue - exemplo do arquivo \em c_rc_receiver.c :
@@ -80,10 +92,13 @@ como segue - exemplo do arquivo \em c_rc_receiver.c :
   
 \endcode 
 
+A tag \b \@date deve conter a data de criação/inserção do arquivo e não será alterada depois disso. A tag \b \@version é opcional é serve mais para controle local 
+próprio desenvolvedor. 
+
 De maneira equivalente, as funções devem ser adicionadas ao grupo de documentação correto do Doxygen via a tag \b \@addtogroup.
 Isto deve ser feito \b apenas no \em .c, garantindo que todas as funções implementadas apareçam na documentação. 
 Primeramente, as funções devem ser adicionadas ao componente ao qual elas pertencem. A descrição do grupo fica na sua definição de mais alto nível,
-ou seja, a definição do componente fica no próprio \em .c do componente, enquanto que a definição do módulo fica no \em .c do módulo (\b pv_module_{...}.h).
+ou seja, a definição do componente fica no próprio \em .c do componente, enquanto que a definição do módulo fica no \em .c do módulo (\b pv_module_{...\b}.h).
 Em seguida, elas são adicionadas ao módulo equivalente. Novamente, o exemplo abaixo é do arquivo \em c_rc_receiver.c :
 
 \code{.c}
@@ -118,11 +133,26 @@ o mostrado abaixo:
 
 \subsection page_naming_subsec_codenaming Funções, variáveis, etc.
 
+\b Variáveis: critério não estrito, mas recomenda-se o uso do padrão Java - com separações apenas com letras maiúsculas e minúsculas.
+
+\code{.c} 
+	int someVariable; 
+\endcode
+
+\b Funções: seguindo o apresentado acima, devem ser separadas com \em underlines, seguinto o sistema de nomeclatura proposto. 
+
 \code{.c} 
 	c_common_gpio_init(GPIOC, GPIO_Pin_13, GPIO_Mode_OUT); 
 \endcode
+Para funções privadas de componentes específicos, usa-se nomes compactos mas não crípticos, também divididos com \em underlines se necessário for.
+\code{.c} 
+long map(long x, long in_min, long in_max, long out_min, long out_max) {
+	return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
+} 
+\endcode
 
-\section page_naming_sec_naming Doxygen
+\section page_naming_sec_doxygen Doxygen
+ 
  
 */
 

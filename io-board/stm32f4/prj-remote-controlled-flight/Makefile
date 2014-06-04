@@ -11,7 +11,7 @@
 ############################################################################
 
 # project name
-PRJNAME = provant_v_0_1
+PRJNAME = prj-remote-controlled-flight
 
 # toolchain configuration
 TOOLCHAIN_PREFIX = arm-none-eabi-
@@ -36,10 +36,16 @@ MODULES	      = $(MODDIR)/common
 MODULES	     += $(MODDIR)/rc
 MODULES	     += $(MODDIR)/io
 
-# CMSIS directory
+# CMSIS Device Drivers directory
 CMSISDIR     := $(LIBDIR)/cmsis
 CMSISSRCDIR  := $(CMSISDIR)/src
 CMSISINCDIR  := $(CMSISDIR)/inc
+
+# CMSIS DSP directory
+DSPDIR 		:= $(PRJDIR)/../../lib/DSP_Lib
+DSPSRC		:= $(DSPDIR)/Source
+DSPLIB		:= $(DSPDIR)/Lib/GCC
+DSPINC		:= $(DSPSRC)/*
 
 # FreeRTOS directories
 FRTDIR    := $(LIBDIR)/FreeRTOSV7.5.2/FreeRTOS
@@ -51,11 +57,14 @@ FRTPORDIR := $(FRTSRCDIR)/portable/GCC/ARM_CM4F
 # C source files
 
 #modules
-C_SRC += $(PRJDIR)/*.c
+C_SRC += $(PRJDIR)/main.c
 C_SRC += $(COMMON)/system/*.c
 C_SRC += $(MODDIR)/rc/*.c
 C_SRC += $(MODDIR)/io/*.c
+C_SRC += $(MODDIR)/datapr/*.c
 C_SRC += $(MODDIR)/common/*.c
+#dsp
+#C_SRC += $(DSPSRC)/*/*.c
 #freertos
 C_SRC += $(FRTSRCDIR)/list.c 
 C_SRC += $(FRTSRCDIR)/queue.c 
@@ -75,10 +84,10 @@ A_SRC =
 DOXYGEN = doxygen
 
 # include directories
-INCDIRS = $(INCDIR) $(LIBDIR) $(MODULES) $(COMMON)/system 											\
+INCDIRS = $(INCDIR) $(LIBDIR) $(MODULES) $(COMMON)/system 							\
 	  	  $(CMSISDIR) $(CMSISINCDIR) $(CMSISINCDIR)/peripherals $(CMSISINCDIR)/core \
 	  	  $(FRTINCDIR) $(FRTPORDIR)													\
-	  	  $(LIBDIR)/trace/config $(LIBDIR)/trace/inc		 						
+	  	  $(LIBDIR)/trace/config $(LIBDIR)/trace/inc $(DSPINC)		 						
 
 # add startup file to build
 C_SRC += $(CMSISDIR)/startup_stm32f4xx.s	
@@ -90,12 +99,15 @@ OBJDUMP = $(TOOLCHAIN_PREFIX)objdump
 NM      = $(TOOLCHAIN_PREFIX)nm
 
 # compiler flags
-CFLAGS  = -g -O2 -Wall -T$(COMMON)/system/stm32_flash.ld #-ftime-report
+CFLAGS  = -g -Wall -T$(COMMON)/system/stm32_flash.ld 
 CFLAGS += -mlittle-endian -mthumb -mcpu=$(MCU) -mthumb-interwork
 CFLAGS += -mfloat-abi=hard -mfpu=fpv4-sp-d16
-CFLAGS += -I. $(patsubst %,-I%,$(INCDIRS)) 
+CFLAGS += -I. $(patsubst %,-I%,$(INCDIRS))
+CFlAGS += -DARM_MATH_CM4 -DARM_MATH_MATRIX_CHECK -DARM_MATH_ROUNDING -D__FPU_PRESENT="1"  
+# verbose flags, all may be commented out
+CFLAGS += -Wunused-value -Wunused-variable -Wunused-but-set-variable #-ftime-report
 # cpp related flags
-CFLAGS += -Os -ffunction-sections -fdata-sections -fno-exceptions --specs=nano.specs -Wl,--gc-sections 
+CFLAGS += -Og -O0 -ffunction-sections -fdata-sections -fno-exceptions --specs=nano.specs -Wl,--gc-sections 
 CFLAGS += -std=c99 
 
 ###################################################
@@ -111,6 +123,9 @@ OBJS = $(SRCS:.c=.o)
 
 all: directories lib proj
 
+%.o : %.c
+	$(CC) $(CFLAGS) -c -o $@ $^
+
 doc:
 	cd $(PRJDIR)/doc && $(DOXYGEN)
 	cd ..
@@ -124,7 +139,7 @@ lib:
 proj: 	$(PRJNAME).elf
 
 $(PRJNAME).elf: $(C_SRC) 
-	$(CC) $(CFLAGS) $^ -o $(OUTDIR)/$@ -L$(CMSISDIR) -lc -lstm32f4 -lstdc++ -lnosys
+	$(CC) $(CFLAGS) $^ -o $(OUTDIR)/$@ -L$(CMSISDIR) -L$(DSPLIB) -lc -lm -lstm32f4 -lstdc++ -lnosys -larm_cortexM4lf_math
 	$(OBJCOPY) -O ihex $(OUTDIR)/$(PRJNAME).elf $(OUTDIR)/$(PRJNAME).hex
 	$(OBJCOPY) -O binary $(OUTDIR)/$(PRJNAME).elf $(OUTDIR)/$(PRJNAME).bin
 
@@ -133,3 +148,6 @@ clean:
 	rm -f $(OUTDIR)/$(PRJNAME).elf
 	rm -f $(OUTDIR)/$(PRJNAME).hex
 	rm -f $(OUTDIR)/$(PRJNAME).bin
+	
+allclean: clean	
+	$(MAKE) clean -C $(CMSISDIR)
