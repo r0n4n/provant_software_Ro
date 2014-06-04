@@ -90,10 +90,6 @@ void blink_led_task(void *pvParameters)
     while(1)
     {
         c_common_gpio_toggle(LED_builtin);
-        char str[64];
-        sprintf(str, "Distance: \n\r");
-    	c_common_usart_puts(USART3, str);
-    	c_common_usart_puts(USART2, str);
         vTaskDelay(100/portTICK_RATE_MS);
     }
 }
@@ -138,8 +134,6 @@ int main(void)
 	/* Init modules */
 	//module_io_init(); //IO precisa ser inicializado antes de outros.
 	//module_rc_init();
-	c_common_usart2_init(460800);
-	c_common_usart3_init(460800);
 
 	/* Connect modules: interface1.o* = interface2.i* */
 	//pv_interface_io.oAttitude  = pv_interface_rc.iAttitude;

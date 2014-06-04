@@ -24,10 +24,10 @@
 #define __STM32F4xx_CONF_H
 
 #ifdef STM32F4_H407
-  #warning ">>>> STM32F4_H407"
+  //#warning ">>>> STM32F4_H407"
 #endif
 #ifdef STM32F4_DISCOVERY
-  #warning ">>>> STM32F4_DISCOVERY"
+  //#warning ">>>> STM32F4_DISCOVERY"
 #endif
 
 #ifndef STM32F4_H407
