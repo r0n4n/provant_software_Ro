@@ -172,7 +172,7 @@ void module_io_run()
 
 unsigned char velo_right, velo_left;
 		/// ESCS
-		#if 0
+		#if 1
 			// TODO Esse 8.2 É só para testes! TIRAR
 			if ((iActuation.escRightSpeed-7.5f) < 0)
 				iActuation.escRightSpeed = 0.0f;
@@ -187,13 +187,13 @@ unsigned char velo_right, velo_left;
 
 			velo_rightFiltrado = velo_rightFiltrado + alpha_Esc*(iActuation.escRightSpeed-velo_rightFiltrado);
 			velo_leftFiltrado = velo_leftFiltrado + alpha_Esc*(iActuation.escLeftSpeed-velo_leftFiltrado);
-//			velo_rightFiltrado = 10;
-//			velo_leftFiltrado = 10;
+			//velo_rightFiltrado = 10;
+			//velo_leftFiltrado = 10;
 			/* força para char
 			 *  Foram retirados 2 retas, uma para valores baixos (<6) e uma para valores >6. Na verdade pode-se aproximar a curva inteira
 			 *  por um polinomio de maior ordem
 			 */
-
+			/*
 			if (velo_rightFiltrado < 6)
 				velo_right = (int)(20.332*velo_rightFiltrado +1.7466);
 			else
@@ -203,14 +203,14 @@ unsigned char velo_right, velo_left;
 				velo_left = (int)(20.332*velo_leftFiltrado +1.7466);
 			else
 				velo_left = (int)(12.256*velo_leftFiltrado - 39.441);
-
+			*/
 
 			taskENTER_CRITICAL();
 			//if(counte>2500)
 			//{
-				c_io_blctrl_setSpeed(0, velo_right );
+				c_io_blctrl_setSpeed(0, 10 );
 				c_common_utils_delayus(10);
-				c_io_blctrl_setSpeed(1, velo_left );
+				c_io_blctrl_setSpeed(1, 10 );
 			//}
 			//else   //inicializacao do esc
 			//{
