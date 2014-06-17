@@ -9,6 +9,7 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "pv_module_io.h"
+#include "../datapr/c_datapr_MahonyAHRS.h"
 
 /** @addtogroup ProVANT_Modules
   * @{
@@ -30,8 +31,10 @@
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
 portTickType lastWakeTime;
-//int  accRaw[3], gyroRaw[3], magRaw[3];
+//long last_IMU_time=0; /** Último valor do SysTick quando a função de leitura da IMU foi executada - para integracão numérica */
+bool first_pv_io = true; // Primeira iteracao do codigo
 char str[256];
+float attitude_quaternion[4]={1,0,0,0};
 
 /* Inboxes buffers */
 pv_msg_io_actuation    iActuation;
@@ -39,6 +42,7 @@ pv_msg_io_actuation    iActuation;
 /* Outboxes buffers*/
 pv_msg_datapr_attitude oAttitude;
 pv_msg_datapr_position oPosition;
+pv_msg_datapr_sensor_time oSensorTime;
 
 /* Private function prototypes -----------------------------------------------*/
 /* Private functions ---------------------------------------------------------*/
@@ -82,13 +86,6 @@ void module_io_init() {
 	c_io_imu_init(I2C1);   
 	//c_io_blctrl_init(I2C1);
 
-	// TODO Tirar daqui junto com o init
-//	taskENTER_CRITICAL();
-//	c_io_imu_getRaw(accRaw, gyrRaw, magRaw);
-//	taskEXIT_CRITICAL();
-//	c_io_imu_initKalmanFilter(accRaw, gyrRaw, magRaw); // Inicia o filtro de Kalman
-	// END TODO
-
 	//inicializacao dos PPM
 	c_io_blctrl_init_ppm();
 
@@ -98,12 +95,21 @@ void module_io_init() {
 	/* Inicializando outboxes em 0 */
 	pv_interface_io.oAttitude = 0;
 	pv_interface_io.oPosition = 0;
+	pv_interface_io.oSensorTime = 0;
 
 	/* Verificação de criação correta das filas */
 	if(pv_interface_io.iActuation == 0) {
 		vTraceConsoleMessage("Could not create queue in pv_interface_io!");
 		while(1);
 	}
+}
+
+/** \brief Caso detecte overflow dos ticks do sistema, soma 25565 TODO rever valor */
+long verifyOverflow(deltaT){
+	if (deltaT < 0)
+		deltaT = deltaT + 25565; //Valor que dá overflow - REVER valor
+
+	return deltaT;
 }
 
 /** \brief Função principal do módulo de IO.
@@ -113,111 +119,104 @@ void module_io_init() {
   * Loop que amostra sensores e escreve nos atuadores como necessário.
   *
   */
-/// SERVOS
-		float servoRightFiltrado=0;
-		float servoLeftFiltrado=0;
-		float alpha_servo=0.07;
-		float alpha_Esc=0.95;
-		float velo_rightFiltrado=0;
-		float velo_leftFiltrado=0;
 void module_io_run() 
 {
 	float accRaw[3], gyrRaw[3], magRaw[3];
 	char  ax[16], ay[16], az[16], r[16], p[16], y[16], dr[16], dp[16], dy[16];
 	float rpy[] = {0,0,0,0,0,0};
-	int counte=0;
-	float cond;
+	float velAngular[3]={0,0,0};
+	int iterations=0;
+
 
 	while(1)
 	{
 		lastWakeTime = xTaskGetTickCount();
 
 		xQueueReceive(pv_interface_io.iActuation, &iActuation, 0);
-
-    	/*
-    	TIM11->CCR1 = 512; 
-    	TIM11->CCR2 = 1024 - velo_left*4; 
-    	*/
 		
 		/// IMU DATA
 		#if 1
 		 	taskENTER_CRITICAL();
 		 	c_io_imu_getRaw(accRaw, gyrRaw, magRaw);
-//			c_io_imu_getComplimentaryRPY(rpy);
-		 	//c_io_imu_serialPrintData();
 			taskEXIT_CRITICAL();
-			//c_io_imu_getKalmanFilterRPY(rpy, accRaw, gyrRaw, magRaw);
-			c_io_imu_getComplimentaryRPY(accRaw, gyrRaw, magRaw, rpy);
+
+//			system_time = c_common_utils_millis();
+//			if (first_pv_io){
+//				sample_time=0;
+//				first_pv_io=false;
+//			}
+//			else
+//				sample_time=(float)( verifyOverflow(system_time - last_IMU_time) ) /1000;
+//
+//			last_IMU_time = system_time;
+			c_datapr_MahonyAHRSupdate(attitude_quaternion, velAngular, gyrRaw[0],gyrRaw[1],gyrRaw[2],accRaw[0],accRaw[1],accRaw[2],magRaw[0],magRaw[1],magRaw[2]);
+//			c_datapr_MahonyAHRSupdate(attitude_quaternion,gyrRaw[0],gyrRaw[1],gyrRaw[2],accRaw[0],accRaw[1],accRaw[2],0,0,0);
+			c_io_imu_Quaternion2Euler(attitude_quaternion, rpy);
+			c_io_imu_EulerMatrix(rpy, velAngular);
 		#endif
 
 		/// SERVOS
-		#if 0
-			// filtro de referencia
-			servoRightFiltrado = servoRightFiltrado + alpha_servo*(iActuation.servoRight-servoRightFiltrado);
-			servoLeftFiltrado = servoLeftFiltrado + alpha_servo*(iActuation.servoLeft-servoLeftFiltrado);
-
-			if(servoRightFiltrado*RAD_TO_DEG<60 || servoRightFiltrado*RAD_TO_DEG>-60)
-				c_io_rx24f_move(2, 150+servoRightFiltrado*RAD_TO_DEG);
-			if(servoLeftFiltrado*RAD_TO_DEG<60 || servoLeftFiltrado*RAD_TO_DEG>-60)
-				c_io_rx24f_move(1, 130+servoLeftFiltrado*RAD_TO_DEG);
+		#if 1
+			if( (iActuation.servoRight*RAD_TO_DEG<70) && (iActuation.servoRight*RAD_TO_DEG>-70) )
+				c_io_rx24f_move(2, 150+iActuation.servoRight*RAD_TO_DEG);
+			if( (iActuation.servoLeft*RAD_TO_DEG<70) && (iActuation.servoLeft*RAD_TO_DEG>-70) )
+				c_io_rx24f_move(1, 130+iActuation.servoLeft*RAD_TO_DEG);
 		#endif
-//		#if 0
-//			if(iActuation.servoRight*RAD_TO_DEG<60 || iActuation.servoRight*RAD_TO_DEG>-60)
-//				c_io_rx24f_move(2, 150+iActuation.servoRight*RAD_TO_DEG);
-//			if(iActuation.servoLeft*RAD_TO_DEG<60 || iActuation.servoLeft*RAD_TO_DEG>-60)
-//				c_io_rx24f_move(1, 130+iActuation.servoLeft*RAD_TO_DEG);
-//		#endif
-
 
 
 unsigned char velo_right, velo_left;
 		/// ESCS
-		#if 0
-			// TODO Esse 8.2 É só para testes! TIRAR
-			if ((iActuation.escRightSpeed-7.5f) < 0)
-				iActuation.escRightSpeed = 0.0f;
-			else
-				iActuation.escRightSpeed=iActuation.escRightSpeed-7.5f;
+		#if 1
+			// TODO ISTO É só para testes! TIRAR
+//			if ((iActuation.escRightSpeed-6.0f) < 0)
+//				iActuation.escRightSpeed = 0.0f;
+//			else
+//				iActuation.escRightSpeed=iActuation.escRightSpeed-6.0f;
+//
+//			if ((iActuation.escLeftSpeed-6.0f) < 0)
+//				iActuation.escLeftSpeed = 0.0f;
+//			else
+//				iActuation.escLeftSpeed=iActuation.escLeftSpeed-6.0f;
 
-			if ((iActuation.escLeftSpeed-7.5f) < 0)
-				iActuation.escLeftSpeed = 0.0f;
-			else
-				iActuation.escLeftSpeed=iActuation.escLeftSpeed-7.5f;
-
-
-			velo_rightFiltrado = velo_rightFiltrado + alpha_Esc*(iActuation.escRightSpeed-velo_rightFiltrado);
-			velo_leftFiltrado = velo_leftFiltrado + alpha_Esc*(iActuation.escLeftSpeed-velo_leftFiltrado);
-//			velo_rightFiltrado = 10;
-//			velo_leftFiltrado = 10;
 			/* força para char
 			 *  Foram retirados 2 retas, uma para valores baixos (<6) e uma para valores >6. Na verdade pode-se aproximar a curva inteira
 			 *  por um polinomio de maior ordem
 			 */
 
-			if (velo_rightFiltrado < 6)
-				velo_right = (int)(20.332*velo_rightFiltrado +1.7466);
-			else
-				velo_right = (int)(12.256*velo_rightFiltrado - 39.441);
+//			if (iActuation.escRightSpeed < 6)
+				velo_right = (int)(20.332*iActuation.escRightSpeed +1.7466);
+//			else
+//				velo_right = (int)(12.256*iActuation.escRightSpeed - 39.441);
 
-			if (velo_leftFiltrado < 6)
-				velo_left = (int)(20.332*velo_leftFiltrado +1.7466);
-			else
-				velo_left = (int)(12.256*velo_leftFiltrado - 39.441);
+//			if (iActuation.escLeftSpeed < 6)
+				velo_left = (int)(20.332*iActuation.escLeftSpeed +1.7466);
+//			else
+//				velo_left = (int)(12.256*iActuation.escLeftSpeed - 39.441);
 
 
+//			if (velo_right > 30)
+//				velo_right = 30;
+//
+//			if (velo_left > 30)
+//				velo_left = 30;
 			taskENTER_CRITICAL();
-			//if(counte>2500)
-			//{
-				c_io_blctrl_setSpeed(0, velo_right );
+//			c_io_blctrl_setSpeed(0, velo_right );
+//			c_common_utils_delayus(10);
+//			c_io_blctrl_setSpeed(1, velo_left );
+
+			// 100 iteracoes com a thread periodica de 10ms = 1segundo
+			if (iterations < 200){
+				c_io_blctrl_setSpeed(0, 10 );
 				c_common_utils_delayus(10);
-				c_io_blctrl_setSpeed(1, velo_left );
-			//}
-			//else   //inicializacao do esc
-			//{
-			//	c_io_blctrl_setSpeed(0, (char)(counte/10));
-			//	c_common_utils_delayus(10);
-			//	c_io_blctrl_setSpeed(1, (char)(counte/10));
-	    	//}
+				c_io_blctrl_setSpeed(1, 10 );
+
+//				first_pv_io = false;
+			}
+			else{
+				c_io_blctrl_setSpeed(1, velo_right );
+				c_common_utils_delayus(10);
+				c_io_blctrl_setSpeed(0, velo_left );
+			}
 			taskEXIT_CRITICAL();
 		#endif
 		
@@ -228,26 +227,15 @@ unsigned char velo_right, velo_left;
 	    	c_common_usart_puts(USART2, str);
     	#endif
 
-
 		/// DEBUG
 		#if 1
-			//c_common_utils_floatToString(rpy[PV_IMU_ROLL  ]*RAD_TO_DEG, r,  4);
-			//c_common_utils_floatToString(rpy[PV_IMU_PITCH ]*RAD_TO_DEG, p,  4);
-			//c_common_utils_floatToString(rpy[PV_IMU_YAW   ]*RAD_TO_DEG, y,  4);
-			//c_common_utils_floatToString(rpy[PV_IMU_DROLL ]*RAD_TO_DEG, dr, 4);
-			//c_common_utils_floatToString(rpy[PV_IMU_DPITCH]*RAD_TO_DEG, dp, 4);
-			//c_common_utils_floatToString(rpy[PV_IMU_DYAW  ]*RAD_TO_DEG, dy, 4);
+//	    	running_time = running_time + sample_time;
 			sprintf(str, "imu -> \t %d \t %d \t %d \t %d \t %d \t %d \t %d \t %d \t %d \t %d \t %d \t %d \n\r" ,(int)(rpy[PV_IMU_ROLL  ]*RAD_TO_DEG),
 					(int)(rpy[PV_IMU_PITCH  ]*RAD_TO_DEG), (int)(rpy[PV_IMU_YAW  ]*RAD_TO_DEG), (int)(rpy[PV_IMU_DROLL  ]*RAD_TO_DEG),
-					(int)(rpy[PV_IMU_DPITCH  ]*RAD_TO_DEG), (int)(rpy[PV_IMU_DYAW  ]*RAD_TO_DEG),(int)(servoLeftFiltrado*RAD_TO_DEG),
-					(int)(servoRightFiltrado*RAD_TO_DEG),(int)velo_left,(int)velo_right,(int)(velo_leftFiltrado*100),(int)(velo_rightFiltrado*100));
+					(int)(rpy[PV_IMU_DPITCH  ]*RAD_TO_DEG), (int)(rpy[PV_IMU_DYAW  ]*RAD_TO_DEG),(int)(iActuation.servoLeft*RAD_TO_DEG*10),
+					(int)(iActuation.servoRight*RAD_TO_DEG*10),(int)(iActuation.escLeftSpeed*10),(int)(iActuation.escRightSpeed*10),
+					(int)velo_right, (int)velo_left);
 			c_common_usart_puts(USART2, str);
-			counte++;
-
-	    	//cond=(rpy[0]*rpy[0])+(rpy[1]*rpy[1])+(rpy[2]*rpy[2])+(rpy[3]*rpy[3]);
-//	    	sprintf(str, "test -> \t %d \t %d \t %d \t %d \t %d \t %d \n\r" ,(int)(rpy[0]),(int)(rpy[1]),(int)(rpy[2]),(int)(rpy[3]*1000),(int)(rpy[4]),(int)(rpy[5]));
-	    	//sprintf(str, "test -> \n\r");
-//	    	c_common_usart_puts(USART2, str);
 
 		#endif
 
@@ -258,10 +246,18 @@ unsigned char velo_right, velo_left;
 		oAttitude.dotRoll  = rpy[PV_IMU_DROLL ];
 		oAttitude.dotPitch = rpy[PV_IMU_DPITCH];
 		oAttitude.dotYaw   = rpy[PV_IMU_DYAW  ];
-		if(pv_interface_io.oAttitude != 0)
-      		xQueueOverwrite(pv_interface_io.oAttitude, &oAttitude);
+//		oAttitude={0,0,0,0,0,0};
+//		oSensorTime.IMU_sample_time = sample_time;
+		oSensorTime.IMU_sample_time = 0.010f;
 
-		//vTaskDelayUntil( &lastWakeTime, (MODULE_PERIOD / portTICK_RATE_MS));
+		iterations++;
+
+		if(pv_interface_io.oAttitude != 0){
+      		xQueueOverwrite(pv_interface_io.oAttitude, &oAttitude);
+      		xQueueOverwrite(pv_interface_io.oSensorTime, &oSensorTime);
+		}
+
+		vTaskDelayUntil( &lastWakeTime, (MODULE_PERIOD / portTICK_RATE_MS));
 	}
 }
 /* IRQ handlers ------------------------------------------------------------- */
