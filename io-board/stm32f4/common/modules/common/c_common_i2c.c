@@ -97,7 +97,6 @@ void c_common_i2c_init(I2C_TypeDef* I2Cx){
 
   if(I2Cx==I2C1)
   {
-    #ifdef STM32F4_H407
         GPIO_InitTypeDef GPIO_InitStruct;
         I2C_InitTypeDef I2C_InitStruct;
 
@@ -134,9 +133,7 @@ void c_common_i2c_init(I2C_TypeDef* I2Cx){
 
         // enable I2C1
         I2C_Cmd(I2C1, ENABLE);
-    #endif
   }
-  else
   if(I2Cx==I2C2)
   {
     #ifdef STM32F4_H407
@@ -179,7 +176,6 @@ void c_common_i2c_init(I2C_TypeDef* I2Cx){
         I2C_Cmd(I2C2, ENABLE);
     #endif
   }
-  else
   if(I2Cx==I2C3)
   {
     #ifdef STM32F4_DISCOVERY
@@ -203,20 +199,21 @@ void c_common_i2c_init(I2C_TypeDef* I2Cx){
         GPIO_InitStruct.GPIO_Speed = GPIO_Speed_50MHz;
         GPIO_InitStruct.GPIO_OType = GPIO_OType_OD; // set output to open drain --> the line has to be only pulled low, not driven high
         GPIO_InitStruct.GPIO_PuPd = GPIO_PuPd_UP;   // enable pull up resistors
-        GPIO_Init(GPIOF, &GPIO_InitStruct);         // init GPIOF
+        GPIO_Init(GPIOA, &GPIO_InitStruct);         // init GPIOA
+        GPIO_Init(GPIOC, &GPIO_InitStruct);         // init GPIOC
 
         // Connect I2C3 pins to AF
         GPIO_PinAFConfig(GPIOA, GPIO_PinSource8, GPIO_AF_I2C3); // SCL
         GPIO_PinAFConfig(GPIOC, GPIO_PinSource9, GPIO_AF_I2C3); // SDA
 
         // configure I2C3
-        I2C_InitStruct.I2C_ClockSpeed = 100000; // 100kHz
-        I2C_InitStruct.I2C_Mode = I2C_Mode_I2C; // I2C mode
-        I2C_InitStruct.I2C_DutyCycle = I2C_DutyCycle_2; // 50% duty cycle --> standard
-        I2C_InitStruct.I2C_OwnAddress1 = 0x00;      // own address, not relevant in master mode
-        I2C_InitStruct.I2C_Ack = I2C_Ack_Disable;     // disable acknowledge when reading (can be changed later on)
+        I2C_InitStruct.I2C_ClockSpeed = 100000;           // 100kHz
+        I2C_InitStruct.I2C_Mode = I2C_Mode_I2C;           // I2C mode
+        I2C_InitStruct.I2C_DutyCycle = I2C_DutyCycle_2;   // 50% duty cycle --> standard
+        I2C_InitStruct.I2C_OwnAddress1 = 0x00;            // own address, not relevant in master mode
+        I2C_InitStruct.I2C_Ack = I2C_Ack_Disable;         // disable acknowledge when reading (can be changed later on)
         I2C_InitStruct.I2C_AcknowledgedAddress = I2C_AcknowledgedAddress_7bit; // set address length to 7 bit addresses
-        I2C_Init(I2C3, &I2C_InitStruct);      // init I2C3
+        I2C_Init(I2C3, &I2C_InitStruct);                  // init I2C3
 
         // enable I2C3
         I2C_Cmd(I2C3, ENABLE);

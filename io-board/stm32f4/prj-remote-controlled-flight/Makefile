@@ -20,8 +20,8 @@ TOOLCHAIN_PREFIX = arm-none-eabi-
 THUMB = -mthumb
 MCU   = cortex-m4
 
-BOARD =-DSTM32F4_H407
-#BOARD =-DSTM32F4_DISCOVERY
+#BOARD =-DSTM32F4_H407
+BOARD =-DSTM32F4_DISCOVERY
 
 # path, root and common dir
 PRJDIR := $(shell pwd)

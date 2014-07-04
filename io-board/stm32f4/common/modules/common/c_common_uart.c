@@ -120,46 +120,91 @@ void c_common_usart6_init(int baudrate) {
   * @param  baudrate a ser inicializado.
   * @retval None
   */
-void c_common_usart3_init(int baudrate) {
-	GPIO_InitTypeDef GPIO_InitStructure;
-	USART_InitTypeDef USART_InitStructure;
-	NVIC_InitTypeDef NVIC_InitStructure;
+void c_common_usart3_init(int baudrate)
+{
+	#ifdef STM32F4_H407
+		GPIO_InitTypeDef GPIO_InitStructure;
+		USART_InitTypeDef USART_InitStructure;
+		NVIC_InitTypeDef NVIC_InitStructure;
 
-	/* enable peripheral clock for USART3 */
-	RCC_APB1PeriphClockCmd(RCC_APB1Periph_USART3, ENABLE);
+		/* enable peripheral clock for USART3 */
+		RCC_APB1PeriphClockCmd(RCC_APB1Periph_USART3, ENABLE);
 
-	/* GPIOB clock enable */
-	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOB, ENABLE);
+		/* GPIOB clock enable */
+		RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOB, ENABLE);
 
-	/* GPIOB Configuration:  USART3 TX on 10, RX on 11 */
-	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_10 | GPIO_Pin_11;
-	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;
-	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-	GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
-	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP ;
-	GPIO_Init(GPIOB, &GPIO_InitStructure);
+		/* GPIOB Configuration:  USART3 TX on 10, RX on 11 */
+		GPIO_InitStructure.GPIO_Pin = GPIO_Pin_10 | GPIO_Pin_11;
+		GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;
+		GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+		GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
+		GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP ;
+		GPIO_Init(GPIOB, &GPIO_InitStructure);
 
-	/* Connect USART3 pins to AF*/
-	GPIO_PinAFConfig(GPIOB, GPIO_PinSource10, GPIO_AF_USART3);
-	GPIO_PinAFConfig(GPIOB, GPIO_PinSource11, GPIO_AF_USART3);
+		/* Connect USART3 pins to AF*/
+		GPIO_PinAFConfig(GPIOB, GPIO_PinSource10, GPIO_AF_USART3);
+		GPIO_PinAFConfig(GPIOB, GPIO_PinSource11, GPIO_AF_USART3);
 
-	USART_InitStructure.USART_BaudRate = baudrate;
-	USART_InitStructure.USART_WordLength = USART_WordLength_8b;
-	USART_InitStructure.USART_StopBits = USART_StopBits_1;
-	USART_InitStructure.USART_Parity = USART_Parity_No;
-	USART_InitStructure.USART_HardwareFlowControl = USART_HardwareFlowControl_None;
-	USART_InitStructure.USART_Mode = USART_Mode_Tx | USART_Mode_Rx;
-	USART_Init(USART3, &USART_InitStructure);
+		USART_InitStructure.USART_BaudRate = baudrate;
+		USART_InitStructure.USART_WordLength = USART_WordLength_8b;
+		USART_InitStructure.USART_StopBits = USART_StopBits_1;
+		USART_InitStructure.USART_Parity = USART_Parity_No;
+		USART_InitStructure.USART_HardwareFlowControl = USART_HardwareFlowControl_None;
+		USART_InitStructure.USART_Mode = USART_Mode_Tx | USART_Mode_Rx;
+		USART_Init(USART3, &USART_InitStructure);
 
-	USART_ITConfig(USART3, USART_IT_RXNE, ENABLE);           // enable the USART3 receive interrupt
+		USART_ITConfig(USART3, USART_IT_RXNE, ENABLE);           // enable the USART3 receive interrupt
 
-	NVIC_InitStructure.NVIC_IRQChannel = USART3_IRQn;		 // we want to configure the USART3 interrupts
-	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 1;// this sets the priority group of the USART3 interrupts
-	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 1;		 // this sets the subpriority inside the group
-	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;			 // the USART3 interrupts are globally enabled
-	NVIC_Init(&NVIC_InitStructure);							 // the properties are passed to the NVIC_Init function which takes care of the low level stuff
+		NVIC_InitStructure.NVIC_IRQChannel = USART3_IRQn;		 // we want to configure the USART3 interrupts
+		NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 1;// this sets the priority group of the USART3 interrupts
+		NVIC_InitStructure.NVIC_IRQChannelSubPriority = 1;		 // this sets the subpriority inside the group
+		NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;			 // the USART3 interrupts are globally enabled
+		NVIC_Init(&NVIC_InitStructure);							 // the properties are passed to the NVIC_Init function which takes care of the low level stuff
 
-	USART_Cmd(USART3, ENABLE); // enable USART2
+		USART_Cmd(USART3, ENABLE); // enable USART3
+
+	#elif STM32F4_DISCOVERY
+
+		GPIO_InitTypeDef GPIO_InitStructure;
+		USART_InitTypeDef USART_InitStructure;
+		NVIC_InitTypeDef NVIC_InitStructure;
+
+		/* enable peripheral clock for USART3 */
+		RCC_APB1PeriphClockCmd(RCC_APB1Periph_USART3, ENABLE);
+
+		/* GPIOB clock enable */
+		RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOC, ENABLE);
+
+		/* GPIOB Configuration:  USART3 TX on 10, RX on 11 */
+		GPIO_InitStructure.GPIO_Pin = GPIO_Pin_10 | GPIO_Pin_11;
+		GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;
+		GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+		GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
+		GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP ;
+		GPIO_Init(GPIOC, &GPIO_InitStructure);
+
+		/* Connect USART3 pins to AF*/
+		GPIO_PinAFConfig(GPIOC, GPIO_PinSource10, GPIO_AF_USART3);
+		GPIO_PinAFConfig(GPIOC, GPIO_PinSource11, GPIO_AF_USART3);
+
+		USART_InitStructure.USART_BaudRate = baudrate;
+		USART_InitStructure.USART_WordLength = USART_WordLength_8b;
+		USART_InitStructure.USART_StopBits = USART_StopBits_1;
+		USART_InitStructure.USART_Parity = USART_Parity_No;
+		USART_InitStructure.USART_HardwareFlowControl = USART_HardwareFlowControl_None;
+		USART_InitStructure.USART_Mode = USART_Mode_Tx | USART_Mode_Rx;
+		USART_Init(USART3, &USART_InitStructure);
+
+		USART_ITConfig(USART3, USART_IT_RXNE, ENABLE);           // enable the USART3 receive interrupt
+
+		NVIC_InitStructure.NVIC_IRQChannel = USART3_IRQn;		 // we want to configure the USART3 interrupts
+		NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 1;// this sets the priority group of the USART3 interrupts
+		NVIC_InitStructure.NVIC_IRQChannelSubPriority = 1;		 // this sets the subpriority inside the group
+		NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;			 // the USART3 interrupts are globally enabled
+		NVIC_Init(&NVIC_InitStructure);							 // the properties are passed to the NVIC_Init function which takes care of the low level stuff
+
+		USART_Cmd(USART3, ENABLE); // enable USART3
+	#endif
 }
 
 
@@ -221,7 +266,8 @@ void c_common_usart2_init(int baudrate) {
   * @param  baudrate a ser inicializado.
   * @retval None
   */
-void c_common_usart1_init(int baudrate) {
+void c_common_usart1_init(int baudrate)
+{
 	GPIO_InitTypeDef GPIO_InitStructure;
 	USART_InitTypeDef USART_InitStructure;
 	NVIC_InitTypeDef NVIC_InitStructure;
@@ -240,10 +286,10 @@ void c_common_usart1_init(int baudrate) {
 	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP ;
 	GPIO_Init(GPIOB, &GPIO_InitStructure);
 
-	/* Connect USART1 pins to AF1 */
-	// TX = PA2
-	GPIO_PinAFConfig(GPIOA, GPIO_PinSource2, GPIO_AF_USART1);
-	GPIO_PinAFConfig(GPIOA, GPIO_PinSource3, GPIO_AF_USART1);
+	/* Connect USARTB pins to PB */
+	// TX = PB6
+	GPIO_PinAFConfig(GPIOB, GPIO_PinSource6, GPIO_AF_USART1);
+	GPIO_PinAFConfig(GPIOB, GPIO_PinSource7, GPIO_AF_USART1);
 
 	USART_InitStructure.USART_BaudRate = baudrate;
 	USART_InitStructure.USART_WordLength = USART_WordLength_8b;
@@ -253,12 +299,12 @@ void c_common_usart1_init(int baudrate) {
 	USART_InitStructure.USART_Mode = USART_Mode_Tx | USART_Mode_Rx;
 	USART_Init(USART1, &USART_InitStructure);
 	
-	USART_ITConfig(USART1, USART_IT_RXNE, ENABLE); // enable the USART1 receive interrupt
+	USART_ITConfig(USART1, USART_IT_RXNE, DISABLE); // enable the USART1 receive interrupt
 
 	NVIC_InitStructure.NVIC_IRQChannel = USART1_IRQn;		 // we want to configure the USART1 interrupts
 	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 1;// this sets the priority group of the USART1 interrupts
 	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 1;		 // this sets the subpriority inside the group
-	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;			 // the USART1 interrupts are globally enabled
+	NVIC_InitStructure.NVIC_IRQChannelCmd = DISABLE;			 // the USART1 interrupts are globally enabled
 	NVIC_Init(&NVIC_InitStructure);							 // the properties are passed to the NVIC_Init function which takes care of the low level stuff
 	
 	USART_Cmd(USART1, ENABLE); // enable USART1

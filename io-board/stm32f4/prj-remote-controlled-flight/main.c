@@ -57,10 +57,20 @@
 
 /* Private typedef -----------------------------------------------------------*/
 GPIOPin LED_builtin;
+GPIOPin LED_builtin2;
 
 /* Private define ------------------------------------------------------------*/
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
+#ifdef STM32F4_H407
+bool BOARD_DISCOVERY=0;
+bool BOARD_H407=1;
+#endif
+
+#ifdef STM32F4_DISCOVERY
+bool BOARD_DISCOVERY=1;
+bool BOARD_H407=0;
+#endif
 /* Private function prototypes -----------------------------------------------*/
 void vApplicationTickHook() {};
 void vApplicationIdleHook() {};
@@ -85,12 +95,20 @@ void FPU_init(){
 // `I'm alive` kind of task
 void blink_led_task(void *pvParameters)
 {
-	LED_builtin = c_common_gpio_init(GPIOC, GPIO_Pin_13, GPIO_Mode_OUT);
-
+  if(BOARD_H407)
+	 LED_builtin = c_common_gpio_init(GPIOC, GPIO_Pin_13, GPIO_Mode_OUT);
+  else
+  {
+    LED_builtin = c_common_gpio_init(GPIOA, GPIO_Pin_7, GPIO_Mode_OUT);
+    LED_builtin2 = c_common_gpio_init(GPIOB, GPIO_Pin_1, GPIO_Mode_OUT);
+    c_common_gpio_toggle(LED_builtin2);
+  }
     while(1)
     {
-        c_common_gpio_toggle(LED_builtin);
-        vTaskDelay(100/portTICK_RATE_MS);
+      if(BOARD_DISCOVERY)
+        c_common_gpio_toggle(LED_builtin2);
+      c_common_gpio_toggle(LED_builtin);
+      vTaskDelay(100/portTICK_RATE_MS);
     }
 }
 
@@ -143,8 +161,8 @@ int main(void)
 
 	/* create tasks */
 	xTaskCreate(blink_led_task, (signed char *)"Blink led", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+1, NULL);
-	xTaskCreate(module_rc_task, (signed char *)"module_rc", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+1, NULL);
-	xTaskCreate(module_io_task, (signed char *)"module_io", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+1, NULL);
+	xTaskCreate(module_rc_task, (signed char *)"module_rc", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+2, NULL);
+	xTaskCreate(module_io_task, (signed char *)"module_io", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+3, NULL);
 
 	//xTaskCreate(sonar_task, (signed char *)"Sonar task", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+1, NULL);
 

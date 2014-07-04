@@ -32,6 +32,10 @@
 portTickType lastWakeTime;
 //int  accRaw[3], gyroRaw[3], magRaw[3];
 char str[256];
+int setpoint=40;
+int setpoint2=100;
+
+GPIOPin LED_builtin_io;
 
 /* Inboxes buffers */
 pv_msg_io_actuation    iActuation;
@@ -55,8 +59,12 @@ void module_io_init() {
 //	float accRaw[3], gyrRaw[3], magRaw[3]; // TODO Tirar daqui junto com o init
 
 	/* Inicialização do hardware do módulo */
-	c_common_i2c_init(I2C1); //imu 
-	//c_common_i2c_init(I2C2); //esc
+	//c_common_i2c_init(I2C3); //imu 
+
+	LED_builtin_io = c_common_gpio_init(GPIOD, GPIO_Pin_13, GPIO_Mode_OUT);
+
+	c_common_i2c_init(I2C3); //imu
+	c_common_i2c_init(I2C1); //esc
 
 	c_common_usart2_init(460800);
 
@@ -80,7 +88,7 @@ void module_io_init() {
 	c_common_utils_delayms(100);
 
 	c_io_imu_init(I2C1);   
-	//c_io_blctrl_init(I2C1);
+	c_io_blctrl_init_i2c(I2C3);
 
 	// TODO Tirar daqui junto com o init
 //	taskENTER_CRITICAL();
@@ -90,7 +98,7 @@ void module_io_init() {
 	// END TODO
 
 	//inicializacao dos PPM
-	c_io_blctrl_init_ppm();
+	//c_io_blctrl_init_ppm();
 
 	/* Inicialização das filas do módulo. Apenas inboxes (i*!) são criadas! */
 	pv_interface_io.iActuation = xQueueCreate(1, sizeof(pv_msg_io_actuation));
@@ -133,33 +141,29 @@ void module_io_run()
 		lastWakeTime = xTaskGetTickCount();
 
 		xQueueReceive(pv_interface_io.iActuation, &iActuation, 0);
-
-    	/*
-    	TIM11->CCR1 = 512; 
-    	TIM11->CCR2 = 1024 - velo_left*4; 
-    	*/
+		c_common_gpio_toggle(LED_builtin_io);
 		
 		/// IMU DATA
 		#if 1
 		 	taskENTER_CRITICAL();
 		 	c_io_imu_getRaw(accRaw, gyrRaw, magRaw);
-//			c_io_imu_getComplimentaryRPY(rpy);
+			//c_io_imu_getComplimentaryRPY(rpy);
 		 	//c_io_imu_serialPrintData();
 			taskEXIT_CRITICAL();
 			//c_io_imu_getKalmanFilterRPY(rpy, accRaw, gyrRaw, magRaw);
 			c_io_imu_getComplimentaryRPY(accRaw, gyrRaw, magRaw, rpy);
 		#endif
-
+		//c_io_imu_getComplimentaryRPY(accRaw, gyrRaw, magRaw, rpy);
 		/// SERVOS
-		#if 0
+		#if 1
 			// filtro de referencia
 			servoRightFiltrado = servoRightFiltrado + alpha_servo*(iActuation.servoRight-servoRightFiltrado);
 			servoLeftFiltrado = servoLeftFiltrado + alpha_servo*(iActuation.servoLeft-servoLeftFiltrado);
 
 			if(servoRightFiltrado*RAD_TO_DEG<60 || servoRightFiltrado*RAD_TO_DEG>-60)
-				c_io_rx24f_move(2, 150+servoRightFiltrado*RAD_TO_DEG);
+				c_io_rx24f_move(2, 150+servoRightFiltrado*RAD_TO_DEG); 	//150+
 			if(servoLeftFiltrado*RAD_TO_DEG<60 || servoLeftFiltrado*RAD_TO_DEG>-60)
-				c_io_rx24f_move(1, 130+servoLeftFiltrado*RAD_TO_DEG);
+				c_io_rx24f_move(1, 130+servoLeftFiltrado*RAD_TO_DEG);	//130+
 		#endif
 //		#if 0
 //			if(iActuation.servoRight*RAD_TO_DEG<60 || iActuation.servoRight*RAD_TO_DEG>-60)
@@ -170,7 +174,7 @@ void module_io_run()
 
 
 
-unsigned char velo_right, velo_left;
+		unsigned char velo_right, velo_left;
 		/// ESCS
 		#if 1
 			// TODO Esse 8.2 É só para testes! TIRAR
@@ -193,7 +197,7 @@ unsigned char velo_right, velo_left;
 			 *  Foram retirados 2 retas, uma para valores baixos (<6) e uma para valores >6. Na verdade pode-se aproximar a curva inteira
 			 *  por um polinomio de maior ordem
 			 */
-			/*
+			
 			if (velo_rightFiltrado < 6)
 				velo_right = (int)(20.332*velo_rightFiltrado +1.7466);
 			else
@@ -203,21 +207,21 @@ unsigned char velo_right, velo_left;
 				velo_left = (int)(20.332*velo_leftFiltrado +1.7466);
 			else
 				velo_left = (int)(12.256*velo_leftFiltrado - 39.441);
-			*/
+			
 
 			taskENTER_CRITICAL();
-			//if(counte>2500)
-			//{
+			if(counte>1000)
+			{
 				c_io_blctrl_setSpeed(0, 10 );
 				c_common_utils_delayus(10);
 				c_io_blctrl_setSpeed(1, 10 );
-			//}
-			//else   //inicializacao do esc
-			//{
-			//	c_io_blctrl_setSpeed(0, (char)(counte/10));
-			//	c_common_utils_delayus(10);
-			//	c_io_blctrl_setSpeed(1, (char)(counte/10));
-	    	//}
+			}
+			else   //inicializacao do esc
+			{
+				c_io_blctrl_setSpeed(0, 10);
+				c_common_utils_delayus(10);
+				c_io_blctrl_setSpeed(1, 10);
+	    	}
 			taskEXIT_CRITICAL();
 		#endif
 		
@@ -237,10 +241,10 @@ unsigned char velo_right, velo_left;
 			//c_common_utils_floatToString(rpy[PV_IMU_DROLL ]*RAD_TO_DEG, dr, 4);
 			//c_common_utils_floatToString(rpy[PV_IMU_DPITCH]*RAD_TO_DEG, dp, 4);
 			//c_common_utils_floatToString(rpy[PV_IMU_DYAW  ]*RAD_TO_DEG, dy, 4);
-			sprintf(str, "imu -> \t %d \t %d \t %d \t %d \t %d \t %d \t %d \t %d \t %d \t %d \t %d \t %d \n\r" ,(int)(rpy[PV_IMU_ROLL  ]*RAD_TO_DEG),
+			sprintf(str, "imu -> \t %d \t %d \t %d \t %d \t %d \t %d \t %d \t %d \t %d \t %d \t %d \t %d \t %d \t %d \t %d\n\r" ,(int)(rpy[PV_IMU_ROLL  ]*RAD_TO_DEG),
 					(int)(rpy[PV_IMU_PITCH  ]*RAD_TO_DEG), (int)(rpy[PV_IMU_YAW  ]*RAD_TO_DEG), (int)(rpy[PV_IMU_DROLL  ]*RAD_TO_DEG),
 					(int)(rpy[PV_IMU_DPITCH  ]*RAD_TO_DEG), (int)(rpy[PV_IMU_DYAW  ]*RAD_TO_DEG),(int)(servoLeftFiltrado*RAD_TO_DEG),
-					(int)(servoRightFiltrado*RAD_TO_DEG),(int)velo_left,(int)velo_right,(int)(velo_leftFiltrado*100),(int)(velo_rightFiltrado*100));
+					(int)(servoRightFiltrado*RAD_TO_DEG),(int)velo_left,(int)velo_right,(int)(velo_leftFiltrado*100),(int)(velo_rightFiltrado*100), counte, c_io_blctrl_readSpeed(0),c_io_blctrl_readSpeed(1));
 			c_common_usart_puts(USART2, str);
 			counte++;
 
@@ -260,8 +264,7 @@ unsigned char velo_right, velo_left;
 		oAttitude.dotYaw   = rpy[PV_IMU_DYAW  ];
 		if(pv_interface_io.oAttitude != 0)
       		xQueueOverwrite(pv_interface_io.oAttitude, &oAttitude);
-
-		//vTaskDelayUntil( &lastWakeTime, (MODULE_PERIOD / portTICK_RATE_MS));
+		vTaskDelayUntil( &lastWakeTime, (MODULE_PERIOD / portTICK_RATE_MS));
 	}
 }
 /* IRQ handlers ------------------------------------------------------------- */

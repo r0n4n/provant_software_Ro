@@ -146,6 +146,7 @@ void c_io_blctrl_init_ppm()
   */
 void c_io_blctrl_init_i2c(I2C_TypeDef* I2Cx)
 {
+  #define ppm false
   I2Cx_blctrl=I2Cx;
 }
 
@@ -180,9 +181,9 @@ int  c_io_blctrl_setSpeed(uint8_t ID, unsigned char speed)
     }
     else
     {
-      c_common_i2c_start(I2C1, (BLCTRL_ADDR+ID)<<1, I2C_Direction_Transmitter);
-      c_common_i2c_write(I2C1, (uint8_t) speed);
-      c_common_i2c_stop(I2C1);
+      c_common_i2c_start(I2Cx_blctrl, (BLCTRL_ADDR+ID)<<1, I2C_Direction_Transmitter);
+      c_common_i2c_write(I2Cx_blctrl, (uint8_t) speed);
+      c_common_i2c_stop(I2Cx_blctrl);
       return 1;
     }
   }
