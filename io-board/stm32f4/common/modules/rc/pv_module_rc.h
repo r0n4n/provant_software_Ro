@@ -38,6 +38,7 @@
    */
 struct pv_interface_rc {
 	xQueueHandle oActuation;	/** Sinais de atuação para módulo de IO. **/
+	xQueueHandle iSensorTime;	/** Sinais de atuação para módulo de IO. **/
 	xQueueHandle iAttitude;		/** Feedback da orientação do VANT. **/
 } pv_interface_rc;
 

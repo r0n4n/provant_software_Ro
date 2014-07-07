@@ -156,10 +156,13 @@ int main(void)
 	/* Connect modules: interface1.o* = interface2.i* */
 	pv_interface_io.oAttitude  = pv_interface_rc.iAttitude;
 	pv_interface_rc.oActuation = pv_interface_io.iActuation;
+	pv_interface_io.oSensorTime = pv_interface_rc.iSensorTime;
 
 	c_common_usart_puts(USART2, "Iniciando!\n\r");
 
-	/* create tasks */
+	/* create tasks
+	 * Prioridades - quanto maior o valor, maior a prioridade
+	 * */
 	xTaskCreate(blink_led_task, (signed char *)"Blink led", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+1, NULL);
 	xTaskCreate(module_rc_task, (signed char *)"module_rc", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+2, NULL);
 	xTaskCreate(module_io_task, (signed char *)"module_io", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+3, NULL);

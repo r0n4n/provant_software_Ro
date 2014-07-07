@@ -77,6 +77,7 @@ bool lastTimeoutExpired  = 0;
 
 bool while_timeout(bool cond, long startime) {
   long unsigned int time_diff1 = c_common_utils_millis();
+//  long unsigned int time_diff1 = c_common_utils_micros();
   long unsigned int time_diff = time_diff1 - startime ;
   if(time_diff > TIMEOUT_MS)
     { lastTimeoutExpired = 1; return 0; }
@@ -232,6 +233,7 @@ void c_common_i2c_init(I2C_TypeDef* I2Cx){
 void c_common_i2c_start(I2C_TypeDef* I2Cx, uint8_t address, uint8_t direction) {
         // wait until I2C1 is not busy anymore
 		timeoutCounter = c_common_utils_millis();
+//		timeoutCounter = c_common_utils_micros();
         while(while_timeout(I2C_GetFlagStatus(I2Cx, I2C_FLAG_BUSY), timeoutCounter));
 
         // Send I2C1 START condition
@@ -239,6 +241,7 @@ void c_common_i2c_start(I2C_TypeDef* I2Cx, uint8_t address, uint8_t direction) {
 
         // wait for I2C1 EV5 --> Slave has acknowledged start condition
         timeoutCounter = c_common_utils_millis();
+//        timeoutCounter = c_common_utils_micros();
         while(while_timeout(!I2C_CheckEvent(I2Cx, I2C_EVENT_MASTER_MODE_SELECT), timeoutCounter));
 
         if(!lastTimeoutExpired) {
@@ -252,10 +255,12 @@ void c_common_i2c_start(I2C_TypeDef* I2Cx, uint8_t address, uint8_t direction) {
 			 */
 			if(direction == I2C_Direction_Transmitter){
 					timeoutCounter = c_common_utils_millis();
+//					timeoutCounter = c_common_utils_micros();
 					while(while_timeout(!I2C_CheckEvent(I2Cx, I2C_EVENT_MASTER_TRANSMITTER_MODE_SELECTED), timeoutCounter));
 			}
 			else if(direction == I2C_Direction_Receiver){
 					timeoutCounter = c_common_utils_millis();
+//					timeoutCounter = c_common_utils_micros();
 					while(while_timeout(!I2C_CheckEvent(I2Cx, I2C_EVENT_MASTER_RECEIVER_MODE_SELECTED), timeoutCounter));
 			}
         }
@@ -270,6 +275,7 @@ void c_common_i2c_write(I2C_TypeDef* I2Cx, uint8_t data) {
         I2C_SendData(I2Cx, data);
         // wait for I2C1 EV8_2 --> byte has been transmitted
         timeoutCounter = c_common_utils_millis();
+//        timeoutCounter = c_common_utils_micros();
         while(while_timeout(!I2C_CheckEvent(I2Cx, I2C_EVENT_MASTER_BYTE_TRANSMITTED), timeoutCounter));
 }
 
@@ -284,6 +290,7 @@ uint8_t c_common_i2c_readAck(I2C_TypeDef* I2Cx) {
         I2C_AcknowledgeConfig(I2Cx, ENABLE);
         // wait until one byte has been received
         timeoutCounter = c_common_utils_millis();
+//        timeoutCounter = c_common_utils_micros();
         while(while_timeout(!I2C_CheckEvent(I2Cx, I2C_EVENT_MASTER_BYTE_RECEIVED), timeoutCounter));
         // read data from I2C data register and return data byte
         if(!lastTimeoutExpired)
@@ -305,6 +312,7 @@ uint8_t c_common_i2c_readNack(I2C_TypeDef* I2Cx) {
         I2C_GenerateSTOP(I2Cx, ENABLE);
         // wait until one byte has been received
         timeoutCounter = c_common_utils_millis();
+//        timeoutCounter = c_common_utils_micros();
         while(while_timeout(!I2C_CheckEvent(I2Cx, I2C_EVENT_MASTER_BYTE_RECEIVED), timeoutCounter));
         // read data from I2C data register and return data byte
         if(!lastTimeoutExpired)
