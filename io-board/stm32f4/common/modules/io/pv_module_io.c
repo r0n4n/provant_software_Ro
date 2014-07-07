@@ -34,6 +34,7 @@ portTickType lastWakeTime;
 //long last_IMU_time=0; /** Último valor do SysTick quando a função de leitura da IMU foi executada - para integracão numérica */
 bool first_pv_io = true; // Primeira iteracao do codigo
 char str[256];
+int counte=0;
 
 ///////////////////////////////////////////////////////<<<<<<< HEAD
 //int setpoint=40;
@@ -184,7 +185,7 @@ void module_io_run()
 
 		#endif
 		/// SERVOS
-		#if 0
+		#if 1
 			if( (iActuation.servoRight*RAD_TO_DEG<70) && (iActuation.servoRight*RAD_TO_DEG>-70) )
 				c_io_rx24f_move(2, 150+iActuation.servoRight*RAD_TO_DEG);
 			if( (iActuation.servoLeft*RAD_TO_DEG<70) && (iActuation.servoLeft*RAD_TO_DEG>-70) )
@@ -199,8 +200,8 @@ void module_io_run()
 //			iActuation.escRightSpeed = 8.0f;
 //			iActuation.escLeftSpeed  = 8.0f;
 //
-			sp_right = setPointESC_Forca(iActuation.escRightSpeed);
-			sp_left = setPointESC_Forca(iActuation.escLeftSpeed);
+			//sp_right = setPointESC_Forca(iActuation.escRightSpeed);
+			//sp_left = setPointESC_Forca(iActuation.escLeftSpeed);
 
 //			if ( (iActuation.escLeftSpeed > 50)){
 //				if (trigger){
@@ -228,9 +229,9 @@ void module_io_run()
 			}
 			else
 			{
-				c_io_blctrl_setSpeed(1, sp_right );
+				c_io_blctrl_setSpeed(1, 15 );
 				c_common_utils_delayus(10);
-				c_io_blctrl_setSpeed(0, sp_left );
+				c_io_blctrl_setSpeed(0, 15 );
 			}
 			taskEXIT_CRITICAL();
 		#endif
@@ -250,11 +251,11 @@ void module_io_run()
 			//c_common_utils_floatToString(rpy[PV_IMU_DROLL ]*RAD_TO_DEG, dr, 4);
 			//c_common_utils_floatToString(rpy[PV_IMU_DPITCH]*RAD_TO_DEG, dp, 4);
 			//c_common_utils_floatToString(rpy[PV_IMU_DYAW  ]*RAD_TO_DEG, dy, 4);
-			sprintf(str, "imu -> \t %d \t %d \t %d \t %d \t %d \t %d \t %d \t %d \t %d \t %d \t %d \t %d \t %d \t %d \t %d\n\r" ,(int)(rpy[PV_IMU_ROLL  ]*RAD_TO_DEG),
+			
+			sprintf(str, "imu -> \t %d \t %d \t %d \t %d \t %d \t %d \t %d\n\r" ,(int)(rpy[PV_IMU_ROLL  ]*RAD_TO_DEG),
 					(int)(rpy[PV_IMU_PITCH  ]*RAD_TO_DEG), (int)(rpy[PV_IMU_YAW  ]*RAD_TO_DEG), (int)(rpy[PV_IMU_DROLL  ]*RAD_TO_DEG),
-					(int)(rpy[PV_IMU_DPITCH  ]*RAD_TO_DEG), (int)(rpy[PV_IMU_DYAW  ]*RAD_TO_DEG),(int)(servoLeftFiltrado*RAD_TO_DEG),
-					(int)(servoRightFiltrado*RAD_TO_DEG),(int)velo_left,(int)velo_right,(int)(velo_leftFiltrado*100),(int)(velo_rightFiltrado*100), counte, c_io_blctrl_readSpeed(0),c_io_blctrl_readSpeed(1));
-
+					(int)(rpy[PV_IMU_DPITCH  ]*RAD_TO_DEG), (int)(rpy[PV_IMU_DYAW  ]*RAD_TO_DEG), iterations);
+			
 			c_common_usart_puts(USART2, str);
 
 		#endif
