@@ -161,15 +161,6 @@ void module_io_run()
 		 	c_io_imu_getRaw(accRaw, gyrRaw, magRaw);
 			taskEXIT_CRITICAL();
 
-//			system_time = c_common_utils_millis();
-//			if (first_pv_io){
-//				sample_time=0;
-//				first_pv_io=false;
-//			}
-//			else
-//				sample_time=(float)( verifyOverflow(system_time - last_IMU_time) ) /1000;
-//
-//			last_IMU_time = system_time;
 			c_datapr_MahonyAHRSupdate(attitude_quaternion, velAngular, gyrRaw[0],gyrRaw[1],gyrRaw[2],accRaw[0],accRaw[1],accRaw[2],magRaw[0],magRaw[1],magRaw[2]);
 //			c_datapr_MahonyAHRSupdate(attitude_quaternion,gyrRaw[0],gyrRaw[1],gyrRaw[2],accRaw[0],accRaw[1],accRaw[2],0,0,0);
 			c_io_imu_Quaternion2Euler(attitude_quaternion, rpy);
@@ -187,43 +178,37 @@ void module_io_run()
 
 // set points para os ESCs
 		/// ESCS
-		#if 1
+		#if 0
 
 //			iActuation.escRightSpeed = 8.0f;
 //			iActuation.escLeftSpeed  = 8.0f;
 //
-//			sp_right = setPointESC_Forca(iActuation.escRightSpeed);
-//			sp_left = setPointESC_Forca(iActuation.escLeftSpeed);
+			sp_right = setPointESC_Forca(iActuation.escRightSpeed);
+			sp_left = setPointESC_Forca(iActuation.escLeftSpeed);
 
-			if ( (iActuation.escLeftSpeed > 50)){
-				if (trigger){
-					sp_right++;
-					sp_left++;}
-				trigger = false;
-			}
-			else
-				trigger = true;
-
-
-			if ( (iActuation.escLeftSpeed < -50)){
-				if ( trigger && (sp_right > 9) && (sp_left > 9) ){
-					sp_right--;
-					sp_left--;
-//					trigger = false;
-				}}
+//			if ( (iActuation.escLeftSpeed > 50)){
+//				if (trigger){
+//					sp_right++;
+//					sp_left++;}
+//				trigger = false;
+//			}
+//			else
+//				trigger = true;
+//
+//
+//			if ( (iActuation.escLeftSpeed < -50)){
+//				if ( trigger && (sp_right > 9) && (sp_left > 9) ){
+//					sp_right--;
+//					sp_left--;
+////					trigger = false;
+//				}}
 
 			taskENTER_CRITICAL();
-//			c_io_blctrl_setSpeed(0, velo_right );
-//			c_common_utils_delayus(10);
-//			c_io_blctrl_setSpeed(1, velo_left );
-
 			// 100 iteracoes com a thread periodica de 10ms = 1segundo
 			if (iterations < 200){
 				c_io_blctrl_setSpeed(0, 10 );
 				c_common_utils_delayus(10);
 				c_io_blctrl_setSpeed(1, 10 );
-
-//				first_pv_io = false;
 			}
 			else{
 				c_io_blctrl_setSpeed(1, sp_right );
@@ -260,9 +245,7 @@ void module_io_run()
 		oAttitude.dotRoll  = rpy[PV_IMU_DROLL ];
 		oAttitude.dotPitch = rpy[PV_IMU_DPITCH];
 		oAttitude.dotYaw   = rpy[PV_IMU_DYAW  ];
-//		oAttitude={0,0,0,0,0,0};
-//		oSensorTime.IMU_sample_time = sample_time;
-		oSensorTime.IMU_sample_time = 0.010f;
+		oSensorTime.IMU_sample_time = MODULE_PERIOD/1000;
 
 		iterations++;
 
