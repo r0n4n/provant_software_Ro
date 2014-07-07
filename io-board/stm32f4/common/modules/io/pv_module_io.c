@@ -165,14 +165,6 @@ void module_io_run()
 			if(servoLeftFiltrado*RAD_TO_DEG<60 || servoLeftFiltrado*RAD_TO_DEG>-60)
 				c_io_rx24f_move(1, 130+servoLeftFiltrado*RAD_TO_DEG);	//130+
 		#endif
-//		#if 0
-//			if(iActuation.servoRight*RAD_TO_DEG<60 || iActuation.servoRight*RAD_TO_DEG>-60)
-//				c_io_rx24f_move(2, 150+iActuation.servoRight*RAD_TO_DEG);
-//			if(iActuation.servoLeft*RAD_TO_DEG<60 || iActuation.servoLeft*RAD_TO_DEG>-60)
-//				c_io_rx24f_move(1, 130+iActuation.servoLeft*RAD_TO_DEG);
-//		#endif
-
-
 
 		unsigned char velo_right, velo_left;
 		/// ESCS
