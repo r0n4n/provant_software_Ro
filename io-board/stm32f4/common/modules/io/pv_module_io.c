@@ -112,6 +112,24 @@ long verifyOverflow(deltaT){
 	return deltaT;
 }
 
+/**\ brief Calcula o set point do ESC a partir da forca passada por argumento
+ * Curva retirada dos ensaios com os motores brushless no INEP
+ */
+int setPointESC_Forca(float forca){
+//	Coefficientes do polinomio
+	float p1 = -0.0013112;
+	float p2 = 0.04625;
+	float p3 = -0.50308;
+	float p4 = 1.0065;
+	float p5 = 23.443;
+	float p6 = -3.254;
+
+	if (forca <= 0.18)
+		return 1;
+	else
+		return p1*pow(forca,5) + p2*pow(forca,4) + p3*pow(forca,3) + p4*pow(forca,2) + p5*forca + p6;
+}
+
 /** \brief Função principal do módulo de IO.
   * @param  None
   * @retval None
@@ -119,6 +137,9 @@ long verifyOverflow(deltaT){
   * Loop que amostra sensores e escreve nos atuadores como necessário.
   *
   */
+unsigned char sp_right=10;
+unsigned char sp_left=10;
+bool trigger = true;
 void module_io_run() 
 {
 	float accRaw[3], gyrRaw[3], magRaw[3];
@@ -156,7 +177,7 @@ void module_io_run()
 		#endif
 
 		/// SERVOS
-		#if 1
+		#if 0
 			if( (iActuation.servoRight*RAD_TO_DEG<70) && (iActuation.servoRight*RAD_TO_DEG>-70) )
 				c_io_rx24f_move(2, 150+iActuation.servoRight*RAD_TO_DEG);
 			if( (iActuation.servoLeft*RAD_TO_DEG<70) && (iActuation.servoLeft*RAD_TO_DEG>-70) )
@@ -164,41 +185,33 @@ void module_io_run()
 		#endif
 
 
-unsigned char velo_right, velo_left;
+// set points para os ESCs
 		/// ESCS
 		#if 1
-			// TODO ISTO É só para testes! TIRAR
-//			if ((iActuation.escRightSpeed-6.0f) < 0)
-//				iActuation.escRightSpeed = 0.0f;
-//			else
-//				iActuation.escRightSpeed=iActuation.escRightSpeed-6.0f;
+
+//			iActuation.escRightSpeed = 8.0f;
+//			iActuation.escLeftSpeed  = 8.0f;
 //
-//			if ((iActuation.escLeftSpeed-6.0f) < 0)
-//				iActuation.escLeftSpeed = 0.0f;
-//			else
-//				iActuation.escLeftSpeed=iActuation.escLeftSpeed-6.0f;
+//			sp_right = setPointESC_Forca(iActuation.escRightSpeed);
+//			sp_left = setPointESC_Forca(iActuation.escLeftSpeed);
 
-			/* força para char
-			 *  Foram retirados 2 retas, uma para valores baixos (<6) e uma para valores >6. Na verdade pode-se aproximar a curva inteira
-			 *  por um polinomio de maior ordem
-			 */
-
-//			if (iActuation.escRightSpeed < 6)
-				velo_right = (int)(20.332*iActuation.escRightSpeed +1.7466);
-//			else
-//				velo_right = (int)(12.256*iActuation.escRightSpeed - 39.441);
-
-//			if (iActuation.escLeftSpeed < 6)
-				velo_left = (int)(20.332*iActuation.escLeftSpeed +1.7466);
-//			else
-//				velo_left = (int)(12.256*iActuation.escLeftSpeed - 39.441);
+			if ( (iActuation.escLeftSpeed > 50)){
+				if (trigger){
+					sp_right++;
+					sp_left++;}
+				trigger = false;
+			}
+			else
+				trigger = true;
 
 
-//			if (velo_right > 30)
-//				velo_right = 30;
-//
-//			if (velo_left > 30)
-//				velo_left = 30;
+			if ( (iActuation.escLeftSpeed < -50)){
+				if ( trigger && (sp_right > 9) && (sp_left > 9) ){
+					sp_right--;
+					sp_left--;
+//					trigger = false;
+				}}
+
 			taskENTER_CRITICAL();
 //			c_io_blctrl_setSpeed(0, velo_right );
 //			c_common_utils_delayus(10);
@@ -213,9 +226,9 @@ unsigned char velo_right, velo_left;
 //				first_pv_io = false;
 			}
 			else{
-				c_io_blctrl_setSpeed(1, velo_right );
+				c_io_blctrl_setSpeed(1, sp_right );
 				c_common_utils_delayus(10);
-				c_io_blctrl_setSpeed(0, velo_left );
+				c_io_blctrl_setSpeed(0, sp_left );
 			}
 			taskEXIT_CRITICAL();
 		#endif
@@ -230,11 +243,12 @@ unsigned char velo_right, velo_left;
 		/// DEBUG
 		#if 1
 //	    	running_time = running_time + sample_time;
-			sprintf(str, "imu -> \t %d \t %d \t %d \t %d \t %d \t %d \t %d \t %d \t %d \t %d \t %d \t %d \n\r" ,(int)(rpy[PV_IMU_ROLL  ]*RAD_TO_DEG),
-					(int)(rpy[PV_IMU_PITCH  ]*RAD_TO_DEG), (int)(rpy[PV_IMU_YAW  ]*RAD_TO_DEG), (int)(rpy[PV_IMU_DROLL  ]*RAD_TO_DEG),
-					(int)(rpy[PV_IMU_DPITCH  ]*RAD_TO_DEG), (int)(rpy[PV_IMU_DYAW  ]*RAD_TO_DEG),(int)(iActuation.servoLeft*RAD_TO_DEG*10),
-					(int)(iActuation.servoRight*RAD_TO_DEG*10),(int)(iActuation.escLeftSpeed*10),(int)(iActuation.escRightSpeed*10),
-					(int)velo_right, (int)velo_left);
+//			sprintf(str, "imu -> \t %d \t %d \t %d \t %d \t %d \t %d \t %d \t %d \t %d \t %d \t %d \t %d \n\r" ,(int)(rpy[PV_IMU_ROLL  ]*RAD_TO_DEG),
+//					(int)(rpy[PV_IMU_PITCH  ]*RAD_TO_DEG), (int)(rpy[PV_IMU_YAW  ]*RAD_TO_DEG), (int)(rpy[PV_IMU_DROLL  ]*RAD_TO_DEG),
+//					(int)(rpy[PV_IMU_DPITCH  ]*RAD_TO_DEG), (int)(rpy[PV_IMU_DYAW  ]*RAD_TO_DEG),(int)(iActuation.servoLeft*RAD_TO_DEG*10),
+//					(int)(iActuation.servoRight*RAD_TO_DEG*10),(int)(iActuation.escLeftSpeed*10),(int)(iActuation.escRightSpeed*10),
+//					(int)sp_right, (int)sp_left);
+			sprintf(str, "Set Point -> \t %d \t %d \t %d \n\r" , (int)sp_right, (int)sp_left, (int)(iActuation.escLeftSpeed) );
 			c_common_usart_puts(USART2, str);
 
 		#endif

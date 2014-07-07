@@ -64,17 +64,17 @@
 	#define KVZ		 5.0f
 	#define KPZ		 30.0f
 #else
-	#define KPPHI    100.0f
+	#define KPPHI    50.0f
 	#define KVPHI    10.0f
-	#define KIPHI	 0.0f
-	#define KPTHETA  100.0f
+	#define KIPHI	 1.0f
+	#define KPTHETA  50.0f
 	#define KVTHETA  10.0f
-	#define KITHETA	 0.0f
-	#define KPPSI    100.0f
-	#define KVPSI    10.0f
+	#define KITHETA	 1.0f
+	#define KPPSI    0.0f
+	#define KVPSI    0.0f
 	#define KIPSI	 0.0f
-	#define KVZ		 5.0f
-	#define KPZ		 30.0f
+	#define KVZ		 0.0f
+	#define KPZ		 0.0f
 #endif
 
 // Environment parameters
@@ -90,8 +90,8 @@
 #define IZZ  0.01859602726f
 
 // Reference filter parameters
-#define REFERENCE_FILTER_POLE	40
-#define REFERENCE_FILTER_ZERO	100
+//#define REFERENCE_FILTER_POLE	40
+//#define REFERENCE_FILTER_ZERO	100
 
 // Fixed Sample Time - TODO Rever se vai usar esse ou o variavel que chega por mensagem do pv_msg_io
 #define CONTROL_SAMPLE_TIME 	0.010f
