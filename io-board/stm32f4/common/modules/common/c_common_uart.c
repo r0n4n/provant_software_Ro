@@ -50,8 +50,8 @@ int usart2_rb_out = 0; //! Index para leitura do Ring-Buffer da USART2.
 int usart3_rb_in  = 0; //! Index do Ring-Buffer para recebimento na USART3.
 int usart3_rb_out = 0; //! Index para leitura do Ring-Buffer da USART3.
 
-int usart6_rb_in  = 0; //! Index do Ring-Buffer para recebimento na USART2.
-int usart6_rb_out = 0; //! Index para leitura do Ring-Buffer da USART2.
+int usart6_rb_in  = 0; //! Index do Ring-Buffer para recebimento na USART6.
+int usart6_rb_out = 0; //! Index para leitura do Ring-Buffer da USART6.
 
 bool usart1_available_flag = 0;	//! Flag de recebimento de USART1.
 bool usart2_available_flag = 0;	//! Flag de recebimento de USART2.

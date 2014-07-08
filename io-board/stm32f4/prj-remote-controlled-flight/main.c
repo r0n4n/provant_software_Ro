@@ -60,17 +60,17 @@ GPIOPin LED_builtin;
 GPIOPin LED_builtin2;
 
 /* Private define ------------------------------------------------------------*/
+#ifdef STM32F4_H407
+  bool BOARD_DISCOVERY=0;
+  bool BOARD_H407=1;
+#endif
+  
+#ifdef STM32F4_DISCOVERY
+  bool BOARD_DISCOVERY=1;
+  bool BOARD_H407=0;
+#endif
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
-#ifdef STM32F4_H407
-bool BOARD_DISCOVERY=0;
-bool BOARD_H407=1;
-#endif
-
-#ifdef STM32F4_DISCOVERY
-bool BOARD_DISCOVERY=1;
-bool BOARD_H407=0;
-#endif
 /* Private function prototypes -----------------------------------------------*/
 void vApplicationTickHook() {};
 void vApplicationIdleHook() {};
@@ -96,7 +96,7 @@ void FPU_init(){
 void blink_led_task(void *pvParameters)
 {
   if(BOARD_H407)
-	 LED_builtin = c_common_gpio_init(GPIOC, GPIO_Pin_13, GPIO_Mode_OUT);
+    LED_builtin = c_common_gpio_init(GPIOC, GPIO_Pin_13, GPIO_Mode_OUT);
   else
   {
     LED_builtin = c_common_gpio_init(GPIOA, GPIO_Pin_7, GPIO_Mode_OUT);

@@ -36,14 +36,9 @@ bool first_pv_io = true; // Primeira iteracao do codigo
 char str[256];
 int counte=0;
 
-///////////////////////////////////////////////////////<<<<<<< HEAD
-//int setpoint=40;
-//int setpoint2=100;
-
 GPIOPin LED_builtin_io;
 
 float attitude_quaternion[4]={1,0,0,0};
-//////////////////////////////////////////////////////>>>>>>> provant/develop
 
 /* Inboxes buffers */
 pv_msg_io_actuation    iActuation;
@@ -65,16 +60,12 @@ pv_msg_datapr_sensor_time oSensorTime;
   * @retval None
   */
 void module_io_init() {
-//	float accRaw[3], gyrRaw[3], magRaw[3]; // TODO Tirar daqui junto com o init
+	//float accRaw[3], gyrRaw[3], magRaw[3]; // TODO Tirar daqui junto com o init
 
 	/* Inicialização do hardware do módulo */
-	//c_common_i2c_init(I2C3); //imu 
-
 	LED_builtin_io = c_common_gpio_init(GPIOD, GPIO_Pin_13, GPIO_Mode_OUT);
-
-	c_common_i2c_init(I2C3); //imu
-	c_common_i2c_init(I2C1); //esc
-
+	c_common_i2c_init(I2C3); //esc
+	c_common_i2c_init(I2C1); //imu
 	c_common_usart2_init(460800);
 
 	/* Inicializar do sonar */
@@ -96,10 +87,11 @@ void module_io_init() {
 	c_io_rx24f_move(2, 150);
 	c_common_utils_delayms(100);
 
+	/* Inicialização da imu */
 	c_io_imu_init(I2C1);   
-	c_io_blctrl_init_i2c(I2C3);
 
-	//inicializacao dos PPM
+	/* inicializacao dos PPM */
+	c_io_blctrl_init_i2c(I2C3);
 	//c_io_blctrl_init_ppm();
 
 	/* Inicialização das filas do módulo. Apenas inboxes (i*!) são criadas! */
@@ -153,6 +145,7 @@ int setPointESC_Forca(float forca){
 unsigned char sp_right=10;
 unsigned char sp_left=10;
 bool trigger = true;
+
 void module_io_run() 
 {
 	float accRaw[3], gyrRaw[3], magRaw[3];
@@ -167,10 +160,7 @@ void module_io_run()
 		lastWakeTime = xTaskGetTickCount();
 
 		xQueueReceive(pv_interface_io.iActuation, &iActuation, 0);
-//////////////<<<<<<< HEAD
 		c_common_gpio_toggle(LED_builtin_io);
-
-//////////////>>>>>>> provant/develop
 		
 		/// IMU DATA
 		#if 1
@@ -179,7 +169,7 @@ void module_io_run()
 			taskEXIT_CRITICAL();
 
 			c_datapr_MahonyAHRSupdate(attitude_quaternion, velAngular, gyrRaw[0],gyrRaw[1],gyrRaw[2],accRaw[0],accRaw[1],accRaw[2],magRaw[0],magRaw[1],magRaw[2]);
-//			c_datapr_MahonyAHRSupdate(attitude_quaternion,gyrRaw[0],gyrRaw[1],gyrRaw[2],accRaw[0],accRaw[1],accRaw[2],0,0,0);
+			//c_datapr_MahonyAHRSupdate(attitude_quaternion,gyrRaw[0],gyrRaw[1],gyrRaw[2],accRaw[0],accRaw[1],accRaw[2],0,0,0);
 			c_io_imu_Quaternion2Euler(attitude_quaternion, rpy);
 			c_io_imu_EulerMatrix(rpy, velAngular);
 
@@ -193,32 +183,39 @@ void module_io_run()
 		#endif
 
 
-// set points para os ESCs
+		// set points para os ESCs
 		/// ESCS
 		#if 1
+/*
+			iActuation.escRightSpeed = 8.0f;
+			iActuation.escLeftSpeed  = 8.0f;
 
-//			iActuation.escRightSpeed = 8.0f;
-//			iActuation.escLeftSpeed  = 8.0f;
-//
-			//sp_right = setPointESC_Forca(iActuation.escRightSpeed);
-			//sp_left = setPointESC_Forca(iActuation.escLeftSpeed);
+			sp_right = setPointESC_Forca(iActuation.escRightSpeed);
+			sp_left = setPointESC_Forca(iActuation.escLeftSpeed);
 
-//			if ( (iActuation.escLeftSpeed > 50)){
-//				if (trigger){
-//					sp_right++;
-//					sp_left++;}
-//				trigger = false;
-//			}
-//			else
-//				trigger = true;
-//
-//
-//			if ( (iActuation.escLeftSpeed < -50)){
-//				if ( trigger && (sp_right > 9) && (sp_left > 9) ){
-//					sp_right--;
-//					sp_left--;
-////					trigger = false;
-//				}}
+			if ( (iActuation.escLeftSpeed > 50))
+			{
+				if (trigger)
+				{
+					sp_right++;
+					sp_left++;
+				}
+			trigger = false;
+			}
+			else
+				trigger = true;
+
+
+			if ( (iActuation.escLeftSpeed < -50))
+			{
+				if ( trigger && (sp_right > 9) && (sp_left > 9))
+				{
+					sp_right--;
+					sp_left--;
+					trigger = false;
+				}
+			}
+*/
 
 			taskENTER_CRITICAL();
 			// 100 iteracoes com a thread periodica de 10ms = 1segundo
@@ -245,19 +242,11 @@ void module_io_run()
 
 		/// DEBUG
 		#if 1
-			//c_common_utils_floatToString(rpy[PV_IMU_ROLL  ]*RAD_TO_DEG, r,  4);
-			//c_common_utils_floatToString(rpy[PV_IMU_PITCH ]*RAD_TO_DEG, p,  4);
-			//c_common_utils_floatToString(rpy[PV_IMU_YAW   ]*RAD_TO_DEG, y,  4);
-			//c_common_utils_floatToString(rpy[PV_IMU_DROLL ]*RAD_TO_DEG, dr, 4);
-			//c_common_utils_floatToString(rpy[PV_IMU_DPITCH]*RAD_TO_DEG, dp, 4);
-			//c_common_utils_floatToString(rpy[PV_IMU_DYAW  ]*RAD_TO_DEG, dy, 4);
-			
 			sprintf(str, "imu -> \t %d \t %d \t %d \t %d \t %d \t %d \t %d\n\r" ,(int)(rpy[PV_IMU_ROLL  ]*RAD_TO_DEG),
 					(int)(rpy[PV_IMU_PITCH  ]*RAD_TO_DEG), (int)(rpy[PV_IMU_YAW  ]*RAD_TO_DEG), (int)(rpy[PV_IMU_DROLL  ]*RAD_TO_DEG),
 					(int)(rpy[PV_IMU_DPITCH  ]*RAD_TO_DEG), (int)(rpy[PV_IMU_DYAW  ]*RAD_TO_DEG), iterations);
 			
 			c_common_usart_puts(USART2, str);
-
 		#endif
 
 		/// DADOS OUT
