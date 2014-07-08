@@ -23,6 +23,7 @@
 #include "task.h"
 
 /* proVANT includes */
+#include "c_common_gpio.h"
 #include "c_rc_control.h"
 #include "c_rc_receiver.h"
 

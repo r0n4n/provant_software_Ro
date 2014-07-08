@@ -1,47 +1,70 @@
-//=====================================================================================================
-// c_datapr_MahonyAHRS.c
-//=====================================================================================================
-//
-// Madgwick's implementation of Mayhony's AHRS algorithm.
-// See: http://www.x-io.co.uk/node/8#open_source_ahrs_and_imu_algorithms
-//
-// Date			Author			Notes
-// 29/09/2011	SOH Madgwick    Initial release
-// 02/10/2011	SOH Madgwick	Optimised for reduced CPU load
-//
-//=====================================================================================================
+/**
+  ******************************************************************************
+  * @file    modules/datapr/c_datapr_MahonyAHRS.c
+  * @author  Rodrigo Donadel
+  * @version V1.0.0
+  * @date    8-Jul-2014
+  * @brief   Madgwick's implementation of Mayhony's AHRS algorithm.
+  *          See: http://www.x-io.co.uk/node/8#open_source_ahrs_and_imu_algorithms
+  ******************************************************************************/
 
-//---------------------------------------------------------------------------------------------------
-// Header files
+/** 
+	 Date     | Author       | Notes
+	----------|--------------|----------------
+	29/09/2011| SOH Madgwick | Initial release
+	02/10/2011| SOH Madgwick | Optimised for reduced CPU load
+***********************************************/
 
+/** @addtogroup Datapr_MahonyAHRS
+  * @{
+  */
+
+/** @addtogroup Datapr_MahonyAHRS
+  *	\brief DOCUMENTAR
+  *
+  *
+  * @{
+  */
+
+/* Includes ------------------------------------------------------------------*/
 #include "c_datapr_MahonyAHRS.h"
 #include <math.h>
 
-//---------------------------------------------------------------------------------------------------
-// Definitions
+/* Private define ------------------------------------------------------------*/
 
 #define sampleFreq	100.0f			// sample frequency in Hz
 #define twoKpDef	(2.0f * 3.0f)	// 2 * proportional gain
 #define twoKiDef	(2.0f * 0.2f)	// 2 * integral gain
 
-//---------------------------------------------------------------------------------------------------
-// Variable definitions
+/* Private variables ---------------------------------------------------------*/
 
 volatile float twoKp = twoKpDef;											// 2 * proportional gain (Kp)
 volatile float twoKi = twoKiDef;											// 2 * integral gain (Ki)
 //volatile float q0 = 1.0f, q1 = 0.0f, q2 = 0.0f, q3 = 0.0f;					// quaternion of sensor frame relative to auxiliary frame
 volatile float integralFBx = 0.0f,  integralFBy = 0.0f, integralFBz = 0.0f;	// integral error terms scaled by Ki
 
-//---------------------------------------------------------------------------------------------------
-// Function declarations
+/* Private function prototypes -----------------------------------------------*/
 
 float invSqrt(float x);
 
-//====================================================================================================
-// Functions
+/* Private functions ---------------------------------------------------------*/
 
-//---------------------------------------------------------------------------------------------------
-// AHRS algorithm update
+/** \brief AHRS algorithm update
+ *
+ * DOCUMENTAR
+ *
+ * @param q
+ * @param velAngular_corrigida
+ * @param gx
+ * @param gy
+ * @param gz
+ * @param ax
+ * @param ay
+ * @param az
+ * @param mx
+ * @param my
+ * @param mz
+ */
 
 void c_datapr_MahonyAHRSupdate(float * q, float * velAngular_corrigida, float gx, float gy, float gz, float ax, float ay, float az,
 								float mx, float my, float mz) {
@@ -158,8 +181,20 @@ void c_datapr_MahonyAHRSupdate(float * q, float * velAngular_corrigida, float gx
 
 }
 
-//---------------------------------------------------------------------------------------------------
-// IMU algorithm update
+
+/** \brief IMU algorithm update
+ *
+ * DOCUMENTAR
+ *
+ * @param q
+ * @param velAngular_corrigida
+ * @param gx
+ * @param gy
+ * @param gz
+ * @param ax
+ * @param ay
+ * @param az
+ */
 
 void c_datapr_MahonyAHRSupdateIMU(float * q, float * velAngular_corrigida, float gx, float gy, float gz, float ax, float ay, float az) {
 	float recipNorm;
@@ -239,9 +274,12 @@ void c_datapr_MahonyAHRSupdateIMU(float * q, float * velAngular_corrigida, float
 	q[3] = q3 *recipNorm;
 }
 
-//---------------------------------------------------------------------------------------------------
-// Fast inverse square-root
-// See: http://en.wikipedia.org/wiki/Fast_inverse_square_root
+/** \brief Fast inverse square-root
+ *	See: http://en.wikipedia.org/wiki/Fast_inverse_square_root
+ * DOCUMENTAR
+ *
+ * @param X
+ */ 
 
 float invSqrt(float x) {
 	float halfx = 0.5f * x;
@@ -253,6 +291,10 @@ float invSqrt(float x) {
 	return y;
 }
 
-//====================================================================================================
-// END OF CODE
-//====================================================================================================
+/**
+  * @}
+  */
+
+/**
+  * @}
+  */

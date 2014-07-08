@@ -31,6 +31,7 @@ pv_msg_io_actuation actuation;
 pv_type_receiverChannels receiver;
 portTickType lastWakeTime;
 char str[64];
+GPIOPin LED_builtin_rc;
 
 /* Inboxes buffers */
 pv_msg_datapr_attitude iAttitude;
@@ -53,6 +54,7 @@ pv_msg_io_actuation    oActuation;
 void module_rc_init() {
 	/* Inicialização do hardware do módulo */
 	c_rc_receiver_init();
+  LED_builtin_rc = c_common_gpio_init(GPIOB, GPIO_Pin_15, GPIO_Mode_OUT);
 
 	/* Inicialização das filas do módulo. Apenas inboxes (i*!) são criadas! */
 	pv_interface_rc.iAttitude  = xQueueCreate(1, sizeof(pv_msg_datapr_attitude));
@@ -84,6 +86,7 @@ void module_rc_run() {
 
 	while(1) {
 		lastWakeTime = xTaskGetTickCount();
+    c_common_gpio_toggle(LED_builtin_rc);
 
     xQueueReceive(pv_interface_rc.iAttitude, &iAttitude, 0);
     xQueueReceive(pv_interface_rc.iSensorTime, &iSensorTime, 0);
