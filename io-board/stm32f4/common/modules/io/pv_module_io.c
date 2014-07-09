@@ -66,7 +66,8 @@ void module_io_init() {
 	LED_builtin_io = c_common_gpio_init(GPIOD, GPIO_Pin_13, GPIO_Mode_OUT);
 	c_common_i2c_init(I2C3); //esc
 	c_common_i2c_init(I2C1); //imu
-	c_common_usart2_init(460800);
+	//c_common_usart2_init(460800);
+	c_common_usart2_init(115200);
 
 	/* Inicializar do sonar */
 	c_io_sonar_init();
@@ -185,7 +186,7 @@ void module_io_run()
 
 		// set points para os ESCs
 		/// ESCS
-		#if 1
+		#if 0
 /*
 			iActuation.escRightSpeed = 8.0f;
 			iActuation.escLeftSpeed  = 8.0f;
@@ -242,11 +243,16 @@ void module_io_run()
 
 		/// DEBUG
 		#if 1
+	    	send_attitude(10.0f,10.0f,10.0f);
+	    	sprintf(str,get_raw_String());
+	    	c_common_usart_puts(USART2,str);
+	    /*	
 			sprintf(str, "imu -> \t %d \t %d \t %d \t %d \t %d \t %d \t %d\n\r" ,(int)(rpy[PV_IMU_ROLL  ]*RAD_TO_DEG),
 					(int)(rpy[PV_IMU_PITCH  ]*RAD_TO_DEG), (int)(rpy[PV_IMU_YAW  ]*RAD_TO_DEG), (int)(rpy[PV_IMU_DROLL  ]*RAD_TO_DEG),
 					(int)(rpy[PV_IMU_DPITCH  ]*RAD_TO_DEG), (int)(rpy[PV_IMU_DYAW  ]*RAD_TO_DEG), iterations);
 			
 			c_common_usart_puts(USART2, str);
+		*/
 		#endif
 
 		/// DADOS OUT

@@ -38,6 +38,7 @@ LIBDIR       := $(PRJDIR)/../lib
 MODULES	      = $(MODDIR)/common
 MODULES	     += $(MODDIR)/rc
 MODULES	     += $(MODDIR)/io
+MODULES      += $(MODDIR)/datapr
 
 # CMSIS Device Drivers directory
 CMSISDIR     := $(LIBDIR)/cmsis
