@@ -13,6 +13,7 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f4xx_conf.h"
+#include "c_common_uart.h"
 #include <math.h>
 
 #ifdef __cplusplus
@@ -82,20 +83,21 @@ void serialize16(int16_t a);
 void serialize32(uint32_t a);
 void headSerialResponse(uint8_t size, uint8_t multwii_msg);
 void tailSerialReply();
+int get_raw_size();
 /*********************End of serial comm************************************/
 
 /* Exported functions ------------------------------------------------------- */
 /*********************Begin of ... something************************************/
 
-void send_attitude(float x,float y,float z);
-void send_raw_imu(float* acc,float* gyr, float* mag);
-int get_raw_size();
-void send_altitude(float alt, float vario);
-void send_bicopter_identifier();
-void send_motor_pins();
-void send_motor(float forca_esquerdo,float forca_direito);
-void send_servo(float angle1,float angle2);
-void send_debug(float debug1,float  debug2,float  debug3,float debug4);
+void c_common_datapr_multwii_attitude(float x,float y,float z);
+void c_common_datapr_multwii_raw_imu(float* acc,float* gyr, float* mag);
+void c_common_datapr_multwii_altitude(float alt, float vario);
+void c_common_datapr_multwii_bicopter_identifier();
+void c_common_datapr_multwii_motor_pins();
+void c_common_datapr_multwii_motor(float forca_esquerdo,float forca_direito);
+void c_common_datapr_multwii_servo(float angle1,float angle2);
+void c_common_datapr_multwii_debug(float debug1,float  debug2,float  debug3,float debug4);
+void c_common_datapr_multwii_sendstack(USART_TypeDef* USARTx);
 
 #ifdef __cplusplus
 }

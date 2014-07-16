@@ -243,26 +243,22 @@ void module_io_run()
 
 		/// DEBUG
 		#if 1
+	    	// multwii
 	    	#if 1
-		    	send_bicopter_identifier();
-		    	send_motor_pins();
-		    	send_motor(iActuation.escLeftSpeed+2,iActuation.escRightSpeed+2);
-		    	send_attitude(rpy[PV_IMU_ROLL  ]*RAD_TO_DEG, rpy[PV_IMU_PITCH  ]*RAD_TO_DEG, rpy[PV_IMU_YAW  ]*RAD_TO_DEG );
+
+		    	c_common_datapr_multwii_bicopter_identifier();
+		    	c_common_datapr_multwii_motor_pins();
+		    	c_common_datapr_multwii_motor(iActuation.escLeftSpeed+2,iActuation.escRightSpeed+2);
+		    	c_common_datapr_multwii_attitude(rpy[PV_IMU_ROLL  ]*RAD_TO_DEG, rpy[PV_IMU_PITCH  ]*RAD_TO_DEG, rpy[PV_IMU_YAW  ]*RAD_TO_DEG );
 		    	arm_scale_f32(accRaw,RAD_TO_DEG,accRaw,3);
 		    	arm_scale_f32(gyrRaw,RAD_TO_DEG,gyrRaw,3);
-		    	send_raw_imu(accRaw,gyrRaw,magRaw);
-		    	send_servos((iActuation.servoLeft*RAD_TO_DEG),(iActuation.servoRight*RAD_TO_DEG));
-		    	send_debug(iActuation.escLeftSpeed,iActuation.escRightSpeed,iActuation.servoLeft*RAD_TO_DEG,iActuation.servoLeft*RAD_TO_DEG);
+		    	c_common_datapr_multwii_raw_imu(accRaw,gyrRaw,magRaw);
+		    	c_common_datapr_multwii_servos((iActuation.servoLeft*RAD_TO_DEG),(iActuation.servoRight*RAD_TO_DEG));
+		    	c_common_datapr_multwii_debug(iActuation.escLeftSpeed,iActuation.escRightSpeed,iActuation.servoLeft*RAD_TO_DEG,iActuation.servoLeft*RAD_TO_DEG);
 
-		    	int zize = get_raw_size();
-		    	sprintf(str,get_raw_String());
-		    	
-		    	//c_common_usart_puts(USART2,str);
-		    	for (int i = 0; i < zize; ++i)
-		    	{
-		    		c_common_usart_putchar(USART2,multwii_msg[i]);
-		    	}
-	    	#else
+		    	c_common_datapr_multwii_sendstack(USART2);
+	    	#else  
+	    	// serial
 	    	 	
 				sprintf(str, "imu -> \t %d \t %d \t %d \t %d \t %d \t %d \t %d\n\r" ,(int)(rpy[PV_IMU_ROLL  ]*RAD_TO_DEG),
 				(int)(rpy[PV_IMU_PITCH  ]*RAD_TO_DEG), (int)(rpy[PV_IMU_YAW  ]*RAD_TO_DEG), (int)(rpy[PV_IMU_DROLL  ]*RAD_TO_DEG),

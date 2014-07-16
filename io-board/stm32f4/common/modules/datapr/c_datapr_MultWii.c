@@ -131,7 +131,7 @@ void tailSerialReply()
  * @param y Pitch
  * @param z Yaw
  */
-void send_attitude(float x,float y,float z)
+void c_common_datapr_multwii_attitude(float x,float y,float z)
 {
   headSerialResponse(6,MSP_ATTITUDE);
   serialize32_as16(x);
@@ -146,7 +146,7 @@ void send_attitude(float x,float y,float z)
  * @param gyr x,y,y do giroscopio
  * @param mag x,y,z do magnetometro
  */
-void send_raw_imu(float* acc,float* gyr, float* mag)
+void c_common_datapr_multwii_raw_imu(float* acc,float* gyr, float* mag)
 {
   headSerialResponse(18,MSP_RAW_IMU);
   serialize32_as16(acc[0]);
@@ -167,7 +167,7 @@ void send_raw_imu(float* acc,float* gyr, float* mag)
  * @param alt   altitude
  * @param vario a derivada da altitude, usado em planadores como feedback pra saber se esta numa termica.
  */
-void send_altitude(float alt, float vario)
+void c_common_datapr_multwii_altitude(float alt, float vario)
 {
   headSerialResponse(6,MSP_ALTITUDE);
   serialize32(alt);
@@ -178,7 +178,7 @@ void send_altitude(float alt, float vario)
 /**
  * Manda para a pilha a identificação do vant como tiltrotor.
  */
-void send_bicopter_identifier()
+void c_common_datapr_multwii_bicopter_identifier()
 {
   headSerialResponse(7,MSP_IDENT);
   serialize8(32);
@@ -191,7 +191,7 @@ void send_bicopter_identifier()
 /**
  * Envia a posição dos pinos para saber a posição dos motores na imagem do multwii
  */
-void send_motor_pins()
+void c_common_datapr_multwii_motor_pins()
 {
   headSerialResponse(8, MSP_MOTOR_PINS);
   serialize8(1);
@@ -212,7 +212,7 @@ void send_motor_pins()
  * @param angle2 Angulo do servo direito
  * /Todo existe um problema no angle1
  */
-void send_servos(float angle1,float angle2)
+void c_common_datapr_multwii_servos(float angle1,float angle2)
 {
   headSerialResponse(16,MSP_SERVO);
   serialize16(0);
@@ -232,7 +232,7 @@ void send_servos(float angle1,float angle2)
  * @param forca_esquerdo forca do motor esquerdo
  * @param forca_direito  forca do motor direito
  */
-void send_motor(float forca_esquerdo,float forca_direito)
+void c_common_datapr_multwii_motor(float forca_esquerdo,float forca_direito)
 {
   headSerialResponse(16, MSP_MOTOR);
   serialize32_as16((int)((forca_esquerdo*100)));
@@ -254,7 +254,7 @@ void send_motor(float forca_esquerdo,float forca_direito)
  * @param debug3 debug3
  * @param debug4 debug4
  */
-void send_debug(float debug1,float  debug2,float  debug3,float debug4)
+void c_common_datapr_multwii_debug(float debug1,float  debug2,float  debug3,float debug4)
 {
   headSerialResponse(8, MSP_DEBUG);
   serialize32_as16((int)((debug1)));
@@ -264,6 +264,12 @@ void send_debug(float debug1,float  debug2,float  debug3,float debug4)
   tailSerialReply();
 }
 
+void c_common_datapr_multwii_sendstack(USART_TypeDef* USARTx)
+{
+  for (int i = 0; i <  get_raw_size(); ++i)
+    c_common_usart_putchar(USARTx,multwii_msg[i]);
+  get_raw_String(); // limpa a pilha;
+}
 
 /**
   * @}
