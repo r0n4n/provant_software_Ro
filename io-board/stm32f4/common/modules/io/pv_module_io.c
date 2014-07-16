@@ -161,18 +161,18 @@ void module_io_run()
 		lastWakeTime = xTaskGetTickCount();
 
 		xQueueReceive(pv_interface_io.iActuation, &iActuation, 0);
-		c_common_gpio_toggle(LED_builtin_io);
-		
+
+
 		/// IMU DATA
 		#if 1
-		 	taskENTER_CRITICAL();
+			
+		 	c_common_gpio_toggle(LED_builtin_io);
 		 	c_io_imu_getRaw(accRaw, gyrRaw, magRaw);
-			taskEXIT_CRITICAL();
-
 			c_datapr_MahonyAHRSupdate(attitude_quaternion, velAngular, gyrRaw[0],gyrRaw[1],gyrRaw[2],accRaw[0],accRaw[1],accRaw[2],magRaw[0],magRaw[1],magRaw[2]);
 			//c_datapr_MahonyAHRSupdate(attitude_quaternion,gyrRaw[0],gyrRaw[1],gyrRaw[2],accRaw[0],accRaw[1],accRaw[2],0,0,0);
 			c_io_imu_Quaternion2Euler(attitude_quaternion, rpy);
 			c_io_imu_EulerMatrix(rpy, velAngular);
+			c_common_gpio_toggle(LED_builtin_io);
 
 		#endif
 		/// SERVOS

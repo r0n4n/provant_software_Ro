@@ -1,6 +1,25 @@
-#include "stm32f4xx_conf.h"
+/**
+  ******************************************************************************
+  * @file    modules/datapr/c_datapr_MultWii.h
+  * @author  Patrick José Pereira
+  * @version V1.0.0
+  * @date    16-Jul-2014
+  * @brief   Funções para envio de dados para a interface de do Multwii
+  *****************************************************************************/
 
+/* Define to prevent recursive inclusion -------------------------------------*/
+#ifndef C_DATAPR_MULTWII_H
+#define C_DATAPR_MULTWII_H
+
+/* Includes ------------------------------------------------------------------*/
+#include "stm32f4xx_conf.h"
 #include <math.h>
+
+#ifdef __cplusplus
+ extern "C" {
+#endif
+
+/* Exported constants --------------------------------------------------------*/
 
 /************************************** MultiWii Serial Protocol *******************************************************/
 // Multiwii Serial Protocol 0 
@@ -51,31 +70,26 @@
 #define MSP_DEBUGMSG             253   //out message         debug string buffer
 #define MSP_DEBUG                254   //out message         debug1,debug2,debug3,debug4
 
-
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/************************************************* Serial functions *****************************************************************/
-
+/* Private variables ---------------------------------------------------------*/
 char multwii_msg[1024];
 
+/* Private functions ---------------------------------------------------------*/
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/************************************************* Serial functions *****************************************************************/
 void serialize8(uint8_t a);
-
-
-
 char* get_raw_String();
 void serialize16(int16_t a);
 void serialize32(uint32_t a);
-
 void headSerialResponse(uint8_t size, uint8_t multwii_msg);
 void tailSerialReply();
 /*********************End of serial comm************************************/
+
+/* Exported functions ------------------------------------------------------- */
 /*********************Begin of ... something************************************/
 
 void send_attitude(float x,float y,float z);
 void send_raw_imu(float* acc,float* gyr, float* mag);
-
 int get_raw_size();
-
 void send_altitude(float alt, float vario);
 void send_bicopter_identifier();
 void send_motor_pins();
@@ -83,18 +97,8 @@ void send_motor(float forca_esquerdo,float forca_direito);
 void send_servo(float angle1,float angle2);
 void send_debug(float debug1,float  debug2,float  debug3,float debug4);
 
-/*
-uint8_t read8()  {
-  return inBuf[indRX[CURRENTPORT]++][CURRENTPORT]&0xff;
+#ifdef __cplusplus
 }
-uint16_t read16() {
-  uint16_t t = read8();
-  t+= (uint16_t)read8()<<8;
-  return t;
-}
-uint32_t read32() {
-  uint32_t t = read16();
-  t+= (uint32_t)read16()<<16;
-  return t;
-}
-*/
+#endif
+
+#endif //C_IO_IMU_H
