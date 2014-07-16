@@ -220,7 +220,8 @@ void module_io_run()
 
 			taskENTER_CRITICAL();
 			// 100 iteracoes com a thread periodica de 10ms = 1segundo
-			if (iterations < 500){
+			if (iterations < 500)
+			{
 				c_io_blctrl_setSpeed(0, 10 );
 				c_common_utils_delayus(10);
 				c_io_blctrl_setSpeed(1, 10 );
