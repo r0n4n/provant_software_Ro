@@ -134,8 +134,8 @@ void tailSerialReply()
 void c_common_datapr_multwii_attitude(float x,float y,float z)
 {
   headSerialResponse(6,MSP_ATTITUDE);
-  serialize32_as16(x);
-  serialize32_as16(y);
+  serialize32_as16(x*10);
+  serialize32_as16(y*10);
   serialize32_as16(z);
   tailSerialReply();
 }
