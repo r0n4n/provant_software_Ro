@@ -39,6 +39,7 @@
 
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
+bool ppm;
 char blctrl_buffer[BLCTRL_BUFFER_L][BLCTRL_BUFFER_SIZE]={};  // buffer para a leitura do esc
 I2C_TypeDef* I2Cx_blctrl; // I2C do blctrl
 
@@ -55,7 +56,7 @@ I2C_TypeDef* I2Cx_blctrl; // I2C do blctrl
 
 void c_io_blctrl_init_ppm()
 {
-  #define ppm true
+    ppm=1;
     #ifdef STM32F4_H407
     GPIO_InitTypeDef GPIO_InitStructure;
     TIM_TimeBaseInitTypeDef TIM_TimeBaseInitStruct;
@@ -146,7 +147,7 @@ void c_io_blctrl_init_ppm()
   */
 void c_io_blctrl_init_i2c(I2C_TypeDef* I2Cx)
 {
-  #define ppm false
+  ppm=0;
   I2Cx_blctrl=I2Cx;
 }
 

@@ -95,7 +95,7 @@ void c_common_datapr_multwii_altitude(float alt, float vario);
 void c_common_datapr_multwii_bicopter_identifier();
 void c_common_datapr_multwii_motor_pins();
 void c_common_datapr_multwii_motor(float forca_esquerdo,float forca_direito);
-void c_common_datapr_multwii_servo(float angle1,float angle2);
+void c_common_datapr_multwii_servos(float angle1,float angle2);
 void c_common_datapr_multwii_debug(float debug1,float  debug2,float  debug3,float debug4);
 void c_common_datapr_multwii_sendstack(USART_TypeDef* USARTx);
 

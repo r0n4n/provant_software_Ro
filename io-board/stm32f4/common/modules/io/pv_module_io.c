@@ -111,7 +111,7 @@ void module_io_init()
 }
 
 /** \brief Caso detecte overflow dos ticks do sistema, soma 25565 TODO rever valor */
-long verifyOverflow(deltaT){
+long verifyOverflow(long int deltaT){
 	if (deltaT < 0)
 		deltaT = deltaT + 25565; //Valor que dá overflow - REVER valor
 
@@ -150,7 +150,6 @@ bool trigger = true;
 void module_io_run() 
 {
 	float accRaw[3], gyrRaw[3], magRaw[3];
-	char  ax[16], ay[16], az[16], r[16], p[16], y[16], dr[16], dp[16], dy[16];
 	float rpy[] = {0,0,0,0,0,0};
 	float velAngular[3]={0,0,0};
 	int iterations=0;
@@ -245,7 +244,7 @@ void module_io_run()
 		/// DEBUG
 		#if 1
 	    	// multwii
-	    	#if 1
+	    	#if 0
 
 		    	c_common_datapr_multwii_bicopter_identifier();
 		    	c_common_datapr_multwii_motor_pins();
