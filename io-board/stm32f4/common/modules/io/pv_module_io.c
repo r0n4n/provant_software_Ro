@@ -9,7 +9,6 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "pv_module_io.h"
-#include "../datapr/c_datapr_MahonyAHRS.h"
 
 /** @addtogroup ProVANT_Modules
   * @{
@@ -59,15 +58,16 @@ pv_msg_datapr_sensor_time oSensorTime;
   * @param  None
   * @retval None
   */
-void module_io_init() {
+void module_io_init() 
+{
 	//float accRaw[3], gyrRaw[3], magRaw[3]; // TODO Tirar daqui junto com o init
 
 	/* Inicialização do hardware do módulo */
 	LED_builtin_io = c_common_gpio_init(GPIOD, GPIO_Pin_13, GPIO_Mode_OUT);
-	c_common_i2c_init(I2C3); //esc
+	c_common_i2c_init(I2C3); //esc 
 	c_common_i2c_init(I2C1); //imu
-	//c_common_usart2_init(460800);
-	c_common_usart2_init(115200);
+
+	c_common_usart2_init(460800);
 
 	/* Inicializar do sonar */
 	c_io_sonar_init();
@@ -186,7 +186,7 @@ void module_io_run()
 
 		// set points para os ESCs
 		/// ESCS
-		#if 0
+		#if 1
 /*
 			iActuation.escRightSpeed = 8.0f;
 			iActuation.escLeftSpeed  = 8.0f;
@@ -243,16 +243,34 @@ void module_io_run()
 
 		/// DEBUG
 		#if 1
-	    	send_attitude(10.0f,10.0f,10.0f);
-	    	sprintf(str,get_raw_String());
-	    	c_common_usart_puts(USART2,str);
-	    /*	
-			sprintf(str, "imu -> \t %d \t %d \t %d \t %d \t %d \t %d \t %d\n\r" ,(int)(rpy[PV_IMU_ROLL  ]*RAD_TO_DEG),
-					(int)(rpy[PV_IMU_PITCH  ]*RAD_TO_DEG), (int)(rpy[PV_IMU_YAW  ]*RAD_TO_DEG), (int)(rpy[PV_IMU_DROLL  ]*RAD_TO_DEG),
-					(int)(rpy[PV_IMU_DPITCH  ]*RAD_TO_DEG), (int)(rpy[PV_IMU_DYAW  ]*RAD_TO_DEG), iterations);
-			
-			c_common_usart_puts(USART2, str);
-		*/
+	    	#if 1
+		    	send_bicopter_identifier();
+		    	send_motor_pins();
+		    	send_motor(iActuation.escLeftSpeed+2,iActuation.escRightSpeed+2);
+		    	send_attitude(rpy[PV_IMU_ROLL  ]*RAD_TO_DEG, rpy[PV_IMU_PITCH  ]*RAD_TO_DEG, rpy[PV_IMU_YAW  ]*RAD_TO_DEG );
+		    	arm_scale_f32(accRaw,RAD_TO_DEG,accRaw,3);
+		    	arm_scale_f32(gyrRaw,RAD_TO_DEG,gyrRaw,3);
+		    	send_raw_imu(accRaw,gyrRaw,magRaw);
+		    	send_servos((iActuation.servoLeft*RAD_TO_DEG),(iActuation.servoRight*RAD_TO_DEG));
+		    	send_debug(iActuation.escLeftSpeed,iActuation.escRightSpeed,iActuation.servoLeft*RAD_TO_DEG,iActuation.servoLeft*RAD_TO_DEG);
+
+		    	int zize = get_raw_size();
+		    	sprintf(str,get_raw_String());
+		    	
+		    	//c_common_usart_puts(USART2,str);
+		    	for (int i = 0; i < zize; ++i)
+		    	{
+		    		c_common_usart_putchar(USART2,multwii_msg[i]);
+		    	}
+	    	#else
+	    	 	
+				sprintf(str, "imu -> \t %d \t %d \t %d \t %d \t %d \t %d \t %d\n\r" ,(int)(rpy[PV_IMU_ROLL  ]*RAD_TO_DEG),
+				(int)(rpy[PV_IMU_PITCH  ]*RAD_TO_DEG), (int)(rpy[PV_IMU_YAW  ]*RAD_TO_DEG), (int)(rpy[PV_IMU_DROLL  ]*RAD_TO_DEG),
+				(int)(rpy[PV_IMU_DPITCH  ]*RAD_TO_DEG), (int)(rpy[PV_IMU_DYAW  ]*RAD_TO_DEG), iterations);
+
+				c_common_usart_puts(USART2, str);
+				
+			#endif
 		#endif
 
 		/// DADOS OUT
@@ -282,4 +300,6 @@ void module_io_run()
 /**
   * @}
   */
+
+
 

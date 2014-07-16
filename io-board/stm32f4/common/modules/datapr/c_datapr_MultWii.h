@@ -56,6 +56,8 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /************************************************* Serial functions *****************************************************************/
 
+char multwii_msg[1024];
+
 void serialize8(uint8_t a);
 
 
@@ -72,9 +74,15 @@ void tailSerialReply();
 void send_attitude(float x,float y,float z);
 void send_raw_imu(float* acc,float* gyr, float* mag);
 
-
+int get_raw_size();
 
 void send_altitude(float alt, float vario);
+void send_bicopter_identifier();
+void send_motor_pins();
+void send_motor(float forca_esquerdo,float forca_direito);
+void send_servo(float angle1,float angle2);
+void send_debug(float debug1,float  debug2,float  debug3,float debug4);
+
 /*
 uint8_t read8()  {
   return inBuf[indRX[CURRENTPORT]++][CURRENTPORT]&0xff;
