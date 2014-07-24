@@ -163,7 +163,7 @@ void module_io_run()
 
 
 		/// IMU DATA
-		#if 1
+		#if 0
 			
 		 	c_common_gpio_toggle(LED_builtin_io);
 		 	c_io_imu_getRaw(accRaw, gyrRaw, magRaw);
@@ -185,7 +185,7 @@ void module_io_run()
 
 		// set points para os ESCs
 		/// ESCS
-		#if 1
+		#if 0
 /*
 			iActuation.escRightSpeed = 8.0f;
 			iActuation.escLeftSpeed  = 8.0f;
@@ -243,7 +243,7 @@ void module_io_run()
     	#endif
 
 		/// DEBUG
-		#if 1
+		#if 0
 	    	// multwii
 	    	#if 0
 
@@ -261,9 +261,10 @@ void module_io_run()
 	    	#else  
 	    	// serial
 	    	 	
-				sprintf(str, "imu ->%d %d-%d \t %d \t %d \t %d \t %d \t %d \t %d \t %d \t %d\n\r" ,(int)c_io_sonar_read(),c_io_blctrl_readSpeed(1),c_io_blctrl_read(1,3),patrick*10, (int)(rpy[PV_IMU_ROLL  ]*RAD_TO_DEG),
-				(int)(rpy[PV_IMU_PITCH  ]*RAD_TO_DEG), (int)(rpy[PV_IMU_YAW  ]*RAD_TO_DEG), (int)(rpy[PV_IMU_DROLL  ]*RAD_TO_DEG),
-				(int)(rpy[PV_IMU_DPITCH  ]*RAD_TO_DEG), (int)(rpy[PV_IMU_DYAW  ]*RAD_TO_DEG), iterations);
+				sprintf(str, "OUT ->%d\t%d\t%d\t%d\n\r" ,
+				(int)(iActuation.escLeftSpeed),(int)(iActuation.escRightSpeed),
+				(int)(iActuation.servoLeft),(int)(iActuation.servoRight));
+				
 
 				c_common_usart_puts(USART2, str);
 				
