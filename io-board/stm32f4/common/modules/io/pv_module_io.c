@@ -163,7 +163,7 @@ void module_io_run()
 
 
 		/// IMU DATA
-		#if 0
+		#if 1
 			
 		 	c_common_gpio_toggle(LED_builtin_io);
 		 	c_io_imu_getRaw(accRaw, gyrRaw, magRaw);
@@ -185,7 +185,7 @@ void module_io_run()
 
 		// set points para os ESCs
 		/// ESCS
-		#if 0
+		#if 1
 /*
 			iActuation.escRightSpeed = 8.0f;
 			iActuation.escLeftSpeed  = 8.0f;
@@ -227,10 +227,12 @@ void module_io_run()
 			}
 			else
 			{
+				
 				c_io_blctrl_setSpeed(0, 15 );
 				c_common_utils_delayus(10);
 				c_io_blctrl_setSpeed(1, 15 );
 				c_io_blctrl_updateBuffer(1);
+				
 			}
 			//taskEXIT_CRITICAL();
 		#endif
@@ -243,9 +245,9 @@ void module_io_run()
     	#endif
 
 		/// DEBUG
-		#if 0
+		#if 1
 	    	// multwii
-	    	#if 0
+	    	#if 1
 
 		    	c_common_datapr_multwii_bicopter_identifier();
 		    	c_common_datapr_multwii_motor_pins();
@@ -261,9 +263,9 @@ void module_io_run()
 	    	#else  
 	    	// serial
 	    	 	
-				sprintf(str, "OUT ->%d\t%d\t%d\t%d\n\r" ,
-				(int)(iActuation.escLeftSpeed),(int)(iActuation.escRightSpeed),
-				(int)(iActuation.servoLeft),(int)(iActuation.servoRight));
+				sprintf(str, "OUT ->%d\t%d\t%d\n\r",
+					(int)(rpy[PV_IMU_ROLL  ]*RAD_TO_DEG), (int)(rpy[PV_IMU_PITCH  ]*RAD_TO_DEG), (int)(rpy[PV_IMU_YAW  ]*RAD_TO_DEG));
+				
 				
 
 				c_common_usart_puts(USART2, str);

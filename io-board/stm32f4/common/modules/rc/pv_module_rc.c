@@ -110,10 +110,10 @@ void module_rc_run() {
       oActuation.servoLeft = -oActuation.servoLeft;
 
       // Modulando sinal do ESC para testes
-      oActuation.escLeftSpeed  = c_rc_receiver_getChannel(C_RC_CHANNEL_THROTTLE);
-      oActuation.escRightSpeed = c_rc_receiver_getChannel(C_RC_CHANNEL_ROLL);
-      oActuation.servoLeft = c_rc_receiver_getChannel(C_RC_CHANNEL_PITCH);
-      oActuation.servoRight = c_rc_receiver_getChannel(C_RC_CHANNEL_YAW);
+      //oActuation.escLeftSpeed  = c_rc_receiver_getChannel(C_RC_CHANNEL_THROTTLE);
+      //oActuation.escRightSpeed = c_rc_receiver_getChannel(C_RC_CHANNEL_ROLL);
+      //oActuation.servoLeft = c_rc_receiver_getChannel(C_RC_CHANNEL_PITCH);
+      //oActuation.servoRight = c_rc_receiver_getChannel(C_RC_CHANNEL_YAW);
 
     #endif
     
@@ -129,7 +129,7 @@ void module_rc_run() {
     /// Receiver control
     #endif
 
-    #if 1
+    #if 0
       char str[356]={};
       sprintf(str, "-----------------------------\n\rTHROTTLE: %d\n\rROLL: %d\n\rPITCH: %d\n\rYAW: %d\n\rA: %d\n\rB: %d,\n\rVR: %d\n\r" ,
       (int)c_rc_receiver_getChannel(C_RC_CHANNEL_THROTTLE),(int)c_rc_receiver_getChannel(C_RC_CHANNEL_ROLL),(int)c_rc_receiver_getChannel(C_RC_CHANNEL_PITCH),(int)c_rc_receiver_getChannel(C_RC_CHANNEL_YAW),(int)c_rc_receiver_getChannel(C_RC_CHANNEL_A),(int)c_rc_receiver_getChannel(C_RC_CHANNEL_B),(int)c_rc_receiver_getChannel(C_RC_CHANNEL_VR));
