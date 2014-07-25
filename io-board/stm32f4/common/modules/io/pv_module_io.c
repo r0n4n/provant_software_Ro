@@ -221,22 +221,18 @@ void module_io_run()
 			// 100 iteracoes com a thread periodica de 10ms = 1segundo
 			if (iterations < 500)
 			{
-				//c_io_blctrl_setSpeed(0, 10 );
-				c_common_utils_delayus(10);
 				c_io_blctrl_setSpeed(0, 10 );
+				c_common_utils_delayus(10);
+				c_io_blctrl_setSpeed(1, 10 );
 			}
 			else
 			{
-				if(iterations>1000)
-				{
-					//iterations=500;
-					c_io_blctrl_setSpeed(0, 180 );
-				}
-				else
-					c_io_blctrl_setSpeed(0, 90 );
+				
+				c_io_blctrl_setSpeed(0, 15 );
 				c_common_utils_delayus(10);
-				//c_io_blctrl_setSpeed(0, 15 );
-				c_io_blctrl_updateBuffer(0);
+				c_io_blctrl_setSpeed(1, 15 );
+				c_io_blctrl_updateBuffer(1);
+				
 			}
 			//taskEXIT_CRITICAL();
 		#endif
@@ -251,7 +247,7 @@ void module_io_run()
 		/// DEBUG
 		#if 1
 	    	// multwii
-	    	#if 0
+	    	#if 1
 
 		    	c_common_datapr_multwii_bicopter_identifier();
 		    	c_common_datapr_multwii_motor_pins();
@@ -267,9 +263,10 @@ void module_io_run()
 	    	#else  
 	    	// serial
 	    	 	
-				sprintf(str, "imu -> %d-(%d-%d-%d) ->%d \t %d \t %d \t %d \t %d \t %d \t %d \t %d\n\r" ,c_io_blctrl_readSpeed(0),c_io_blctrl_read(0,2),c_io_blctrl_read(0,3),c_io_blctrl_read(0,4),patrick*10, (int)(rpy[PV_IMU_ROLL  ]*RAD_TO_DEG),
-				(int)(rpy[PV_IMU_PITCH  ]*RAD_TO_DEG), (int)(rpy[PV_IMU_YAW  ]*RAD_TO_DEG), (int)(rpy[PV_IMU_DROLL  ]*RAD_TO_DEG),
-				(int)(rpy[PV_IMU_DPITCH  ]*RAD_TO_DEG), (int)(rpy[PV_IMU_DYAW  ]*RAD_TO_DEG), iterations);
+				sprintf(str, "OUT ->%d\t%d\t%d\n\r",
+					(int)(rpy[PV_IMU_ROLL  ]*RAD_TO_DEG), (int)(rpy[PV_IMU_PITCH  ]*RAD_TO_DEG), (int)(rpy[PV_IMU_YAW  ]*RAD_TO_DEG));
+				
+				
 
 				c_common_usart_puts(USART2, str);
 				
