@@ -97,6 +97,13 @@ void serialize32(uint32_t a)
   serialize8((a>>24) & 0xFF);
 }
 
+void serializeFloat(float x)
+{
+  char * b = (char *) &x;
+  for (int i = 0; i < 4; ++i)
+    serialize8(b[i]);
+}
+
 /**
  * Monta o header da mensagem.
  * @param size        tamanho da mensagem em bytes.
@@ -261,6 +268,54 @@ void c_common_datapr_multwii_debug(float debug1,float  debug2,float  debug3,floa
   serialize32_as16((int)((debug2)));
   serialize32_as16((int)((debug3)));
   serialize32_as16((int)((debug4)));
+  tailSerialReply();
+}
+
+void c_common_datapr_multwii2_sendEscdata(int rpm[2],float current[2],float voltage[2])
+{
+  headSerialResponse(20, MSP_ESCDATA);
+  for (int i = 0; i < 2; ++i)
+  {  
+        serialize16(rpm[i]);
+        serializeFloat(current[i]);
+        serializeFloat(voltage[i]);
+  }
+  tailSerialReply();
+}
+
+void c_common_datapr_multwii2_rcNormalize(int channel[7])
+{
+  headSerialResponse(2*7, MSP_RCNORMALIZE);
+  for (int i = 0; i < 7; ++i)
+  {  
+        serialize16(channel[i]);
+  }
+  tailSerialReply();
+}
+
+void sendControldatain(float rpy[3],float drpy[3],float position[3],float velocity[3])
+{
+  headSerialResponse(48, MSP_CONTROLDATAIN);
+  for (int i = 0; i < 3; ++i)
+    serializeFloat(rpy[i]);
+  for (int i = 0; i < 3; ++i)
+    serializeFloat(drpy[i]);
+  for (int i = 0; i < 3; ++i)
+    serializeFloat(position[i]);
+  for (int i = 0; i < 3; ++i)
+    serializeFloat(velocity[i]);
+  tailSerialReply();
+}
+
+void sendControldataout(float servo[2],float esc[4])
+{
+  headSerialResponse(24, MSP_CONTROLDATAOUT);
+  serializeFloat(servo[0]);
+  serializeFloat(esc[0]);
+  serializeFloat(esc[1]);
+  serializeFloat(servo[1]);
+  serializeFloat(esc[2]);
+  serializeFloat(esc[3]);
   tailSerialReply();
 }
 
