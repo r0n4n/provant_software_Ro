@@ -185,7 +185,7 @@ void module_io_run()
 
 		// set points para os ESCs
 		/// ESCS
-		#if 0
+		#if 1
 /*
 			iActuation.escRightSpeed = 8.0f;
 			iActuation.escLeftSpeed  = 8.0f;
@@ -231,7 +231,7 @@ void module_io_run()
 				c_io_blctrl_setSpeed(0, 15 );
 				c_common_utils_delayus(10);
 				c_io_blctrl_setSpeed(1, 15 );
-				c_io_blctrl_updateBuffer(1);
+				//c_io_blctrl_updateBuffer(1);
 				
 			}
 			//taskEXIT_CRITICAL();

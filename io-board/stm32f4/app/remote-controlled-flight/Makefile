@@ -24,35 +24,37 @@ MCU   = cortex-m4
 BOARD =-DSTM32F4_DISCOVERY
 
 # path, root and common dir
-PRJDIR := $(shell pwd)
-PATH   := ${PATH}:$(PRJDIR)
-COMMON := $(PRJDIR)/../common
+APPDIR := $(shell pwd)
+PATH   := ${PATH}:$(APPDIR)
+BASE   := $(APPDIR)/../../base
+CORE   := $(APPDIR)/../../core
 
 # project directories
-OUTDIR       := $(PRJDIR)/bin
-MODDIR       := $(COMMON)/modules
-INCDIR       := $(PRJDIR)/inc
-LIBDIR       := $(PRJDIR)/../lib
+OUTDIR       := $(APPDIR)/bin
+INCDIR       := $(APPDIR)/inc
+HALDIR		 := $(BASE)/hal
+MODDIR       := $(BASE)/modules
+LIBDIR       := $(BASE)/lib
+FSMDIR       := $(BASE)/fsm
 
-# modules 
-MODULES	      = $(MODDIR)/common
-MODULES	     += $(MODDIR)/rc
-MODULES	     += $(MODDIR)/io
-MODULES      += $(MODDIR)/datapr
+# Modules
+MODULES += $(BASE)/modules/rc
+MODULES += $(BASE)/modules/io
+MODULES += $(BASE)/modules/datapr
 
 # CMSIS Device Drivers directory
-CMSISDIR     := $(LIBDIR)/cmsis
+CMSISDIR     := $(CORE)/cmsis
 CMSISSRCDIR  := $(CMSISDIR)/src
 CMSISINCDIR  := $(CMSISDIR)/inc
 
 # CMSIS DSP directory
-DSPDIR 		:= $(PRJDIR)/../../lib/DSP_Lib
+DSPDIR 		:= $(CORE)/DSP_Lib
 DSPSRC		:= $(DSPDIR)/Source
 DSPLIB		:= $(DSPDIR)/Lib/GCC
 DSPINC		:= $(DSPSRC)/*
 
 # FreeRTOS directories
-FRTDIR    := $(LIBDIR)/FreeRTOSV7.5.2/FreeRTOS
+FRTDIR    := $(BASE)/FreeRTOSV7.5.2/FreeRTOS
 FRTSRCDIR := $(FRTDIR)/Source
 FRTINCDIR := $(FRTSRCDIR)/include
 FRTMEMDIR := $(FRTSRCDIR)/portable/MemMang/
@@ -60,22 +62,31 @@ FRTPORDIR := $(FRTSRCDIR)/portable/GCC/ARM_CM4F
 
 # C source files
 
-#modules
-C_SRC += $(PRJDIR)/main.c
-C_SRC += $(COMMON)/system/*.c
-C_SRC += $(MODDIR)/rc/*.c
-C_SRC += $(MODDIR)/io/*.c
-C_SRC += $(MODDIR)/datapr/*.c
-C_SRC += $(MODDIR)/common/*.c
-#dsp
+# Application sources
+C_SRC += $(APPDIR)/main.c
+C_SRC += $(APPDIR)/*.c
+
+# System, HAL and Modules
+C_SRC += $(CORE)/system/*.c
+C_SRC += $(BASE)/hal/*.c
+C_SRC += $(BASE)/modules/rc/*.c
+C_SRC += $(BASE)/modules/io/*.c
+C_SRC += $(BASE)/modules/datapr/*.c
+
+# Libraries 
+C_SRC += $(BASE)/lib/provant/*.c
+
+# DSP
 #C_SRC += $(DSPSRC)/*/*.c
-#freertos
+
+# FreeRTOS
 C_SRC += $(FRTSRCDIR)/list.c 
 C_SRC += $(FRTSRCDIR)/queue.c 
 C_SRC += $(FRTSRCDIR)/tasks.c 
 C_SRC += $(FRTSRCDIR)/timers.c 
 C_SRC += $(FRTPORDIR)/port.c  
 C_SRC += $(FRTMEMDIR)/heap_2.c
+
 # FreeRTOS+Trace
 C_SRC += $(LIBDIR)/trace/*.c
 
@@ -88,9 +99,10 @@ A_SRC =
 DOXYGEN = doxygen
 
 # include directories
-INCDIRS = $(INCDIR) $(LIBDIR) $(MODULES) $(COMMON)/system 							\
-	  	  $(CMSISDIR) $(CMSISINCDIR) $(CMSISINCDIR)/peripherals $(CMSISINCDIR)/core \
-	  	  $(FRTINCDIR) $(FRTPORDIR)													\
+INCDIRS = $(INCDIR) $(LIBDIR) $(MODULES) $(APPDIR) $(LIBDIR)/provant $(LIBDIR)/trace \
+	      $(BASE)/lib $(BASE)/fsm $(BASE)/hal $(CORE)/system  						 \
+	  	  $(CMSISDIR) $(CMSISINCDIR) $(CMSISINCDIR)/peripherals $(CMSISINCDIR)/core  \
+	  	  $(FRTINCDIR) $(FRTPORDIR)													 \
 	  	  $(LIBDIR)/trace/config $(LIBDIR)/trace/inc $(DSPINC)		 						
 
 # add startup file to build
@@ -103,7 +115,7 @@ OBJDUMP = $(TOOLCHAIN_PREFIX)objdump
 NM      = $(TOOLCHAIN_PREFIX)nm
 
 # compiler flags
-CFLAGS  = -g -T$(COMMON)/system/stm32_flash.ld 
+CFLAGS  = -g -T$(CORE)/system/stm32_flash.ld 
 CFLAGS += -mlittle-endian -mthumb -mcpu=$(MCU) -mthumb-interwork
 CFLAGS += -mfloat-abi=hard -mfpu=fpv4-sp-d16
 CFLAGS += -I. $(patsubst %,-I%,$(INCDIRS))
@@ -134,7 +146,7 @@ all: directories lib proj
 	$(CC) $(CFLAGS) -c -o $@ $^
 
 doc:
-	cd $(PRJDIR)/doc && $(DOXYGEN)
+	cd $(APPDIR)/doc && $(DOXYGEN) Doxyfile
 	cd ..
 
 directories:
