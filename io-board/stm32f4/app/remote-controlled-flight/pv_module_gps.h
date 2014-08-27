@@ -36,3 +36,5 @@ void module_gps_run();
 #ifdef __cplusplus
 }
 #endif
+
+#endif
