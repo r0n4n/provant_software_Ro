@@ -1,9 +1,9 @@
 /**
   ******************************************************************************
-  * @file    main/main.c
+  * @file    app/remote-controlled-flight/main.c
   * @author  Martin Vincent Bloedorn & Patrick José Pereira
   * @version V1.0.0
-  * @date    30-November-2013
+  * @date    27-August-2014
   * @brief   Startup do projeto.
   * @warning Modificar os arquivos 
     provant-software/io-board/stm32f4/common/modules/common/stm32f4xx_conf.h
@@ -16,7 +16,6 @@
   *	TODO
   *
   *****************************************************************************/
-
 /* Includes ------------------------------------------------------------------*/
 
 /* Std includes */
@@ -40,8 +39,9 @@
 #include "trcUser.h"
 
 /* ProVANT Modules */
-#include "pv_module_rc.h"
-#include "pv_module_io.h"
+#include "pv_module_co.h"
+#include "pv_module_in.h"
+#include "pv_module_do.h"
 
 /* Common Components, FOR TESTING */
 #include "c_common_gpio.h"
@@ -103,16 +103,22 @@ void blink_led_task(void *pvParameters)
     }
 }
 
-// Module RC task
-void module_rc_task(void *pvParameters)
+// Module control output task
+void module_co_task(void *pvParameters)
 {
-	module_rc_run();
+	module_co_run();
 }
 
-// Module IO taske
-void module_io_task(void *pvParameters)
+// Module input taske
+void module_in_task(void *pvParameters)
 {
-	module_io_run();
+	module_in_run();
+}
+
+// Module data out taske
+void module_do_task(void *pvParameters)
+{
+  module_do_run();
 }
 
 /* Main ----------------------------------------------------------------------*/
@@ -128,22 +134,20 @@ int main(void)
 		vTraceConsoleMessage("Could not start recorder!");
 
 	/* Init modules */
-	module_io_init(); //IO precisa ser inicializado antes de outros.
-	module_rc_init();
+	module_in_init(); 
+	module_co_init();
+  module_do_init();
 
-	/* Connect modules: interface1.o* = interface2.i* */
-	pv_interface_io.oAttitude  = pv_interface_rc.iAttitude;
-	pv_interface_rc.oActuation = pv_interface_io.iActuation;
-	pv_interface_io.oSensorTime = pv_interface_rc.iSensorTime;
-
-	c_common_usart_puts(USART2, "Iniciando!\n\r");
+  /* Connect modules: interface1.o* = interface2.i* */
+  pv_interface_do.iInputData  = pv_interface_in.oInputData;
 
 	/* create tasks
 	 * Prioridades - quanto maior o valor, maior a prioridade
 	 * */
 	xTaskCreate(blink_led_task, (signed char *)"Blink led", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+1, NULL);
-	xTaskCreate(module_rc_task, (signed char *)"module_rc", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+2, NULL);
-	xTaskCreate(module_io_task, (signed char *)"module_io", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+3, NULL);
+  xTaskCreate(module_do_task, (signed char *)"Data out", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+1, NULL);
+	//xTaskCreate(module_rc_task, (signed char *)"module_rc", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+2, NULL);
+	xTaskCreate(module_in_task, (signed char *)"Data input", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+3, NULL);
 
 	//xTaskCreate(sonar_task, (signed char *)"Sonar task", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+1, NULL);
 

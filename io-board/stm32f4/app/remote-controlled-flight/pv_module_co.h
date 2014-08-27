@@ -1,15 +1,15 @@
 /**
   ******************************************************************************
-  * @file    app/remote-controlled-flight/pv_module_do.h
-  * @author  Patrick Jose Pereira
+  * @file    modules/rc/pv_module_rc.h
+  * @author  Martin Vincent Bloedorn
   * @version V1.0.0
-  * @date    27-August-2014
-  * @brief   Implementação do módulo de transmissao de dados para fora do ARM.
-  ******************************************************************************/
+  * @date    30-November-2013
+  * @brief   Definição do módulo de controle e comunicação via rádio manual.
+  *****************************************************************************/
 
-  /* Define to prevent recursive inclusion -------------------------------------*/
-#ifndef PV_MODULE_DO_H
-#define PV_MODULE_DO_H
+/* Define to prevent recursive inclusion -------------------------------------*/
+#ifndef PV_MODULE_RC_H
+#define PV_MODULE_RC_H
 
 #ifdef __cplusplus
  extern "C" {
@@ -24,29 +24,22 @@
 
 /* proVANT includes */
 #include "c_common_gpio.h"
-#include "c_common_i2c.h"
-#include "c_common_uart.h"
-#include "c_common_utils.h"
-#include "pv_typedefs.h"
-#include "c_io_imu.h"
+#include "c_rc_control.h"
+#include "c_rc_receiver.h"
 
 #include "pv_typedefs.h"
-#include "c_datapr_MultWii.h"
 
 /* Exported types ------------------------------------------------------------*/
-struct pv_interface_do 
-{
-  xQueueHandle iInputData;  
-} pv_interface_do;
+
 /* Exported constants --------------------------------------------------------*/
 /* Exported macro ------------------------------------------------------------*/
 
 /* Exported functions ------------------------------------------------------- */
-void module_do_init();
-void module_do_run();
+void module_co_init();
+void module_co_run();
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif 
+#endif //PV_MODULE_RC_H

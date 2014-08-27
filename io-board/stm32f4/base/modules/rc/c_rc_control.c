@@ -9,6 +9,28 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "c_rc_control.h"
+////////////////////////////// para testes
+typedef struct {
+	float IMU_sample_time; //tempo entre uma aquisicão de dado e outra. Utilizado para integracão. Valor variável.
+} pv_msg_datapr_sensor_time;
+
+typedef struct {
+	float x, y, z;
+	float dotX, dotY, dotZ;
+} pv_msg_datapr_position;
+
+typedef struct {
+	float roll, pitch, yaw;
+	float dotRoll, dotPitch, dotYaw;
+} pv_msg_datapr_attitude;
+
+typedef struct {
+	bool  servoTorqueControlEnable;
+	float servoLeft;
+	float servoRight;
+	float escRightSpeed;
+	float escLeftSpeed;
+} pv_msg_io_actuation;
 
 /** @addtogroup Module_RC
   * @{

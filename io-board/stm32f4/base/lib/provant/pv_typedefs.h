@@ -31,19 +31,98 @@
 
 /* Includes ------------------------------------------------------------------*/
 /* Exported types ------------------------------------------------------------*/
-
 /** \brief Um par de floats. */
-typedef struct {
-	int channel[8];
-} pv_type_receiverChannels;
+typedef struct
+{
+	float accRaw[3];
+  float gyrRaw[3];
+  float magRaw[3];
+  float temp;
+  unsigned int  sampleTime;
+} pv_type_imuOutput;
+
+/** \brief Informações dos dados do controle remoto.*/
+typedef struct 
+{
+  int  joystick[4];
+  unsigned int vrPot;
+  bool aButton;
+  bool bButton;
+  unsigned int  sampleTime;
+} pv_type_receiverOutput;
+
+/** \brief Informações do sonar*/
+typedef struct 
+{
+  float altitude;
+  unsigned int  sampleTime;
+} pv_type_sonarOutput;
 
 /** \brief Tipo do ESC com informações.*/
-typedef struct {
+typedef struct 
+{
 	char  ID;
 	float angularSpeed;
 	float current;
-	float tension;
-} pv_type_io_esc;
+	float voltage;
+  float rpm;
+  unsigned int  sampleTime;
+} pv_type_escOutput;
+
+/** \brief Dados do servo*/
+typedef struct 
+{
+  char  ID;
+  float angularSpeed;
+  float angle;
+  float torque;
+  float rpm;
+  unsigned int  sampleTime;
+} pv_type_servoOutput;
+
+/** \brief Estrutura para orientação do VANT.*/
+typedef struct
+{
+  float roll, pitch, yaw;
+  float dotRoll, dotPitch, dotYaw;
+} pv_type_datapr_attitude;
+
+/** \brief Estrutura para dados de atuação.*/
+typedef struct
+{
+  float servoTorque[2];
+  float servoPsition[2];
+  float escTorque[2];
+  float escRpm[2];
+} pv_type_actuation;
+
+/** \brief Estrutura para dados de comportamento.*/
+typedef struct
+{
+  float rpy[2];
+  float drpy[2];
+  float x,y,z;
+  float position[2];
+  float dposition[2];
+} pv_type_vantBehavior;
+
+/** \brief Estrutura para dados de comportamento.*/
+typedef struct
+{
+  int timeStamp;
+  bool validity;
+  float lat;
+  bool latDirection;
+  float lon;
+  bool lonDirection;
+  float speedOverGround;
+  float trueCourse;
+  int dateStamp;
+  float variation;
+  bool variationDirection;
+  char ModeIndicator;
+  unsigned int sampleTime;
+} pv_type_gpsOutput;
 
 /* Exported messages ---------------------------------------------------------*/
 
@@ -54,31 +133,39 @@ typedef struct {
  * IO automaticamente alternará entre referências de ângulo para torque se a flag
  *  \b servoTorqueControlEnable estiver setada.
  */
-typedef struct {
-	bool  servoTorqueControlEnable;
-	float servoLeft;
-	float servoRight;
-	float escRightSpeed;
-	float escLeftSpeed;
-} pv_msg_io_actuation;
 
-/** \brief Estrutura de para orientação do VANT.*/
-typedef struct {
-	float roll, pitch, yaw;
-	float dotRoll, dotPitch, dotYaw;
-} pv_msg_datapr_attitude;
+/** \brief Estrutura de mensagem de saida da estrutura thread input.*/
+typedef struct
+{
+  pv_type_imuOutput       imuOutput;
+  pv_type_receiverOutput  receiverOutput;
+  pv_type_sonarOutput     sonarOutput;
+  pv_type_escOutput       escOutput;
+  pv_type_servoOutput     servoOutput;
+  pv_type_datapr_attitude attitude;
+  unsigned int heartBeat;
+} pv_msg_input;
 
-/** \brief Estrutura de para posição do VANT.*/
-typedef struct {
-	float x, y, z;
-	float dotX, dotY, dotZ;
-} pv_msg_datapr_position;
+/** \brief Estrutura de mensagem de saida da estrutura thread de controle.*/
+typedef struct
+{
+  pv_type_actuation    actuation;
+  pv_type_vantBehavior vantBehavior;
+  unsigned int heartBeat;
+} pv_msg_controlOutput;
 
-/** \brief Estrutura para informacões relativos a tempo dos sensores*/
-typedef struct {
-	float IMU_sample_time; //tempo entre uma aquisicão de dado e outra. Utilizado para integracão. Valor variável.
-} pv_msg_datapr_sensor_time;
+/** \brief Estrutura de mensagem de saida da estrutura thread de gps.*/
+typedef struct
+{
+  pv_type_gpsOutput gpsOutput;
+  unsigned int heartBeat;
+} pv_msg_gps;
 
+/** \brief Estrutura de mensagem de saida da estrutura thread de state machine.*/
+typedef struct
+{
+  unsigned int heartBeat;
+} pv_msg_sm;
 
 /* Exported constants --------------------------------------------------------*/
 /* Exported macro ------------------------------------------------------------*/

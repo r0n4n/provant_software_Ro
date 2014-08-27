@@ -24,9 +24,12 @@
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
 #define MODULE_PERIOD	   100//ms
-
+#define USART_BAUDRATE     460800
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
+portTickType lastWakeTime;
+unsigned int heartBeat=0;
+pv_msg_input iInputData;
 /* Private function prototypes -----------------------------------------------*/
 /* Private functions ---------------------------------------------------------*/
 /* Exported functions definitions --------------------------------------------*/
@@ -39,6 +42,9 @@
   */
 void module_do_init() 
 {
+	c_common_usart2_init(USART_BAUDRATE);
+
+	pv_interface_do.iInputData  = xQueueCreate(1, sizeof(pv_msg_input));
 }
 
 /** \brief Função principal do módulo de data out.
@@ -48,6 +54,17 @@ void module_do_init()
   */
 void module_do_run()
 {
+	while(1)
+	{
+		lastWakeTime = xTaskGetTickCount();
+		heartBeat++;
+		xQueueReceive(pv_interface_do.iInputData, &iInputData, 0);
+
+		c_common_datapr_multwii_debug(heartBeat,iInputData.imuOutput.accRaw[0]*1000,3,4);
+		c_common_datapr_multwii_sendstack(USART2);
+
+		vTaskDelayUntil( &lastWakeTime, (MODULE_PERIOD / portTICK_RATE_MS));
+	}
 }
 /* IRQ handlers ------------------------------------------------------------- */
 
