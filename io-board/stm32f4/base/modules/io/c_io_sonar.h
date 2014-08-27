@@ -26,11 +26,11 @@
 #endif
 
 /* Definitions----------------------------------------------------------------*/
-#define SERIAL 1 //change serial or analog read
 /* Exported types ------------------------------------------------------------*/
 /* Exported constants --------------------------------------------------------*/
+#define SONAR_SERIAL 0
 /* Exported macro ------------------------------------------------------------*/
-
+/* Exported variables---------------------------------------------------------*/
 /* Exported functions ------------------------------------------------------- */
 void c_io_sonar_init();
 float  c_io_sonar_read();

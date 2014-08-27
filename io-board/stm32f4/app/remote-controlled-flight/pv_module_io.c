@@ -163,7 +163,7 @@ void module_io_run()
 
 
 		/// IMU DATA
-		#if 1
+		#if 0
 			
 		 	c_common_gpio_toggle(LED_builtin_io);
 		 	c_io_imu_getRaw(accRaw, gyrRaw, magRaw);
@@ -175,7 +175,7 @@ void module_io_run()
 
 		#endif
 		/// SERVOS
-		#if 1
+		#if 0
 			if( (iActuation.servoRight*RAD_TO_DEG<70) && (iActuation.servoRight*RAD_TO_DEG>-70) )
 				c_io_rx24f_move(2, 150+iActuation.servoRight*RAD_TO_DEG);
 			if( (iActuation.servoLeft*RAD_TO_DEG<70) && (iActuation.servoLeft*RAD_TO_DEG>-70) )
@@ -185,7 +185,7 @@ void module_io_run()
 
 		// set points para os ESCs
 		/// ESCS
-		#if 1
+		#if 0
 /*
 			iActuation.escRightSpeed = 8.0f;
 			iActuation.escLeftSpeed  = 8.0f;
@@ -256,7 +256,8 @@ void module_io_run()
 		    	arm_scale_f32(gyrRaw,RAD_TO_DEG,gyrRaw,3);
 		    	c_common_datapr_multwii_raw_imu(accRaw,gyrRaw,magRaw);
 		    	c_common_datapr_multwii_servos((iActuation.servoLeft*RAD_TO_DEG),(iActuation.servoRight*RAD_TO_DEG));
-		    	c_common_datapr_multwii_debug(iterations,iActuation.escRightSpeed,iActuation.servoLeft*RAD_TO_DEG,iActuation.servoLeft*RAD_TO_DEG);
+		    	int teste_sonar = (int)c_io_sonar_read();
+		    	c_common_datapr_multwii_debug(iterations,teste_sonar,iActuation.servoLeft*RAD_TO_DEG,iActuation.servoLeft*RAD_TO_DEG);
 		    	int rpm_teste[2]={4000,4100};
 		    	float current_teste[2]={13.5,17.9};
 		    	float voltage_teste[2]={14.5,14.9};
