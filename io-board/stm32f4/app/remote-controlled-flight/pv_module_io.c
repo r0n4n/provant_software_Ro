@@ -31,9 +31,7 @@
 /* Private variables ---------------------------------------------------------*/
 portTickType lastWakeTime;
 //long last_IMU_time=0; /** Último valor do SysTick quando a função de leitura da IMU foi executada - para integracão numérica */
-bool first_pv_io = true; // Primeira iteracao do codigo
 char str[256];
-int counte=0;
 
 GPIOPin LED_builtin_io;
 
@@ -60,14 +58,15 @@ pv_msg_datapr_sensor_time oSensorTime;
   */
 void module_io_init() 
 {
-	//float accRaw[3], gyrRaw[3], magRaw[3]; // TODO Tirar daqui junto com o init
-
 	/* Inicialização do hardware do módulo */
 	LED_builtin_io = c_common_gpio_init(GPIOD, GPIO_Pin_13, GPIO_Mode_OUT);
-	c_common_i2c_init(I2C3); //esc 
-	c_common_i2c_init(I2C1); //imu
 
-	c_common_usart2_init(460800);
+	/* Inicializar as i2cx's*/
+	c_common_i2c_init(I2C1); //imu
+	c_common_i2c_init(I2C3); //esc 
+
+	/* Inicializa a serial 2*/
+	c_common_usart2_init(460800); 
 
 	/* Inicializar do sonar */
 	c_io_sonar_init();
@@ -91,7 +90,7 @@ void module_io_init()
 	/* Inicialização da imu */
 	c_io_imu_init(I2C1);   
 
-	/* inicializacao dos PPM */
+	/* inicializacao dos PPM/i2c dos esc's */
 	c_io_blctrl_init_i2c(I2C3);
 	//c_io_blctrl_init_ppm();
 
@@ -162,8 +161,8 @@ void module_io_run()
 		xQueueReceive(pv_interface_io.iActuation, &iActuation, 0);
 
 
-		/// IMU DATA
-		#if 0
+		/* Ativa captura e filtragem dos dados da IMU*/
+		#if 1
 			
 		 	c_common_gpio_toggle(LED_builtin_io);
 		 	c_io_imu_getRaw(accRaw, gyrRaw, magRaw);
@@ -174,8 +173,9 @@ void module_io_run()
 			c_common_gpio_toggle(LED_builtin_io);
 
 		#endif
-		/// SERVOS
-		#if 0
+		
+		/* Ativa atuação nos servos */
+		#if 1
 			if( (iActuation.servoRight*RAD_TO_DEG<70) && (iActuation.servoRight*RAD_TO_DEG>-70) )
 				c_io_rx24f_move(2, 150+iActuation.servoRight*RAD_TO_DEG);
 			if( (iActuation.servoLeft*RAD_TO_DEG<70) && (iActuation.servoLeft*RAD_TO_DEG>-70) )
@@ -183,9 +183,8 @@ void module_io_run()
 		#endif
 
 
-		// set points para os ESCs
-		/// ESCS
-		#if 0
+		/* Ativa atuação nos ESC's */
+		#if 1
 /*
 			iActuation.escRightSpeed = 8.0f;
 			iActuation.escLeftSpeed  = 8.0f;
@@ -237,15 +236,14 @@ void module_io_run()
 			//taskEXIT_CRITICAL();
 		#endif
 		
-		/// SONAR
-		#if 0
-			sprintf(str, "Distance: %d \n\r",(int)c_io_sonar_read() );
-	    	c_common_usart_puts(USART2, str);
+		/* Ativa leitura dos dados do sonar*/
+		#if 1
+			int teste_sonar = (int)c_io_sonar_read();
     	#endif
 
-		/// DEBUG
+		/* Ativa saida da serial*/
 		#if 1
-	    	// multwii
+	    	/* Protocolo multiwii*/
 	    	#if 1
 
 		    	c_common_datapr_multwii_bicopter_identifier();
@@ -256,7 +254,6 @@ void module_io_run()
 		    	arm_scale_f32(gyrRaw,RAD_TO_DEG,gyrRaw,3);
 		    	c_common_datapr_multwii_raw_imu(accRaw,gyrRaw,magRaw);
 		    	c_common_datapr_multwii_servos((iActuation.servoLeft*RAD_TO_DEG),(iActuation.servoRight*RAD_TO_DEG));
-		    	int teste_sonar = (int)c_io_sonar_read();
 		    	c_common_datapr_multwii_debug(iterations,teste_sonar,iActuation.servoLeft*RAD_TO_DEG,iActuation.servoLeft*RAD_TO_DEG);
 		    	int rpm_teste[2]={4000,4100};
 		    	float current_teste[2]={13.5,17.9};
@@ -267,7 +264,7 @@ void module_io_run()
 
 		    	c_common_datapr_multwii_sendstack(USART2);
 	    	#else  
-	    	// serial
+	    	/* Serial normal */
 	    	 	
 				//sprintf(str, "OUT ->%d\t%d\t%d\n\r", (int)(rpy[PV_IMU_ROLL  ]*RAD_TO_DEG), (int)(rpy[PV_IMU_PITCH  ]*RAD_TO_DEG), (int)(rpy[PV_IMU_YAW  ]*RAD_TO_DEG),);
 				sprintf(str,"%d\n\r",iterations);

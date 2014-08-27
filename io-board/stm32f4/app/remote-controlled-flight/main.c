@@ -56,19 +56,8 @@
   */
 
 /* Private typedef -----------------------------------------------------------*/
-GPIOPin LED_builtin;
-GPIOPin LED_builtin2;
 
 /* Private define ------------------------------------------------------------*/
-#ifdef STM32F4_H407
-  bool BOARD_DISCOVERY=0;
-  bool BOARD_H407=1;
-#endif
-  
-#ifdef STM32F4_DISCOVERY
-  bool BOARD_DISCOVERY=1;
-  bool BOARD_H407=0;
-#endif
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
 /* Private function prototypes -----------------------------------------------*/
@@ -95,19 +84,21 @@ void FPU_init(){
 // `I'm alive` kind of task
 void blink_led_task(void *pvParameters)
 {
-  if(BOARD_H407)
+  GPIOPin LED_builtin;
+  GPIOPin LED_builtin2;
+  #ifdef STM32F4_H407
     LED_builtin = c_common_gpio_init(GPIOC, GPIO_Pin_13, GPIO_Mode_OUT);
-  else
-  {
+  #else
     LED_builtin = c_common_gpio_init(GPIOA, GPIO_Pin_7, GPIO_Mode_OUT);
     LED_builtin2 = c_common_gpio_init(GPIOB, GPIO_Pin_1, GPIO_Mode_OUT);
     c_common_gpio_toggle(LED_builtin2);
-  }
+  #endif
     while(1)
     {
-      if(BOARD_DISCOVERY)
-        c_common_gpio_toggle(LED_builtin2);
       c_common_gpio_toggle(LED_builtin);
+      #ifdef STM32F4_DISCOVERY
+        c_common_gpio_toggle(LED_builtin2);
+      #endif
       vTaskDelay(100/portTICK_RATE_MS);
     }
 }
@@ -122,19 +113,6 @@ void module_rc_task(void *pvParameters)
 void module_io_task(void *pvParameters)
 {
 	module_io_run();
-}
-
-
-void sonar_task(void *pvParameters)
-{
-
-  while(1)
-  {
-    char str[64];
-    sprintf(str, "Distance: %f \n\r", c_io_sonar_read());
-    c_common_usart_puts(USART2, str);
-    vTaskDelay(300/portTICK_RATE_MS);
-  }
 }
 
 /* Main ----------------------------------------------------------------------*/
