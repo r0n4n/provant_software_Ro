@@ -30,13 +30,13 @@
 #include "pv_typedefs.h"
 #include "c_io_imu.h"
 
-#include "pv_typedefs.h"
 #include "c_datapr_MultWii.h"
 
 /* Exported types ------------------------------------------------------------*/
 struct pv_interface_do 
 {
   xQueueHandle iInputData;  
+  xQueueHandle iControlOutputData;
 } pv_interface_do;
 /* Exported constants --------------------------------------------------------*/
 /* Exported macro ------------------------------------------------------------*/

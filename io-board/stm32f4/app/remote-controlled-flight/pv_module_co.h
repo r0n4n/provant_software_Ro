@@ -24,13 +24,19 @@
 
 /* proVANT includes */
 #include "c_common_gpio.h"
+#include "c_common_i2c.h"
 #include "c_rc_control.h"
-#include "c_rc_receiver.h"
+#include "c_io_blctrl.h"
+#include "c_io_rx24f.h"
 
 #include "pv_typedefs.h"
 
 /* Exported types ------------------------------------------------------------*/
-
+struct pv_interface_co 
+{
+  xQueueHandle iInputData;  
+  xQueueHandle oControlOutputData;  
+} pv_interface_co;
 /* Exported constants --------------------------------------------------------*/
 /* Exported macro ------------------------------------------------------------*/
 

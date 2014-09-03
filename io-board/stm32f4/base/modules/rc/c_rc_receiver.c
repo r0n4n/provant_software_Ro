@@ -178,30 +178,46 @@ float  c_rc_receiver_getChannel(int channel_n) {
   /** Maximos e minimos de cada canal
     * temosque encontrar os zeros do mag
 
-        C_RC_CHANNEL_THROTTLE   |    C_RC_CHANNEL_ROLL    |    C_RC_CHANNEL_YAW   |   C_RC_CHANNEL_PITCH
-    ----------------------------|-------------------------|-----------------------|----------------------
-            706/1581            |        713/1542         |        692/1523       |       687/1513
-    *****************************************************************************************************/
+        C_RC_CHANNEL_THROTTLE   |    C_RC_CHANNEL_ROLL    |    C_RC_CHANNEL_YAW   |   C_RC_CHANNEL_PITCH   | C_RC_CHANNEL_VR
+    ----------------------------|-------------------------|-----------------------|------------------------|-----------------
+            706/1581            |        713/1542         |        692/1523       |       687/1513         |    564/1672
+    ************************************************************************************************************************/
+    //ufsc_provant_control
+    #if 0
+    int throttleMapValues[] ={706,1581};
+    int rollMapValues[]     ={713,1542};
+    int yawMapValues[]		={692,1523};
+    int pitchMapValues[]	={687,1513};
+    int vrMapValues[]		={564,1672};
+   	#else
+   	//willian_control
+   	int throttleMapValues[] ={689,1588};
+    int rollMapValues[]     ={598,1588};
+    int yawMapValues[]		={619,1588};
+    int pitchMapValues[]	={602,1587};
+    int vrMapValues[]		={564,1672};
+
+   	#endif
         if(channel_n==C_RC_CHANNEL_THROTTLE)
-            last_channels[channel_n] = channels[channel_n] = c_common_utils_map(channels[channel_n], 706, 1581, +100, -100);
+            last_channels[channel_n] = channels[channel_n] = c_common_utils_map(channels[channel_n], throttleMapValues[0], throttleMapValues[1], +100, -100);
        	if(channel_n==C_RC_CHANNEL_ROLL)
-            last_channels[channel_n] = channels[channel_n] = c_common_utils_map(channels[channel_n], 713, 1542, -100, +100);
+            last_channels[channel_n] = channels[channel_n] = c_common_utils_map(channels[channel_n], rollMapValues[0],rollMapValues[1], -100, +100);
         if(channel_n==C_RC_CHANNEL_YAW)
-            last_channels[channel_n] = channels[channel_n] = c_common_utils_map(channels[channel_n], 692, 1523, -100, +100);
+            last_channels[channel_n] = channels[channel_n] = c_common_utils_map(channels[channel_n], yawMapValues[0],yawMapValues[1], -100, +100);
         if(channel_n==C_RC_CHANNEL_PITCH)
-            last_channels[channel_n] = channels[channel_n] = c_common_utils_map(channels[channel_n], 687, 1513, +100, -100);
+            last_channels[channel_n] = channels[channel_n] = c_common_utils_map(channels[channel_n], pitchMapValues[0],pitchMapValues[1], +100, -100);
         if(channel_n==C_RC_CHANNEL_VR)
-            last_channels[channel_n] = channels[channel_n] = c_common_utils_map(channels[channel_n], 564, 1672, 0,100);
+            last_channels[channel_n] = channels[channel_n] = c_common_utils_map(channels[channel_n], vrMapValues[0],vrMapValues[1], 0,100);
         if(channel_n==C_RC_CHANNEL_A)
             if(channels[channel_n]>1000)
-            	channels[channel_n]=last_channels[channel_n] = 0;
-            else
             	channels[channel_n]=last_channels[channel_n] = 1;
+            else
+            	channels[channel_n]=last_channels[channel_n] = 100;
         if(channel_n==C_RC_CHANNEL_B)
             if(channels[channel_n]>1000)
-            	channels[channel_n]=last_channels[channel_n] = 0;
-            else
             	channels[channel_n]=last_channels[channel_n] = 1;
+            else
+            	channels[channel_n]=last_channels[channel_n] = 100;
 		return channels[channel_n];
 	}
 	else

@@ -255,7 +255,7 @@ void c_common_datapr_multwii_motor(float forca_esquerdo,float forca_direito)
 }
 
 /**
- * Envia os dados de debug para a pilha.
+ * @brief Envia os dados de debug para a pilha.
  * @param debug1 debug1
  * @param debug2 debug2
  * @param debug3 debug3
@@ -271,6 +271,14 @@ void c_common_datapr_multwii_debug(float debug1,float  debug2,float  debug3,floa
   tailSerialReply();
 }
 
+/**
+ * @brief Envia os dados dos escs para a pilha
+ * @details Tipo de mensagem provant
+ * 
+ * @param rpm rom do motor
+ * @param current corrente medida pelos escs
+ * @param voltage tensao medida pelos escs
+ */
 void c_common_datapr_multwii2_sendEscdata(int rpm[2],float current[2],float voltage[2])
 {
   headSerialResponse(20, MSP_ESCDATA);
@@ -283,6 +291,12 @@ void c_common_datapr_multwii2_sendEscdata(int rpm[2],float current[2],float volt
   tailSerialReply();
 }
 
+/**
+ * @brief Envia os dados de entrada do controle para a pilha
+ * @details Tipo de mensagemm provant para debug do controle
+ * 
+ * @param channel Dados das medidas dos canais realizados pelo receiver
+ */
 void c_common_datapr_multwii2_rcNormalize(int channel[7])
 {
   headSerialResponse(2*7, MSP_RCNORMALIZE);
@@ -293,8 +307,7 @@ void c_common_datapr_multwii2_rcNormalize(int channel[7])
   tailSerialReply();
 }
 
-void sendControldatain(float rpy[3],float drpy[3],float position[3],float velocity[3])
-{
+void c_common_datapr_multwii2_sendControldatain(float rpy[3], float drpy[3], float position[3], float velocity[3]){
   headSerialResponse(48, MSP_CONTROLDATAIN);
   for (int i = 0; i < 3; ++i)
     serializeFloat(rpy[i]);

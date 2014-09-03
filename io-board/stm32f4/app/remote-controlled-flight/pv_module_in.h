@@ -47,6 +47,7 @@
 #include "c_io_rx24f.h"
 #include "c_io_imu.h"
 #include "c_io_sonar.h"
+#include "c_rc_receiver.h"
 
 #include "pv_typedefs.h"
 #include "c_datapr_MultWii.h"

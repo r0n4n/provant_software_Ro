@@ -27,6 +27,7 @@
 
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
+portTickType lastWakeTime;
 /* Private function prototypes -----------------------------------------------*/
 /* Private functions ---------------------------------------------------------*/
 /* Exported functions definitions --------------------------------------------*/
@@ -48,6 +49,11 @@ void module_sm_init()
   */
 void module_sm_run()
 {
+  while(1)
+  {
+    lastWakeTime = xTaskGetTickCount();
+    vTaskDelayUntil( &lastWakeTime, (MODULE_PERIOD / portTICK_RATE_MS));
+  } 
 }
 /* IRQ handlers ------------------------------------------------------------- */
 

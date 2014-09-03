@@ -42,6 +42,8 @@
 #include "pv_module_co.h"
 #include "pv_module_in.h"
 #include "pv_module_do.h"
+#include "pv_module_gps.h"
+#include "pv_module_sm.h"
 
 /* Common Components, FOR TESTING */
 #include "c_common_gpio.h"
@@ -103,22 +105,34 @@ void blink_led_task(void *pvParameters)
     }
 }
 
-// Module control output task
+// Task control output 
 void module_co_task(void *pvParameters)
 {
 	module_co_run();
 }
 
-// Module input taske
+// Task input 
 void module_in_task(void *pvParameters)
 {
 	module_in_run();
 }
 
-// Module data out taske
+// Task data out 
 void module_do_task(void *pvParameters)
 {
   module_do_run();
+}
+
+// Task gps
+void module_gps_task(void *pvParameters)
+{
+  module_gps_run();
+}
+
+// Task state machine
+void module_sm_task(void *pvParameters)
+{
+  module_sm_run();
 }
 
 /* Main ----------------------------------------------------------------------*/
@@ -140,14 +154,18 @@ int main(void)
 
   /* Connect modules: interface1.o* = interface2.i* */
   pv_interface_do.iInputData  = pv_interface_in.oInputData;
+  pv_interface_co.iInputData  = pv_interface_in.oInputData;
+  pv_interface_do.iControlOutputData  = pv_interface_co.oControlOutputData;
 
 	/* create tasks
 	 * Prioridades - quanto maior o valor, maior a prioridade
 	 * */
 	xTaskCreate(blink_led_task, (signed char *)"Blink led", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+1, NULL);
   xTaskCreate(module_do_task, (signed char *)"Data out", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+1, NULL);
-	//xTaskCreate(module_rc_task, (signed char *)"module_rc", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+2, NULL);
 	xTaskCreate(module_in_task, (signed char *)"Data input", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+3, NULL);
+  xTaskCreate(module_co_task, (signed char *)"Control + output", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+3, NULL);
+  xTaskCreate(module_gps_task, (signed char *)"Gps", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+2, NULL);
+  xTaskCreate(module_sm_task, (signed char *)"State machine", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+1, NULL);
 
 	//xTaskCreate(sonar_task, (signed char *)"Sonar task", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+1, NULL);
 

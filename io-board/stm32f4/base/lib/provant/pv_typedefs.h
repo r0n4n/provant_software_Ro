@@ -91,7 +91,7 @@ typedef struct
 typedef struct
 {
   float servoTorque[2];
-  float servoPsition[2];
+  float servoPosition[2];
   float escTorque[2];
   float escRpm[2];
 } pv_type_actuation;
@@ -99,11 +99,10 @@ typedef struct
 /** \brief Estrutura para dados de comportamento.*/
 typedef struct
 {
-  float rpy[2];
-  float drpy[2];
-  float x,y,z;
-  float position[2];
-  float dposition[2];
+  float rpy[3];
+  float drpy[3];
+  float xyz[3];
+  float dxyz[3];
 } pv_type_vantBehavior;
 
 /** \brief Estrutura para dados de comportamento.*/
