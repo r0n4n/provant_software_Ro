@@ -24,7 +24,7 @@
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
 #define MODULE_PERIOD	   10//ms
-#define ESC_ON           0
+#define ESC_ON           1
 #define SERVO_ON         1
 
 /* Private macro -------------------------------------------------------------*/
@@ -95,14 +95,14 @@ void module_co_run()
 
     /* Passa os valores davariavel compartilha para a variavel iInputData */
     xQueueReceive(pv_interface_co.iInputData, &iInputData, 0);
-    
+
     /* Leitura do numero de ciclos atuais */
 		lastWakeTime = xTaskGetTickCount();
 
     /* Escrita dos servos */
     #if SERVO_ON
-        c_io_rx24f_move(2, 150+0);
-        c_io_rx24f_move(1, 130+0);
+        c_io_rx24f_move(2, 150+10);
+        c_io_rx24f_move(1, 130+10);
     #endif
 
     /* Escrita dos escs */

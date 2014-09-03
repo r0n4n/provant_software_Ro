@@ -24,7 +24,7 @@
 
 
 /* Private variables ---------------------------------------------------------*/
-static const int _multwiisize=1024;;
+static const int _multwiisize=3076;
 uint16_t multwii_msgindex = 0;
 uint8_t multwii_checksum = 0;
 

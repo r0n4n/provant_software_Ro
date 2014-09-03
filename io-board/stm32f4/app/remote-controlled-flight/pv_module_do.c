@@ -23,7 +23,7 @@
 
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
-#define MODULE_PERIOD	     50//ms
+#define MODULE_PERIOD	     100//ms
 #define USART_BAUDRATE     460800
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
@@ -72,11 +72,11 @@ void module_do_run()
 		c_common_datapr_multwii2_rcNormalize(channel);
     c_common_datapr_multwii_altitude(iInputData.sonarOutput.altitude,0);
     c_common_datapr_multwii_debug(heartBeat,100,3,4);
+    c_common_datapr_multwii_sendstack(USART2);
   
     c_common_datapr_multwii2_sendControldatain(iControlOutputData.vantBehavior.rpy, iControlOutputData.vantBehavior.drpy, iControlOutputData.vantBehavior.xyz, iControlOutputData.vantBehavior.dxyz);
     c_common_datapr_multwii2_sendControldataout(iControlOutputData.actuation.servoPosition, iControlOutputData.actuation.escNewtons, iControlOutputData.actuation.escRpm);
-
-		c_common_datapr_multwii_sendstack(USART2);
+    c_common_datapr_multwii_sendstack(USART2);
 
 		vTaskDelayUntil( &lastWakeTime, (MODULE_PERIOD / portTICK_RATE_MS));
 	}
