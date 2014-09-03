@@ -320,15 +320,15 @@ void c_common_datapr_multwii2_sendControldatain(float rpy[3], float drpy[3], flo
   tailSerialReply();
 }
 
-void sendControldataout(float servo[2],float esc[4])
+void c_common_datapr_multwii2_sendControldataout(float servo[2],float escTorque[2], float escRpm[2])
 {
   headSerialResponse(24, MSP_CONTROLDATAOUT);
   serializeFloat(servo[0]);
-  serializeFloat(esc[0]);
-  serializeFloat(esc[1]);
+  serializeFloat(escTorque[0]);
+  serializeFloat(escTorque[1]);
   serializeFloat(servo[1]);
-  serializeFloat(esc[2]);
-  serializeFloat(esc[3]);
+  serializeFloat(escRpm[0]);
+  serializeFloat(escRpm[1]);
   tailSerialReply();
 }
 

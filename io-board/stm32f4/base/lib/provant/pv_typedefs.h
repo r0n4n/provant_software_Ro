@@ -92,7 +92,7 @@ typedef struct
 {
   float servoTorque[2];
   float servoPosition[2];
-  float escTorque[2];
+  float escNewtons[2];
   float escRpm[2];
 } pv_type_actuation;
 

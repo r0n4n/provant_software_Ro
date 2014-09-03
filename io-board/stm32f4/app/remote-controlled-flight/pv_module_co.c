@@ -123,8 +123,10 @@ void module_co_run()
 
     oControlOutputData.actuation.servoPosition[0] = 13.1;
     oControlOutputData.actuation.servoPosition[1] = 13.2;
-    oControlOutputData.actuation.escTorque[0]     = 13.3;
-    oControlOutputData.actuation.escTorque[1]     = 13.4;
+    oControlOutputData.actuation.escNewtons[0]    = 13.3;
+    oControlOutputData.actuation.escNewtons[1]    = 13.4;
+    oControlOutputData.actuation.escRpm[0]        = 13.5;
+    oControlOutputData.actuation.escRpm[1]        = 13.6;
     oControlOutputData.vantBehavior.rpy[0]        = 7.1;
     oControlOutputData.vantBehavior.rpy[1]        = 7.2;
     oControlOutputData.vantBehavior.rpy[2]        = 7.3;
