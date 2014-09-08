@@ -142,6 +142,7 @@ typedef struct
   pv_type_escOutput       escOutput;
   pv_type_servoOutput     servoOutput;
   pv_type_datapr_attitude attitude;
+  unsigned int cicleTime;
   unsigned int heartBeat;
 } pv_msg_input;
 
@@ -150,6 +151,7 @@ typedef struct
 {
   pv_type_actuation    actuation;
   pv_type_vantBehavior vantBehavior;
+  unsigned int cicleTime;
   unsigned int heartBeat;
 } pv_msg_controlOutput;
 
@@ -157,12 +159,14 @@ typedef struct
 typedef struct
 {
   pv_type_gpsOutput gpsOutput;
+  unsigned int cicleTime;
   unsigned int heartBeat;
 } pv_msg_gps;
 
 /** \brief Estrutura de mensagem de saida da estrutura thread de state machine.*/
 typedef struct
 {
+  unsigned int cicleTime;
   unsigned int heartBeat;
 } pv_msg_sm;
 

@@ -31,6 +31,7 @@ portTickType lastWakeTime;
 unsigned int heartBeat=0;
 pv_msg_input iInputData;
 pv_msg_controlOutput iControlOutputData; 
+//GPIOPin debugPin;
 /* Private function prototypes -----------------------------------------------*/
 /* Private functions ---------------------------------------------------------*/
 /* Exported functions definitions --------------------------------------------*/
@@ -47,6 +48,9 @@ void module_do_init()
 
 	pv_interface_do.iInputData          = xQueueCreate(1, sizeof(pv_msg_input));
   pv_interface_do.iControlOutputData  = xQueueCreate(1, sizeof(pv_msg_controlOutput));
+
+  /* Pin for debug */
+  //debugPin = c_common_gpio_init(GPIOE, GPIO_Pin_13, GPIO_Mode_OUT);
 }
 
 /** \brief Função principal do módulo de data out.
@@ -60,6 +64,10 @@ void module_do_run()
 	{
 		lastWakeTime = xTaskGetTickCount();
 		heartBeat++;
+
+    /* toggle pin for debug */
+    //c_common_gpio_toggle(debugPin);
+
 		xQueueReceive(pv_interface_do.iInputData, &iInputData, 0);
     xQueueReceive(pv_interface_do.iControlOutputData, &iControlOutputData, 0);
 
@@ -71,12 +79,15 @@ void module_do_run()
     c_common_datapr_multwii_attitude(iInputData.attitude.roll*RAD_TO_DEG,iInputData.attitude.pitch*RAD_TO_DEG,iInputData.attitude.yaw*RAD_TO_DEG);
 		c_common_datapr_multwii2_rcNormalize(channel);
     c_common_datapr_multwii_altitude(iInputData.sonarOutput.altitude,0);
-    c_common_datapr_multwii_debug(heartBeat,100,3,4);
+    c_common_datapr_multwii_debug(iInputData.cicleTime,iControlOutputData.cicleTime,1,2);
     c_common_datapr_multwii_sendstack(USART2);
   
     c_common_datapr_multwii2_sendControldatain(iControlOutputData.vantBehavior.rpy, iControlOutputData.vantBehavior.drpy, iControlOutputData.vantBehavior.xyz, iControlOutputData.vantBehavior.dxyz);
     c_common_datapr_multwii2_sendControldataout(iControlOutputData.actuation.servoPosition, iControlOutputData.actuation.escNewtons, iControlOutputData.actuation.escRpm);
     c_common_datapr_multwii_sendstack(USART2);
+
+    /* toggle pin for debug */
+    //c_common_gpio_toggle(debugPin);
 
 		vTaskDelayUntil( &lastWakeTime, (MODULE_PERIOD / portTICK_RATE_MS));
 	}

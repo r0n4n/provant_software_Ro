@@ -31,6 +31,7 @@
 /* Private variables ---------------------------------------------------------*/
 portTickType lastWakeTime;
 pv_msg_input oInputData;
+//GPIOPin debugPin;
 /* Private function prototypes -----------------------------------------------*/
 /* Private functions ---------------------------------------------------------*/
 /* Exported functions definitions --------------------------------------------*/
@@ -54,6 +55,9 @@ void module_in_init()
   /* Inicializador do receiver */
 	c_rc_receiver_init();
 
+  /* Pin for debug */
+  //debugPin = c_common_gpio_init(GPIOE, GPIO_Pin_13, GPIO_Mode_OUT);
+
   /* Resevar o espaco para a variavel compartilhada */
 	pv_interface_in.oInputData  = xQueueCreate(1, sizeof(pv_msg_input));
 }
@@ -74,12 +78,15 @@ void module_in_run()
 	{
     oInputData.heartBeat=heartBeat+=1;
 
+    /* toggle pin for debug */
+    //c_common_gpio_toggle(debugPin);
+
     /* Leitura do numero de ciclos atuais */
 		lastWakeTime = xTaskGetTickCount();
 
     /* Pega e trata os valores da imu */
 		c_io_imu_getRaw(oInputData.imuOutput.accRaw, oInputData.imuOutput.gyrRaw, oInputData.imuOutput.magRaw);
-    oInputData.imuOutput.sampleTime =xTaskGetTickCount();
+    oInputData.imuOutput.sampleTime =xTaskGetTickCount() -lastWakeTime;
     c_io_imu_ComplimentaryRPY(rpy,oInputData.imuOutput.accRaw,oInputData.imuOutput.gyrRaw,oInputData.imuOutput.magRaw);
     oInputData.attitude.roll  =rpy[0];
     oInputData.attitude.pitch =rpy[1];
@@ -96,7 +103,12 @@ void module_in_run()
 
     /* Executra a leitura do sonar */
 		oInputData.sonarOutput.altitude      =c_io_sonar_read();
-    oInputData.sonarOutput.sampleTime    =xTaskGetTickCount();
+    oInputData.sonarOutput.sampleTime    =xTaskGetTickCount() - lastWakeTime;
+
+    oInputData.cicleTime                 =xTaskGetTickCount() - lastWakeTime;
+
+    /* toggle pin for debug */
+    //c_common_gpio_toggle(debugPin);
 
     /* Realiza o trabalho de mutex */
 		if(pv_interface_in.oInputData != 0)

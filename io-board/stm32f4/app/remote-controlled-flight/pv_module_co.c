@@ -32,6 +32,7 @@
 portTickType lastWakeTime;
 pv_msg_input iInputData;
 pv_msg_controlOutput oControlOutputData; 
+//GPIOPin debugPin;
 /* Inboxes buffers */
 
 /* Outboxes buffers*/
@@ -70,6 +71,9 @@ void module_co_init()
   c_io_rx24f_move(2, 150);
   c_common_utils_delayms(100);
 
+  /* Pin for debug */
+  //debugPin = c_common_gpio_init(GPIOE, GPIO_Pin_13, GPIO_Mode_OUT);
+
   pv_interface_co.iInputData          = xQueueCreate(1, sizeof(pv_msg_input));
   pv_interface_co.oControlOutputData  = xQueueCreate(1, sizeof(pv_msg_controlOutput));
 }
@@ -93,6 +97,9 @@ void module_co_run()
     /* Variavel para debug */
     heartBeat+=1;
 
+    /* toggle pin for debug */
+    //c_common_gpio_toggle(debugPin);
+
     /* Passa os valores davariavel compartilha para a variavel iInputData */
     xQueueReceive(pv_interface_co.iInputData, &iInputData, 0);
 
@@ -109,15 +116,15 @@ void module_co_run()
     #if ESC_ON
       if (heartBeat < 500)
       {
-        c_io_blctrl_setSpeed(0, 10 );
+        c_io_blctrl_setSpeed(0, 5 );
         c_common_utils_delayus(10);
-        c_io_blctrl_setSpeed(1, 10 );
+        c_io_blctrl_setSpeed(1, 5 );
       }
       else
       {
-        c_io_blctrl_setSpeed(0, 15 );
+        c_io_blctrl_setSpeed(0, 10 );
         c_common_utils_delayus(10);
-        c_io_blctrl_setSpeed(1, 15 );      
+        c_io_blctrl_setSpeed(1, 10 );      
       }
     #endif
 
@@ -140,6 +147,11 @@ void module_co_run()
     oControlOutputData.vantBehavior.dxyz[1]       = 4.2;
     oControlOutputData.vantBehavior.dxyz[2]       = 4.3;
     oControlOutputData.heartBeat                  = heartBeat;
+    unsigned int timeNow=xTaskGetTickCount();
+    oControlOutputData.cicleTime                  = timeNow - lastWakeTime;
+
+    /* toggle pin for debug */
+    //c_common_gpio_toggle(debugPin);
 
     if(pv_interface_co.oControlOutputData != 0)
       xQueueOverwrite(pv_interface_co.oControlOutputData, &oControlOutputData);

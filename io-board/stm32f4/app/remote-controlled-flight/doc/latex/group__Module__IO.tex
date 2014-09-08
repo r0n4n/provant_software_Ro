@@ -1,0 +1,118 @@
+\hypertarget{group__Module__IO}{\section{Module\-\_\-\-I\-O}
+\label{group__Module__IO}\index{Module\-\_\-\-I\-O@{Module\-\_\-\-I\-O}}
+}
+
+
+Componentes para atuação e sensoriamento do V\-A\-N\-T.  
+
+
+Diagrama de colaboração para Module\-\_\-\-I\-O\-:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=282pt]{group__Module__IO}
+\end{center}
+\end{figure}
+\subsection*{Macros}
+\begin{DoxyCompactItemize}
+\item 
+\#define \hyperlink{group__Module__IO_ga0ac6c9f2991b096e49c354e5cce6fae0}{M\-O\-D\-U\-L\-E\-\_\-\-P\-E\-R\-I\-O\-D}~10
+\end{DoxyCompactItemize}
+\subsection*{Funções}
+\begin{DoxyCompactItemize}
+\item 
+void \hyperlink{group__Module__IO_gaffe0980a750cbec13ebf241c933460dd}{module\-\_\-in\-\_\-init} ()
+\begin{DoxyCompactList}\small\item\em Inicializacao componentes de I\-O. \end{DoxyCompactList}\item 
+void \hyperlink{group__Module__IO_ga2b56089e4c5adb9ac8b7a41fc1a0b0b2}{module\-\_\-in\-\_\-run} ()
+\begin{DoxyCompactList}\small\item\em Função principal do módulo de I\-O. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Variáveis}
+\begin{DoxyCompactItemize}
+\item 
+port\-Tick\-Type \hyperlink{group__Module__IO_gaa8db3871cb5f64abbd94ddd5a1db73a6}{last\-Wake\-Time}
+\item 
+pv\-\_\-msg\-\_\-input \hyperlink{group__Module__IO_gaffc6f7805bab2d46af160c6f7715ba99}{o\-Input\-Data}
+\end{DoxyCompactItemize}
+
+
+\subsection{Descrição detalhada}
+Componentes para atuação e sensoriamento do V\-A\-N\-T. Reunião de todos os componentes relacionados às operações de I/\-O do V\-A\-N\-T. Leituras de todos os sensores, comandos para atuadores. O processamento destes dados brutos NÃ\-O é feito neste módulo. 
+
+\subsection{Documentação das macros}
+\hypertarget{group__Module__IO_ga0ac6c9f2991b096e49c354e5cce6fae0}{\index{Module\-\_\-\-I\-O@{Module\-\_\-\-I\-O}!M\-O\-D\-U\-L\-E\-\_\-\-P\-E\-R\-I\-O\-D@{M\-O\-D\-U\-L\-E\-\_\-\-P\-E\-R\-I\-O\-D}}
+\index{M\-O\-D\-U\-L\-E\-\_\-\-P\-E\-R\-I\-O\-D@{M\-O\-D\-U\-L\-E\-\_\-\-P\-E\-R\-I\-O\-D}!Module_IO@{Module\-\_\-\-I\-O}}
+\subsubsection[{M\-O\-D\-U\-L\-E\-\_\-\-P\-E\-R\-I\-O\-D}]{\setlength{\rightskip}{0pt plus 5cm}\#define M\-O\-D\-U\-L\-E\-\_\-\-P\-E\-R\-I\-O\-D~10}}\label{group__Module__IO_ga0ac6c9f2991b096e49c354e5cce6fae0}
+
+
+Definido na linha 28 do ficheiro pv\-\_\-module\-\_\-in.\-c.
+
+
+
+\subsection{Documentação das funções}
+\hypertarget{group__Module__IO_gaffe0980a750cbec13ebf241c933460dd}{\index{Module\-\_\-\-I\-O@{Module\-\_\-\-I\-O}!module\-\_\-in\-\_\-init@{module\-\_\-in\-\_\-init}}
+\index{module\-\_\-in\-\_\-init@{module\-\_\-in\-\_\-init}!Module_IO@{Module\-\_\-\-I\-O}}
+\subsubsection[{module\-\_\-in\-\_\-init}]{\setlength{\rightskip}{0pt plus 5cm}void module\-\_\-in\-\_\-init (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)}}\label{group__Module__IO_gaffe0980a750cbec13ebf241c933460dd}
+
+
+Inicializacao componentes de I\-O. 
+
+Incializa o hardware para comunicar com os sensores e atuadores. Rotinas de teste ainda precisam ser executadas. 
+\begin{DoxyParams}{Parâmetros}
+{\em None} & \\
+\hline
+\end{DoxyParams}
+
+\begin{DoxyRetVals}{Valores retornados}
+{\em None} & \\
+\hline
+\end{DoxyRetVals}
+
+
+Definido na linha 45 do ficheiro pv\-\_\-module\-\_\-in.\-c.
+
+\hypertarget{group__Module__IO_ga2b56089e4c5adb9ac8b7a41fc1a0b0b2}{\index{Module\-\_\-\-I\-O@{Module\-\_\-\-I\-O}!module\-\_\-in\-\_\-run@{module\-\_\-in\-\_\-run}}
+\index{module\-\_\-in\-\_\-run@{module\-\_\-in\-\_\-run}!Module_IO@{Module\-\_\-\-I\-O}}
+\subsubsection[{module\-\_\-in\-\_\-run}]{\setlength{\rightskip}{0pt plus 5cm}void module\-\_\-in\-\_\-run (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)}}\label{group__Module__IO_ga2b56089e4c5adb9ac8b7a41fc1a0b0b2}
+
+
+Função principal do módulo de I\-O. 
+
+
+\begin{DoxyParams}{Parâmetros}
+{\em None} & \\
+\hline
+\end{DoxyParams}
+
+\begin{DoxyRetVals}{Valores retornados}
+{\em None} & Loop que amostra sensores e escreve nos atuadores como necessário. \\
+\hline
+\end{DoxyRetVals}
+
+
+Definido na linha 68 do ficheiro pv\-\_\-module\-\_\-in.\-c.
+
+
+
+\subsection{Documentação das variáveis}
+\hypertarget{group__Module__IO_gaa8db3871cb5f64abbd94ddd5a1db73a6}{\index{Module\-\_\-\-I\-O@{Module\-\_\-\-I\-O}!last\-Wake\-Time@{last\-Wake\-Time}}
+\index{last\-Wake\-Time@{last\-Wake\-Time}!Module_IO@{Module\-\_\-\-I\-O}}
+\subsubsection[{last\-Wake\-Time}]{\setlength{\rightskip}{0pt plus 5cm}port\-Tick\-Type last\-Wake\-Time}}\label{group__Module__IO_gaa8db3871cb5f64abbd94ddd5a1db73a6}
+
+
+Definido na linha 32 do ficheiro pv\-\_\-module\-\_\-in.\-c.
+
+\hypertarget{group__Module__IO_gaffc6f7805bab2d46af160c6f7715ba99}{\index{Module\-\_\-\-I\-O@{Module\-\_\-\-I\-O}!o\-Input\-Data@{o\-Input\-Data}}
+\index{o\-Input\-Data@{o\-Input\-Data}!Module_IO@{Module\-\_\-\-I\-O}}
+\subsubsection[{o\-Input\-Data}]{\setlength{\rightskip}{0pt plus 5cm}pv\-\_\-msg\-\_\-input o\-Input\-Data}}\label{group__Module__IO_gaffc6f7805bab2d46af160c6f7715ba99}
+
+
+Definido na linha 33 do ficheiro pv\-\_\-module\-\_\-in.\-c.
+
