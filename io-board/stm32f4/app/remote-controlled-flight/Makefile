@@ -173,5 +173,4 @@ docclean:
 
 allclean: clean	
 	$(MAKE) clean -C $(CMSISDIR)
-	cd $(APPDIR)/doc && rm -r latex/ && rm -r html/
 
