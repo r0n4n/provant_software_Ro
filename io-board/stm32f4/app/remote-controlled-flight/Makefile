@@ -168,5 +168,10 @@ clean:
 	rm -f $(OUTDIR)/$(PRJNAME).hex
 	rm -f $(OUTDIR)/$(PRJNAME).bin
 	
+docclean:
+	cd $(APPDIR)/doc && rm -r latex/ && rm -r html/
+
 allclean: clean	
 	$(MAKE) clean -C $(CMSISDIR)
+	cd $(APPDIR)/doc && rm -r latex/ && rm -r html/
+
