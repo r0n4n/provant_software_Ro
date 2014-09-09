@@ -44,8 +44,10 @@ pv_msg_controlOutput iControlOutputData;
   */
 void module_do_init() 
 {
+  /* Inicia a usart2 */
 	c_common_usart2_init(USART_BAUDRATE);
 
+  /* Reserva o local de memoria compartilhado */
 	pv_interface_do.iInputData          = xQueueCreate(1, sizeof(pv_msg_input));
   pv_interface_do.iControlOutputData  = xQueueCreate(1, sizeof(pv_msg_controlOutput));
 
