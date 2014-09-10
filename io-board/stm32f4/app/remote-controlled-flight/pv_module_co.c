@@ -10,14 +10,14 @@
 /* Includes ------------------------------------------------------------------*/
 #include "pv_module_co.h"
 
-/** @addtogroup ProVANT_Modules
+/** @addtogroup ProVANT_app
   * @{
   */
 
-/** @addtogroup Module_RC
-  * \brief Módulo com as principais funcionalidades para operação em modo rádio controlado.
+/** @addtogroup app_co
+  * \brief Módulo com as principais funcionalidades para calculo de controle e escrita de atuadores.
   *
-  * Definição do módulo de controle e comunicação via rádio manual.
+  * Definição do módulo.
   * @{
   */
 
@@ -41,10 +41,10 @@ pv_msg_controlOutput oControlOutputData;
 /* Private functions ---------------------------------------------------------*/
 /* Exported functions definitions --------------------------------------------*/
 
-/** \brief Inicializacao do módulo de RC.
+/** \brief Inicializacao do módulo de controle + output.
   *
   * Instancia as Queues de comunicação inter-thread, inicializa a pinagem necessária para
-  * o controle remoto e aloca o que for necessário para as equações de controle.
+  * os perifericos e aloca o que for necessário para as equações de controle.
   * @param  None
   * @retval None
   */
