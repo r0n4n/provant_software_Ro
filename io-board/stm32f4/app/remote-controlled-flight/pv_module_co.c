@@ -108,28 +108,33 @@ void module_co_run()
 
     /* Escrita dos servos */
     #if SERVO_ON
-        c_io_rx24f_move(2, 150+10);
-        c_io_rx24f_move(1, 130+10);
+      if(iInputData.receiverOutput.joystick[0]<45 && iInputData.receiverOutput.joystick[0]>-45)
+      {
+        c_io_rx24f_move(2, 150+iInputData.receiverOutput.joystick[0]);
+        c_io_rx24f_move(1, 130+iInputData.receiverOutput.joystick[0]);
+      }
     #endif
 
     /* Escrita dos escs */
     #if ESC_ON
-      if (heartBeat < 500)
+      if (iInputData.receiverOutput.vrPot!=0)
       {
-        c_io_blctrl_setSpeed(0, 5 );
+        c_io_blctrl_setSpeed(0, 10  );
         c_common_utils_delayus(10);
-        c_io_blctrl_setSpeed(1, 5 );
+        c_io_blctrl_setSpeed(1, 10 );
       }
       else
       {
-        c_io_blctrl_setSpeed(0, 10 );
+        c_io_blctrl_setSpeed(0, 0 );
         c_common_utils_delayus(10);
-        c_io_blctrl_setSpeed(1, 10 );      
+        c_io_blctrl_setSpeed(1, 0 );      
       }
+
+      c_io_blctrl_updateBuffer(1);
     #endif
 
-    oControlOutputData.actuation.servoPosition[0] = 13.1;
-    oControlOutputData.actuation.servoPosition[1] = 13.2;
+    oControlOutputData.actuation.servoPosition[0] = c_io_blctrl_readVoltage(1);
+    oControlOutputData.actuation.servoPosition[1] = c_io_blctrl_readSpeed(1);
     oControlOutputData.actuation.escNewtons[0]    = 13.3;
     oControlOutputData.actuation.escNewtons[1]    = 13.4;
     oControlOutputData.actuation.escRpm[0]        = 13.5;
