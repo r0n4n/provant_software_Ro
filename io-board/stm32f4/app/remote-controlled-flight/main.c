@@ -164,8 +164,8 @@ int main(void)
   xTaskCreate(module_do_task, (signed char *)"Data out", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+1, NULL);
 	xTaskCreate(module_in_task, (signed char *)"Data input", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+3, NULL);
   xTaskCreate(module_co_task, (signed char *)"Control + output", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+3, NULL);
-  xTaskCreate(module_gps_task, (signed char *)"Gps", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+2, NULL);
-  xTaskCreate(module_sm_task, (signed char *)"State machine", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+1, NULL);
+  //xTaskCreate(module_gps_task, (signed char *)"Gps", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+2, NULL);
+  //xTaskCreate(module_sm_task, (signed char *)"State machine", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+1, NULL);
 
 	//xTaskCreate(sonar_task, (signed char *)"Sonar task", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+1, NULL);
 

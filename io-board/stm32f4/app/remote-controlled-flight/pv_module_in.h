@@ -4,16 +4,15 @@
   * @author  Martin Vincent Bloedorn
   * @version V1.0.0
   * @date    02-Dezember-2013
-  * @brief   Implementação do módulo de gerenciamento de sensores e atuadores.
+  * @brief   Implementação do módulo de gerenciamento de sensores.
   *
   * TODO
   *
-  * \todo	1- Conferir se na descricão de pv_interface_io não deveria trocar RC por IO.
   *****************************************************************************/
 
 /* Define to prevent recursive inclusion -------------------------------------*/
-#ifndef PV_MODULE_IO_H
-#define PV_MODULE_IO_H
+#ifndef PV_MODULE_IN_H
+#define PV_MODULE_IN_H
 
 #ifdef __cplusplus
  extern "C" {

@@ -210,9 +210,9 @@ float  c_rc_receiver_getChannel(int channel_n) {
             last_channels[channel_n] = channels[channel_n] = c_common_utils_map(channels[channel_n], vrMapValues[0],vrMapValues[1], 0,100);
         if(channel_n==C_RC_CHANNEL_A)
             if(channels[channel_n]>1000)
-            	channels[channel_n]=last_channels[channel_n] = 1;
+            	channels[channel_n]=last_channels[channel_n] = 0;
             else
-            	channels[channel_n]=last_channels[channel_n] = 100;
+            	channels[channel_n]=last_channels[channel_n] = 1;
         if(channel_n==C_RC_CHANNEL_B)
             if(channels[channel_n]>1000)
             	channels[channel_n]=last_channels[channel_n] = 1;

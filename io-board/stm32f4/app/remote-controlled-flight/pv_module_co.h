@@ -4,12 +4,12 @@
   * @author  Martin Vincent Bloedorn
   * @version V1.0.0
   * @date    30-November-2013
-  * @brief   Definição do módulo de controle e comunicação via rádio manual.
+  * @brief   Definição do módulo de controle + output.
   *****************************************************************************/
 
 /* Define to prevent recursive inclusion -------------------------------------*/
-#ifndef PV_MODULE_RC_H
-#define PV_MODULE_RC_H
+#ifndef PV_MODULE_CO_H
+#define PV_MODULE_CO_H
 
 #ifdef __cplusplus
  extern "C" {
@@ -48,4 +48,4 @@ void module_co_run();
 }
 #endif
 
-#endif //PV_MODULE_RC_H
+#endif //PV_MODULE_CO_H

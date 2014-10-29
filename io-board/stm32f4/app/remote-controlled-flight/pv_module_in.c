@@ -4,22 +4,22 @@
   * @author  Martin Vincent Bloedorn
   * @version V1.0.0
   * @date    02-Dezember-2013
-  * @brief   Implementação do módulo de gerenciamento de sensores e atuadores.
+  * @brief   Implementação do módulo de gerenciamento de sensores.
   ******************************************************************************/
 
 /* Includes ------------------------------------------------------------------*/
 #include "pv_module_in.h"
 
-/** @addtogroup ProVANT_Modules
+/** @addtogroup ProVANT_app
   * @{
   */
 
-/** @addtogroup Module_IO
-  * \brief Componentes para atuação e sensoriamento do VANT.
+/** @addtogroup app_in
+  * \brief Componentes para o sensoriamento do VANT.
   *
-  * Reunião de todos os componentes relacionados às operações de I/O do VANT.
-  * Leituras de todos os sensores, comandos para atuadores. O processamento destes
-  * dados brutos NÃO é feito neste módulo.
+  * Reunião de todos os componentes relacionados às operações de input do VANT.
+  * Leituras de todos os sensores. O processamento destes
+  * dados brutos é feito neste módulo.
   * @{
   */
 
@@ -38,7 +38,7 @@ pv_msg_input oInputData;
 
 /** \brief Inicializacao componentes de IO.
   *
-  * Incializa o hardware para comunicar com os sensores e atuadores. Rotinas de teste
+  * Incializa o hardware para comunicar com os sensores. Rotinas de teste
   * ainda precisam ser executadas.
   * @param  None
   * @retval None
@@ -66,7 +66,7 @@ void module_in_init()
   * @param  None
   * @retval None
   *
-  * Loop que amostra sensores e escreve nos atuadores como necessário.
+  * Loop que amostra sensores como necessário.
   *
   */
 void module_in_run() 

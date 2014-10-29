@@ -236,7 +236,7 @@ int  c_io_blctrl_readVoltage(uint8_t ID)
   */
 int  c_io_blctrl_updateBuffer(uint8_t ID)
 {  
-  c_common_i2c_readBytes(I2Cx_blctrl, BLCTRL_ADDR + ID, 0x00, 4, blctrl_buffer[ID]);
+  c_common_i2c_readBytes(I2Cx_blctrl, BLCTRL_ADDR + ID, 0x00, BLCTRL_BUFFER_SIZE, blctrl_buffer[ID]);
   return 1;
 }
 
