@@ -1,0 +1,497 @@
+/*
+ * c_io_herkulex.c
+ *
+ *  Created on: 01/12/2014
+ *      Author: iuro
+ */
+
+#include "c_io_herkulex.h"
+#include "c_common_uart.h"
+
+
+
+#include <math.h>
+
+/** @addtogroup Module_IO
+  * @{
+  */
+
+/** @addtogroup Module_IO_Component_Herkulex
+  *	\brief Componente para o uso dos servos Herkulex DRS- 0201
+  *
+  * @{
+  */
+
+/* Private typedef -----------------------------------------------------------*/
+
+
+/* Private define ------------------------------------------------------------*/
+//#define I2Cx_blctrl             I2C2// i2c of blctrl
+#define KV 0.325*PI/(0.0112*180)
+#define TIME_OUT 10
+#define INTER_PKG_TIME 0.000105
+#define HEADER 0xFF
+// status error register, 48
+#define EXCEED_INPUT_VOLT_LIMIT 0x01
+#define EXCEED_ALLOWED_POT_LIMIT 0x02
+#define EXCEED_TEMP_LIMIT 0x04
+#define INVALID_PACKET 0x08
+#define OVERLOAD 0x10
+#define DRIVER_FAULT 0x20
+#define EEP_REG_DISTORTED 0x40
+
+// status error register, 49
+#define MOVING_FLAG 0x01
+#define INPOSITION_FLAG 0x02
+//invalid packet errors
+#define CHECKSUM_ERROR 0x04
+#define UNKNOWM_COMMAND 0x08
+#define EXCEED_REG_RANGE 0x10
+#define GARBAGE_DETECTED 0x20
+//end of packet errors
+#define MOTOR_ON_FLAG 0x40
+
+//Address of registers in RAM
+#define REG_SERVO_ID 0
+#define REG_ACK_POLICY 1
+#define REG_ALARM_LED_POLICY 2
+#define REG_TORQUE_POLICY 3
+#define REG_MAX_TEMP 5
+#define REG_MIN_VOLT 6
+#define REG_MAX_VOLT 7
+#define REG_ACC_RATIO 8
+#define REG_MAX_ACC_TIME 9
+#define REG_DEAD_ZONE 10
+#define REG_SATURATOR_OFFSET 11
+#define REG_SATURATOR_SLOPE 12
+#define REG_PWM_OFFSET 14
+#define REG_MIN_PWM 15
+#define REG_MAX_PWM 16
+#define REG_OVERLOAD_PWM_THRESHOLD 18
+#define REG_MIN_POS 20
+#define REG_MAX_POS 22
+
+//some other registers from voltatile RAM
+#define REG_INPOSITION_MARGIN 44
+#define REG_CALIBRATION _DIFF 47
+#define REG_STATUS_ERROR 48
+#define REG_STATUS_DETAIL 49
+#define REG_TORQUE_CONTROL 52
+#define REG_LED_CONTROL 53
+#define REG_VOLT 54
+#define REG_TEMP 55
+#define REG_CURRENT_CONTROL_MODE 56
+#define REG_TICK 57
+#define REG_CALIBRATED_POS 58
+#define REG_ABSOLUTE_POS 60
+#define REG_DIFFERENTIAL_POS 62
+#define REG_PWM 64
+#define REG_ABSOLUTE_GOAL_POS 68
+#define REG_DESIRED_VELOCITY 70
+
+//commands to servo
+#define EEP_WRITE 0x01
+#define EEP_READ 0x02
+#define RAM_WRITE 0x03
+#define RAM_READ 0x04
+#define I_JOG 0x05
+#define S_JOG 0x06
+#define STAT 0x07
+#define ROLLBACK 0x08
+#define REBOOT 0x09
+
+//ack responses
+#define ACK_RAM_WRITE 0x43
+#define ACK_RAM_READ 0x44
+#define ACK_I_JOG 0x45
+#define ACK_S_JOG 0x46
+#define ACK_STAT 0x47
+#define ACK_ROLLBACK 0x48
+#define ACK_REBOOT 0x49
+
+#define EEP_BAUD_RATE 0x04
+
+#define RAM 0
+#define EEP 1
+#define TORQUE_ON 0x60
+#define TORQUE_FREE 0x00
+#define TORQUE_BREAK 0x40
+
+#define BROADCAST_ADDR 0xFE;
+
+//Leds
+#define LED_GREEN 1
+#define LED_BLUE 2
+#define LED_RED 4
+
+
+/* Private macro -------------------------------------------------------------*/
+/* Private variables ---------------------------------------------------------*/
+//da classe 'packet'
+uint8_t size;
+uint8_t pid;
+uint8_t cmd;
+uint8_t cksum1;
+uint8_t cksum2;
+uint8_t data_addr;
+uint8_t data_length;
+uint8_t status_error;
+uint8_t status_detail;
+uint8_t status;
+
+uint8_t BUFFER[100];
+uint8_t DATA[100];
+
+//Pacote de
+pv_sjog_herkulex jog_packet;
+uint8_t torque_status[2];
+uint8_t servo_ids[2];
+uint8_t play_time;
+
+/* Private function prototypes -----------------------------------------------*/
+void raw2packet(char* new_buffer);
+uint8_t c_io_herkulex_serialize();
+uint8_t receive(uint8_t size);
+void send();
+void serialize_jog();
+uint8_t translate_servo_id(uint8_t servo_id);
+uint8_t checksum1(uint8_t *buffer, uint8_t size);
+uint8_t checksum2(uint8_t checksum1);
+
+/* Private functions ---------------------------------------------------------*/
+/* Exported functions definitions --------------------------------------------*/
+
+//Direct servo commands
+
+/** \brief Lê o valor dado um endereço de memoria.
+  * Retorna o valor em caso de sucesso.
+  *
+  * @param mem tipo de memória, ROM ou RAM
+  * @param  servo_id ID do servo.
+  * @param reg_addr Endereço do registrador do servo
+  * @param data_length Tamanho dos dados a serem escritos
+  * @retval ponteiro para os dados lidos.
+  */
+uint8_t  c_io_herkulex_read(char mem, char servo_id, char reg_addr, unsigned char datalength)
+{
+	pid = servo_id;
+	size=9;
+	if (mem==EEP) {
+		mem=EEP_READ;
+	} else {
+		mem=RAM_READ;
+	}
+	cmd=mem;
+	data_addr = reg_addr;
+	data_length = datalength;
+	status=1;
+	//send() envia comando de requisição de leitura
+	c_io_herkulex_serialize();
+	send();
+	//le os dados enviados pelo servo
+	return receive(11+data_length);
+}
+
+void send() {
+	for (int i = 0; i < size ; ++i)
+		c_common_usart_putchar(USART2,BUFFER[i]);
+}
+
+uint8_t receive(uint8_t size) {// precisa de um timeout
+	int i=0;
+	do {
+		while (!c_common_usart_available(USART2));
+		BUFFER[i] = c_common_usart_read(USART2);
+		i++;
+	} while(i<size);
+	return 1;
+}
+
+/** \brief Escreve o valor dado um endereço de memoria, entre 0 e 0x18.
+  * Retorna o valor em caso de sucesso.
+  *
+  * @param mem tipo de memória, ROM ou RAM
+  * @param  servo_id ID do servo.
+  * @param reg_addr Endereço do registrador do servo
+  * @param data_length Tamanho dos dados a serem escritos
+  * @param data Ponteiro para os dados a serem escritos
+  * @retval bool - 1 se dados foram enviados, 0 se não foram.
+  */
+uint8_t c_io_herkulex_write(char mem, char servo_id, char reg_addr, unsigned char datalength, char *data)
+{
+	pid=servo_id;
+	size=0x09+data_length;
+	if (mem==EEP) {
+		mem=EEP_WRITE;
+	} else {
+		mem=RAM_WRITE;
+	}
+	cmd = mem;
+	data_addr = reg_addr;
+	status = 1;
+	data_length=datalength;
+	if (data!=NULL) {
+		memcpy(DATA,data,datalength);
+		send();
+		return 1;
+	} else {
+		return 0;
+	}
+}
+
+void c_io_herkulex_ijog() {
+
+}
+
+void c_io_herkulex_sjog(char psize, char servo_id, uint16_t data, char stop, char mode, char led, char ptime) {
+	size=psize;
+	cmd=S_JOG;
+	jog_packet.iJogData= data;
+	jog_packet.uiStop = stop;
+	jog_packet.uiMode = mode;
+	jog_packet.uiLed = led;
+	jog_packet.ucID = servo_id;
+	jog_packet.uiReserved1=0;
+	jog_packet.uiJogInvalid=0;
+	jog_packet.uiReserved2=0;
+	play_time = ptime;
+	serialize_jog();
+	send();
+}
+
+uint8_t c_io_herkulex_stat(uint8_t servo_id) {
+	pid=servo_id;
+	cmd=STAT;
+	size=7;
+	status=1;
+	send();
+	//uint8_t *error = (uint8_t*)malloc(2*sizeof(char));
+	//uint8_t error[2];
+	//error[0]=status_error;
+	//error[1]=status_detail;
+	//decodeError(error);
+	return receive(9);
+}
+void c_io_herkulex_rollback() {
+
+}
+
+void c_io_herkulex_reboot(uint8_t servo_id) {
+	pid=servo_id;
+	cmd=REBOOT;
+	size=7;
+	status=1;
+	send();
+}
+
+//Indirect commands
+/** \brief Inicializa o usart para comunicacao serial entre servo e discovery
+  *
+  *
+  * @param  None
+  * @retval None
+  */
+void c_io_herkulex_init()
+{
+	void c_common_usart2_init(int baudrate);
+	torque_status[0]=0;
+	torque_status[1]=0;
+}
+
+void c_io_herkulex_config_ack_policy(char servo_id, char policy) {
+	DATA[0]=policy;
+	c_io_herkulex_write(RAM,servo_id,REG_ACK_POLICY,1,DATA);
+}
+void c_io_herkulex_config_led_policy(char servo_id, char policy) {
+	DATA[0]=policy;
+	c_io_herkulex_write(RAM,servo_id,REG_ACK_POLICY,1,DATA);
+}
+void c_io_herkulex_led_control(char servo_id, char led) {
+	DATA[0]=led;
+	c_io_herkulex_write(RAM,servo_id,REG_LED_CONTROL,1,DATA);
+}
+void c_io_herkulex_clear(uint8_t servo_id) {
+	DATA[0]=0;
+	DATA[1]=0;
+	c_io_herkulex_write(RAM,servo_id,REG_STATUS_ERROR,2,DATA);
+}
+void c_io_herkulex_set_torque_control(char servo_id, char control) {
+	DATA[0]=control;
+	torque_status[translate_servo_id(servo_id)] = control;
+	c_io_herkulex_write(RAM,servo_id,REG_TORQUE_CONTROL,1,DATA);
+}
+
+/** Control Interface
+	 *
+	 * Functions for feedback, the 1st read the current absolute
+	 * position, the second read the angular velocity. The outputs
+	 * are converted to degrees and rad/s respectively
+	 */
+float c_io_herkulex_read_position(uint8_t servo_id) {
+	if (!c_io_herkulex_read(RAM,servo_id,REG_ABSOLUTE_POS,2)) {
+		return -1;
+	}
+	int16_t rawValue;
+	rawValue=((DATA[1]&0x03)<<8) | DATA[0];
+
+	return ((float)rawValue)*0.325;
+}
+
+float c_io_herkulex_read_velocity(uint8_t servo_id) {
+	if (!c_io_herkulex_read(RAM,servo_id,REG_DIFFERENTIAL_POS,2)) {
+		return -1;
+	}
+	int16_t rawValue = 0;
+	rawValue = ((DATA[1]&0xFF)<<8) | DATA[0];
+
+	return ((float)rawValue)*0.325*PI/(0.0112*180);
+}
+//set input toque to servo
+void c_io_herkulex_set_torque(uint8_t servo_id, int16_t pwm) {
+	uint8_t led = LED_RED;
+	char sign = 0;
+
+	if (pwm == 0) {
+		led=LED_BLUE;
+		//setTorqueControl(servo_id,TORQUE_BREAK);
+		//torque_status=TORQUE_BREAK;
+		//ledControl(servo_id,led);
+	} else {
+		if (pwm<0) {
+			pwm=pwm*-1;
+			sign=1;
+		}
+		if (pwm>8191) pwm=8191;
+		if (torque_status[translate_servo_id(servo_id)]!=TORQUE_ON) {
+			c_io_herkulex_set_torque_control(servo_id,TORQUE_ON);
+		}
+		pwm|=sign<<14;
+		c_io_herkulex_sjog(12,servo_id,pwm,0,1,led,0);
+	}
+}
+
+uint8_t c_io_herkulex_serialize() {
+	//header
+	if (size == 0) {
+		return 0;
+	}
+
+	BUFFER[0] = HEADER;
+	BUFFER[1] = HEADER;
+	BUFFER[2] = size;
+	BUFFER[3] = pid;
+	BUFFER[4] = cmd;
+
+	//data
+	if (size>7) {
+		BUFFER[7] = data_addr;
+		BUFFER[8] = data_length;
+	}
+	unsigned char i;
+	if (size>9) {
+		for (i=0;i<(data_length);i++) {
+			BUFFER[9+i] = DATA[i];
+		}
+	}
+
+
+	if ((size-data_length)>9) {
+		BUFFER[size-2]=status_error;
+		BUFFER[size-1]=status_detail;
+	}
+	//checksums
+
+	BUFFER[5] = checksum1(BUFFER, size);
+	BUFFER[6] = checksum2(BUFFER[5]);
+	cksum1=BUFFER[5];
+	cksum2=BUFFER[6];
+
+	return 1;
+}
+
+void raw2packet(char* new_buffer) {
+	uint8_t new_cksum1, new_cksum2;
+	size = (unsigned char)BUFFER[2];
+	pid = BUFFER[3];
+	cmd = BUFFER[4];
+	cksum1 = BUFFER[5];
+	new_cksum1=checksum1(BUFFER,size);
+	cksum2 = BUFFER[6];
+	new_cksum2=checksum2(new_cksum1);
+	if ((new_cksum1!=cksum1) || (new_cksum2!=cksum2)) {
+		status=0;
+		return;
+	}
+	status=1;
+
+	if (size> 7) {
+		if (cmd==ACK_STAT) {
+			status_error=BUFFER[7];
+			status_detail=BUFFER[8];
+		} else {
+			data_addr=BUFFER[7];
+			data_length=BUFFER[8];
+		}
+	}
+
+	if (size>9) {
+		memcpy(DATA,BUFFER+9,data_length);
+		status_error=BUFFER[size-2];
+		status_detail=BUFFER[size-1];
+		status=2;
+	} else {
+		status_error=0;
+		status_detail=0;
+		status=0;
+	}
+}
+
+uint8_t translate_servo_id(uint8_t servo_id) {
+	if (servo_id==servo_ids[0]) {
+		return 0;
+	} else {
+		return 1;
+	}
+}
+
+uint8_t checksum1(uint8_t *buffer, uint8_t size) {
+	uint8_t i;
+	uint8_t chksum = 0;
+	if (size>7) {
+		for(i=7;i<size;i++) {
+			chksum=chksum^buffer[i];
+		}
+	}
+	chksum=chksum&0xFE;
+	//cksum1=chksum;
+
+	return chksum;
+}
+
+uint8_t checksum2(uint8_t checksum1) {
+	return (~checksum1) & 0xFE;
+}
+
+void serialize_jog() {
+
+	if (size<12) {
+		return;
+	}
+	uint8_t cksum1;
+	uint8_t cksum2;
+
+	BUFFER[0] = HEADER;
+	BUFFER[1] = HEADER;
+	BUFFER[2] = size;
+	BUFFER[3] = pid;
+	BUFFER[4] = cmd;
+	BUFFER[7] = play_time;
+
+	memcpy((BUFFER+8),(void*)(&jog_packet),4);
+
+	cksum1=checksum1(BUFFER,BUFFER[2]);
+	cksum2=checksum2(cksum1);
+	BUFFER[5] = cksum1;
+	BUFFER[6] = cksum2;
+}
+

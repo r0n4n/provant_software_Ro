@@ -33,6 +33,7 @@ int  c_io_blctrl_read(uint8_t ID, int local);
 int  c_io_blctrl_setSpeed(uint8_t ID, unsigned char speed);
 int  c_io_blctrl_readSpeed(uint8_t ID);
 int  c_io_blctrl_readVoltage(uint8_t ID);
+int  c_io_blctrl_readCurrent(uint8_t ID);
 int  c_io_blctrl_updateBuffer(uint8_t ID);
 
 #ifdef __cplusplus

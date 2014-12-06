@@ -347,9 +347,9 @@ void c_common_i2c_stop(I2C_TypeDef* I2Cx) {
  *
  */
 void c_common_i2c_readBytes(I2C_TypeDef* I2Cx, uint8_t device, uint8_t address, char bytesToRead, uint8_t * recvBuffer) {
-	c_common_i2c_start(I2Cx, device<<1, I2C_Direction_Transmitter);
-	c_common_i2c_write(I2Cx, address);
-	c_common_i2c_stop(I2Cx);
+	//c_common_i2c_start(I2Cx, device<<1, I2C_Direction_Transmitter);
+	//c_common_i2c_write(I2Cx, address);
+	//c_common_i2c_stop(I2Cx);
 
 	c_common_i2c_start(I2Cx, device<<1, I2C_Direction_Receiver);
 	for(int i=0; i<bytesToRead-1; i++)

@@ -206,6 +206,16 @@ int  c_io_blctrl_read(uint8_t ID, int local)
   return (int) blctrl_buffer[ID][local];
 }
 
+/** \brief Lê o valor de corrente atual do motor ligado ao esc.
+  * Retorna o valor em caso de sucesso.
+  *
+  * @param  ID ID do esc.
+  */
+int  c_io_blctrl_readCurrent(uint8_t ID)
+{
+  return (int) blctrl_buffer[ID][BLCTRL_CURRENT];
+}
+
 /** \brief Lê a velocidade atual do esc, em rpm.
   * Retorna o valor em caso de sucesso.
   *
@@ -239,6 +249,8 @@ int  c_io_blctrl_updateBuffer(uint8_t ID)
   c_common_i2c_readBytes(I2Cx_blctrl, BLCTRL_ADDR + ID, 0x00, BLCTRL_BUFFER_SIZE, blctrl_buffer[ID]);
   return 1;
 }
+
+
 
 /* IRQ handlers ------------------------------------------------------------- */
 

@@ -43,7 +43,7 @@ pv_msg_input oInputData;
   * @param  None
   * @retval None
   */
-void module_in_init() 
+void module_in_init()
 {
 	/* Inicialização da imu */
 	c_common_i2c_init(I2C1); 
@@ -69,7 +69,7 @@ void module_in_init()
   * Loop que amostra sensores como necessário.
   *
   */
-void module_in_run() 
+void module_in_run()
 {
   unsigned int heartBeat=0;
   float rpy[3]={};
