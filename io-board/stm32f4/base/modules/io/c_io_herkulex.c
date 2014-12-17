@@ -26,7 +26,6 @@
 
 
 /* Private define ------------------------------------------------------------*/
-//#define I2Cx_blctrl             I2C2// i2c of blctrl
 #define KV 0.325*PI/(0.0112*180)
 #define TIME_OUT 10
 #define INTER_PKG_TIME 0.000105
@@ -128,6 +127,8 @@
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
 //da classe 'packet'
+USART_TypeDef *usartx = 0;
+
 uint8_t size;
 uint8_t pid;
 uint8_t cmd;
@@ -150,7 +151,7 @@ uint8_t play_time;
 
 /* Private function prototypes -----------------------------------------------*/
 void raw2packet(char* new_buffer);
-uint8_t c_io_herkulex_serialize();
+uint8_t serialize_io();
 uint8_t receive(uint8_t size);
 void send();
 void serialize_jog();
@@ -172,8 +173,7 @@ uint8_t checksum2(uint8_t checksum1);
   * @param data_length Tamanho dos dados a serem escritos
   * @retval ponteiro para os dados lidos.
   */
-uint8_t  c_io_herkulex_read(char mem, char servo_id, char reg_addr, unsigned char datalength)
-{
+uint8_t  c_io_herkulex_read(char mem, char servo_id, char reg_addr, unsigned char datalength) {
 	pid = servo_id;
 	size=9;
 	if (mem==EEP) {
@@ -186,24 +186,32 @@ uint8_t  c_io_herkulex_read(char mem, char servo_id, char reg_addr, unsigned cha
 	data_length = datalength;
 	status=1;
 	//send() envia comando de requisição de leitura
-	c_io_herkulex_serialize();
+	serialize_io();
 	send();
 	//le os dados enviados pelo servo
-	return receive(11+data_length);
+	uint8_t out = receive(11+data_length);
+	if (out) {
+		raw2packet(BUFFER);
+		if (status>0) out=1;
+	}
+
+	return out;
 }
 
 void send() {
 	for (int i = 0; i < size ; ++i)
-		c_common_usart_putchar(USART2,BUFFER[i]);
+		c_common_usart_putchar(usartx,BUFFER[i]);
 }
 
 uint8_t receive(uint8_t size) {// precisa de um timeout
 	int i=0;
+
 	do {
-		while (!c_common_usart_available(USART2));
-		BUFFER[i] = c_common_usart_read(USART2);
+		while (!c_common_usart_available(usartx)) ;
+		BUFFER[i] = c_common_usart_read(usartx);
 		i++;
 	} while(i<size);
+
 	return 1;
 }
 
@@ -220,7 +228,7 @@ uint8_t receive(uint8_t size) {// precisa de um timeout
 uint8_t c_io_herkulex_write(char mem, char servo_id, char reg_addr, unsigned char datalength, char *data)
 {
 	pid=servo_id;
-	size=0x09+data_length;
+	size=0x09+datalength;
 	if (mem==EEP) {
 		mem=EEP_WRITE;
 	} else {
@@ -232,6 +240,7 @@ uint8_t c_io_herkulex_write(char mem, char servo_id, char reg_addr, unsigned cha
 	data_length=datalength;
 	if (data!=NULL) {
 		memcpy(DATA,data,datalength);
+		serialize_io();
 		send();
 		return 1;
 	} else {
@@ -281,6 +290,7 @@ void c_io_herkulex_reboot(uint8_t servo_id) {
 	cmd=REBOOT;
 	size=7;
 	status=1;
+	serialize_io();
 	send();
 }
 
@@ -291,9 +301,20 @@ void c_io_herkulex_reboot(uint8_t servo_id) {
   * @param  None
   * @retval None
   */
-void c_io_herkulex_init()
+void c_io_herkulex_init(USART_TypeDef *usartn, int baudrate)
 {
-	void c_common_usart2_init(int baudrate);
+	usartx=usartn;
+	/* Inicia a usart2 */
+	if (usartx==USART1) {
+		c_common_usart1_init(baudrate);
+	} else if (usartx==USART2) {
+		c_common_usart2_init(baudrate);
+	} else if (usartx==USART3) {
+		c_common_usart3_init(baudrate);
+	} else if (usartx==USART6) {
+		c_common_usart6_init(baudrate);
+	}
+
 	torque_status[0]=0;
 	torque_status[1]=0;
 }
@@ -348,11 +369,11 @@ float c_io_herkulex_read_velocity(uint8_t servo_id) {
 }
 //set input toque to servo
 void c_io_herkulex_set_torque(uint8_t servo_id, int16_t pwm) {
-	uint8_t led = LED_RED;
+	uint8_t led = LED_BLUE;
 	char sign = 0;
 
 	if (pwm == 0) {
-		led=LED_BLUE;
+		led=LED_RED;
 		//setTorqueControl(servo_id,TORQUE_BREAK);
 		//torque_status=TORQUE_BREAK;
 		//ledControl(servo_id,led);
@@ -366,11 +387,11 @@ void c_io_herkulex_set_torque(uint8_t servo_id, int16_t pwm) {
 			c_io_herkulex_set_torque_control(servo_id,TORQUE_ON);
 		}
 		pwm|=sign<<14;
-		c_io_herkulex_sjog(12,servo_id,pwm,0,1,led,0);
+		c_io_herkulex_sjog(12,servo_id,pwm,0,ROTATION_MODE,led,0);
 	}
 }
 
-uint8_t c_io_herkulex_serialize() {
+uint8_t serialize_io() {
 	//header
 	if (size == 0) {
 		return 0;
@@ -457,6 +478,10 @@ uint8_t translate_servo_id(uint8_t servo_id) {
 uint8_t checksum1(uint8_t *buffer, uint8_t size) {
 	uint8_t i;
 	uint8_t chksum = 0;
+	for(i=2;i<5;i++) {
+			chksum=chksum^buffer[i];
+	}
+
 	if (size>7) {
 		for(i=7;i<size;i++) {
 			chksum=chksum^buffer[i];

@@ -46,6 +46,7 @@
 #include "pv_module_sm.h"
 #include "pv_module_esc.h"
 #include "pv_module_serial.h"
+#include "pv_module_servo.h"
 
 /* Common Components, FOR TESTING */
 #include "c_common_gpio.h"
@@ -160,6 +161,9 @@ void module_serial_task() {
 	module_serial_run();
 }
 
+void module_servo_task() {
+	module_servo_run();
+}
 
 /* Main ----------------------------------------------------------------------*/
 int main(void)
@@ -178,20 +182,22 @@ int main(void)
 	//module_co_init();
 	//module_do_init();
 	//module_esc_init();
-	module_serial_init();
+	//module_serial_init();
+	module_servo_init();
 
 	/* Connect modules: interface1.o* = interface2.i* */
 	//pv_interface_do.iInputData  = pv_interface_in.oInputData;
 	//pv_interface_co.iInputData  = pv_interface_in.oInputData;
 	//pv_interface_do.iControlOutputData  = pv_interface_co.oControlOutputData;
-	//iEscQueueData = oEscQueueData;
+	iEscQueueData = oEscQueueData;
 	/* create tasks
 	 * Prioridades - quanto maior o valor, maior a prioridade
 	 * */
 	xTaskCreate(blink_led_task, (signed char *)"Blink led", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+1, NULL);
 	//xTaskCreate(arduino_i2c_task, (signed char *)"Arduino", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+2, NULL);
 	//xTaskCreate(module_esc_task, (signed char *)"ESC", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+3, NULL);
-	xTaskCreate(module_serial_task, (signed char *)"Serial", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+2, NULL);
+	//xTaskCreate(module_serial_task, (signed char *)"Serial", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+2, NULL);
+	xTaskCreate(module_servo_task, (signed char *)"Servo", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+2, NULL);
 	//xTaskCreate(module_do_task, (signed char *)"Data out", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+1, NULL);
 	//xTaskCreate(module_in_task, (signed char *)"Data input", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+3, NULL);
 	//xTaskCreate(module_co_task, (signed char *)"Control + output", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+3, NULL);

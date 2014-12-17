@@ -1,13 +1,14 @@
 /**
   ******************************************************************************
-  * @file    app/remote-controlled-flight/pv_module_serial.h
+  * @file    app/remote-controlled-flight/pv_module_servo.h
   * @author  Iuro Baptista Pereira Nascimento
   * @version V1.0.0
-  * @date    10/11/2014
-  * @brief   Modulo para envio de dados de teste via UART
+  * @date    06/12/2014
+  * @brief   implementacao do modulo de testes do servos Herkulex DRS0201
   ******************************************************************************/
-#ifndef APP_REMOTE_CONTROLLED_FLIGHT_PV_MODULE_SERIAL_H_
-#define APP_REMOTE_CONTROLLED_FLIGHT_PV_MODULE_SERIAL_H_
+
+#ifndef APP_REMOTE_CONTROLLED_FLIGHT_PV_MODULE_SERVO_H_
+#define APP_REMOTE_CONTROLLED_FLIGHT_PV_MODULE_SERVO_H_
 
 #ifdef __cplusplus
  extern "C" {
@@ -22,9 +23,9 @@
 
 /* proVANT includes */
 #include "c_common_gpio.h"
-#include "c_common_i2c.h"
 #include "c_common_uart.h"
 #include "c_common_utils.h"
+#include "c_io_herkulex.h"
 #include "pv_typedefs.h"
 
 
@@ -38,14 +39,11 @@ xQueueHandle iEscQueueData;
 /* Exported macro ------------------------------------------------------------*/
 
 /* Exported functions ------------------------------------------------------- */
-void module_serial_init();
-void module_serial_run();
-void serialize_esc_msg();
+void module_servo_init();
+void module_servo_run();
+//void serialize_esc_msg();
 
 #ifdef __cplusplus
 }
 #endif
-
-
-
-#endif /* APP_REMOTE_CONTROLLED_FLIGHT_PV_MODULE_SERIAL_H_ */
+#endif /* APP_REMOTE_CONTROLLED_FLIGHT_PV_MODULE_SERVO_H_ */
