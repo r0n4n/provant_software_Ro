@@ -68,6 +68,11 @@
 #define REG_OVERLOAD_PWM_THRESHOLD 18
 #define REG_MIN_POS 20
 #define REG_MAX_POS 22
+#define REG_KP 24
+#define REG_KD 26
+#define REG_KI 28
+#define REG_KFF1 30
+#define REG_KFF2 32
 
 //some other registers from voltatile RAM
 #define REG_INPOSITION_MARGIN 44
@@ -138,6 +143,7 @@ void c_io_herkulex_sjog(char size, char servo_id, uint16_t data, char stop, char
 uint8_t c_io_herkulex_stat(uint8_t servo_id);
 void c_io_herkulex_rollback();//not implemented yet
 void c_io_herkulex_reboot(uint8_t servo_id);
+uint8_t receive(uint8_t size);
 
 //Indirect commands
 void c_io_herkulex_init(USART_TypeDef *USART, int baudrate);
@@ -158,6 +164,9 @@ float c_io_herkulex_read_velocity(uint8_t servo_id);
 //set input toque to servo
 void c_io_herkulex_set_torque(uint8_t servo_id, int16_t pwm);
 
+//status get functions
+uint8_t c_io_herkulex_get_status_error();
+uint8_t c_io_herkulex_get_status_detail();
 
 #ifdef __cplusplus
 }

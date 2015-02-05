@@ -8,8 +8,6 @@
 #include "c_io_herkulex.h"
 #include "c_common_uart.h"
 
-
-
 #include <math.h>
 
 /** @addtogroup Module_IO
@@ -152,7 +150,7 @@ uint8_t play_time;
 /* Private function prototypes -----------------------------------------------*/
 void raw2packet(char* new_buffer);
 uint8_t serialize_io();
-uint8_t receive(uint8_t size);
+//uint8_t receive(uint8_t size);
 void send();
 void serialize_jog();
 uint8_t translate_servo_id(uint8_t servo_id);
@@ -192,27 +190,45 @@ uint8_t  c_io_herkulex_read(char mem, char servo_id, char reg_addr, unsigned cha
 	uint8_t out = receive(11+data_length);
 	if (out) {
 		raw2packet(BUFFER);
-		if (status>0) out=1;
+		if (status>0) out=0;
 	}
 
 	return out;
 }
 
 void send() {
-	for (int i = 0; i < size ; ++i)
+	for (int i=0; i < size ; ++i)
 		c_common_usart_putchar(usartx,BUFFER[i]);
 }
 
 uint8_t receive(uint8_t size) {// precisa de um timeout
 	int i=0;
-
-	do {
-		while (!c_common_usart_available(usartx)) ;
-		BUFFER[i] = c_common_usart_read(usartx);
-		i++;
-	} while(i<size);
-
-	return 1;
+	uint8_t lastByte = 0, inByte = 0, ok=0;;
+	long now = c_common_utils_millis();
+	long timeOut = now + 11;
+	while(c_common_usart_read(usartx)!=0xFF);
+	if (c_common_usart_read(usartx) != 0xFF) return 0;
+	while (now<=timeOut && i<size) {
+		while (!c_common_usart_available(usartx) && now<=timeOut) now=c_common_utils_millis();//verifica quando o primeiro byte chegou
+		lastByte=inByte;
+		//now = c_common_utils_millis();
+		inByte = c_common_usart_read(usartx);
+		if (!ok && inByte == 0xFF && lastByte == 0xFF ) {
+			BUFFER[0]=0xFF;
+			BUFFER[1]=0xFF;
+			i=2;
+			ok=1;
+		}
+		if (ok) {
+			BUFFER[i] = inByte;
+			i++;
+		}
+	}
+	if (now>timeOut) {
+		return 0;
+	} else {
+		return 1;
+	}
 }
 
 /** \brief Escreve o valor dado um endereço de memoria, entre 0 e 0x18.
@@ -273,6 +289,7 @@ uint8_t c_io_herkulex_stat(uint8_t servo_id) {
 	cmd=STAT;
 	size=7;
 	status=1;
+	serialize_io();
 	send();
 	//uint8_t *error = (uint8_t*)malloc(2*sizeof(char));
 	//uint8_t error[2];
@@ -336,6 +353,7 @@ void c_io_herkulex_clear(uint8_t servo_id) {
 	DATA[1]=0;
 	c_io_herkulex_write(RAM,servo_id,REG_STATUS_ERROR,2,DATA);
 }
+
 void c_io_herkulex_set_torque_control(char servo_id, char control) {
 	DATA[0]=control;
 	torque_status[translate_servo_id(servo_id)] = control;
@@ -365,15 +383,15 @@ float c_io_herkulex_read_velocity(uint8_t servo_id) {
 	int16_t rawValue = 0;
 	rawValue = ((DATA[1]&0xFF)<<8) | DATA[0];
 
-	return ((float)rawValue)*0.325*PI/(0.0112*180);
+	return ((float)rawValue)*0.325*PI/(0.0112*180.0);
 }
 //set input toque to servo
 void c_io_herkulex_set_torque(uint8_t servo_id, int16_t pwm) {
-	uint8_t led = LED_BLUE;
+	uint8_t led = 0;//LED_BLUE;
 	char sign = 0;
 
 	if (pwm == 0) {
-		led=LED_RED;
+		//led=LED_RED;
 		//setTorqueControl(servo_id,TORQUE_BREAK);
 		//torque_status=TORQUE_BREAK;
 		//ledControl(servo_id,led);
@@ -387,8 +405,8 @@ void c_io_herkulex_set_torque(uint8_t servo_id, int16_t pwm) {
 			c_io_herkulex_set_torque_control(servo_id,TORQUE_ON);
 		}
 		pwm|=sign<<14;
-		c_io_herkulex_sjog(12,servo_id,pwm,0,ROTATION_MODE,led,0);
 	}
+	c_io_herkulex_sjog(12,servo_id,pwm,0,ROTATION_MODE,led,0);
 }
 
 uint8_t serialize_io() {
@@ -460,10 +478,6 @@ void raw2packet(char* new_buffer) {
 		status_error=BUFFER[size-2];
 		status_detail=BUFFER[size-1];
 		status=2;
-	} else {
-		status_error=0;
-		status_detail=0;
-		status=0;
 	}
 }
 
@@ -495,6 +509,13 @@ uint8_t checksum1(uint8_t *buffer, uint8_t size) {
 
 uint8_t checksum2(uint8_t checksum1) {
 	return (~checksum1) & 0xFE;
+}
+
+uint8_t c_io_herkulex_get_status_error() {
+	return status_error;
+}
+uint8_t c_io_herkulex_get_status_detail() {
+	return status_detail;
 }
 
 void serialize_jog() {

@@ -70,16 +70,7 @@ typedef struct
 } pv_type_escOutput;
 
 
-/** \brief Tipo do ESC com informações. Iuro*/
-typedef struct
-{
-	char  ID;
-	float angularSpeed;
-	float current;
-	float voltage;
-	unsigned int heartBeat;
-	unsigned int  sampleTime;
-} pv_msg_esc;
+
 
 /** \brief Dados do servo*/
 typedef struct 
@@ -92,6 +83,14 @@ typedef struct
   unsigned int  sampleTime;
 } pv_type_servoOutput;
 
+
+/** \brief Tipo do Servo com informações. (Iuro)*/
+typedef struct
+{
+	uint32_t heartBeat;
+	uint16_t  pwm;
+	float angularSpeed;
+} pv_msg_servo;
 
 
 /** \brief Estrutura para orientação do VANT.*/

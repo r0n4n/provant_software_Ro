@@ -33,7 +33,11 @@
 
 /* Exported types ------------------------------------------------------------*/
  //xQueueHandle iEscOutputData;
-xQueueHandle iEscQueueData;
+
+struct pv_interface_servo
+ {
+   xQueueHandle oServoOutput;
+ } pv_interface_servo;
 
 /* Exported constants --------------------------------------------------------*/
 /* Exported macro ------------------------------------------------------------*/

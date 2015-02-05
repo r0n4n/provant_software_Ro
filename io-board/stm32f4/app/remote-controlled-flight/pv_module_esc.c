@@ -33,7 +33,7 @@
 /* Private variables ---------------------------------------------------------*/
 portTickType lastWakeTime;
 extern xQueueHandle oEscQueueData;
-pv_msg_esc oEscMsgData;
+//pv_msg_esc oEscMsgData;
 //pv_msg_input iInputData;
 //pv_msg_controlOutput oControlOutputData;
 
@@ -61,7 +61,7 @@ void module_esc_init()
   c_io_blctrl_init_i2c(I2C3);
 
   //reserva memoria para oEscQueueData
-  oEscQueueData = xQueueCreate(1, sizeof(pv_msg_esc));
+  //oEscQueueData = xQueueCreate(1, sizeof(pv_msg_esc));
 
   /*
 
@@ -106,6 +106,7 @@ void module_esc_run()
     //c_io_blctrl_setSpeed(1, 10 );
 
     c_io_blctrl_updateBuffer(0);
+    /*
     oEscMsgData.ID=0;
     oEscMsgData.angularSpeed = c_io_blctrl_readSpeed(0);
     oEscMsgData.voltage = c_io_blctrl_readVoltage(0);;
@@ -115,12 +116,13 @@ void module_esc_run()
     oEscMsgData.heartBeat                  = heartBeat;
     unsigned int timeNow=xTaskGetTickCount();
     oEscMsgData.sampleTime                  = timeNow - lastWakeTime;
+    */
 
     /* toggle pin for debug */
     //c_common_gpio_toggle(debugPin);
 
-    if(oEscQueueData != 0)
-      xQueueOverwrite(oEscQueueData, &oEscMsgData);
+    //if(oEscQueueData != 0)
+      //xQueueOverwrite(oEscQueueData, &oEscMsgData);
 
     /* A thread dorme ate o tempo final ser atingido */
     vTaskDelayUntil( &lastWakeTime, MODULE_PERIOD / portTICK_RATE_MS);

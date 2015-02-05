@@ -32,9 +32,13 @@
 
 /* Exported types ------------------------------------------------------------*/
  //xQueueHandle iEscOutputData;
-xQueueHandle iEscQueueData;
+ struct pv_interface_serial
+ {
+   xQueueHandle iServoOutput;
+ } pv_interface_serial;
 
 /* Exported constants --------------------------------------------------------*/
+#define SERIAL_TESTE 1
 /* Exported macro ------------------------------------------------------------*/
 
 /* Exported functions ------------------------------------------------------- */
