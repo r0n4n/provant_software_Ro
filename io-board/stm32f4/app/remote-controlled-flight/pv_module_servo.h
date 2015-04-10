@@ -40,6 +40,7 @@ struct pv_interface_servo
  } pv_interface_servo;
 
 /* Exported constants --------------------------------------------------------*/
+#define SERVO_IN_TEST 0
 /* Exported macro ------------------------------------------------------------*/
 
 /* Exported functions ------------------------------------------------------- */

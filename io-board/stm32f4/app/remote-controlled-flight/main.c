@@ -177,7 +177,7 @@ int main(void)
 	if (! uiTraceStart() )
 		vTraceConsoleMessage("Could not start recorder!");
 
-#if !SERIAL_TESTE
+#if !SERIAL_TEST
 	/* Init modules */
 	//module_in_init();
 	//module_co_init();
@@ -185,19 +185,22 @@ int main(void)
 	//module_esc_init();
 	module_servo_init();
 #endif
+#if !SERVO_IN_TEST
 	module_serial_init();
-
+#endif
 	/* Connect modules: interface1.o* = interface2.i* */
 	//pv_interface_do.iInputData  = pv_interface_in.oInputData;
 	//pv_interface_co.iInputData  = pv_interface_in.oInputData;
 	//pv_interface_do.iControlOutputData  = pv_interface_co.oControlOutputData;
+#if !SERVO_IN_TEST && !SERIAL_TEST
 	pv_interface_serial.iServoOutput=pv_interface_servo.oServoOutput;
+#endif
 	//iEscQueueData = oEscQueueData;
 	/* create tasks
 	 * Prioridades - quanto maior o valor, maior a prioridade
 	 */
 	xTaskCreate(blink_led_task, (signed char *)"Blink led", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+1, NULL);
-#if !SERIAL_TESTE
+#if !SERIAL_TEST
 	//xTaskCreate(arduino_i2c_task, (signed char *)"Arduino", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+2, NULL);
 	//xTaskCreate(module_esc_task, (signed char *)"ESC", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+3, NULL);
 	xTaskCreate(module_servo_task, (signed char *)"Servo", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+3, NULL);
@@ -207,8 +210,9 @@ int main(void)
 	//xTaskCreate(module_gps_task, (signed char *)"Gps", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+2, NULL);
 	//xTaskCreate(module_sm_task, (signed char *)"State machine", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+1, NULL);
 #endif
+#if !SERVO_IN_TEST
 	xTaskCreate(module_serial_task, (signed char *)"Serial", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+2, NULL);
-
+#endif
 	//xTaskCreate(sonar_task, (signed char *)"Sonar task", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+1, NULL);
 
 	/* Start the scheduler. */

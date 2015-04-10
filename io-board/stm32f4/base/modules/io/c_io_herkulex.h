@@ -143,7 +143,7 @@ void c_io_herkulex_sjog(char size, char servo_id, uint16_t data, char stop, char
 uint8_t c_io_herkulex_stat(uint8_t servo_id);
 void c_io_herkulex_rollback();//not implemented yet
 void c_io_herkulex_reboot(uint8_t servo_id);
-uint8_t receive(uint8_t size);
+//uint8_t receive();
 
 //Indirect commands
 void c_io_herkulex_init(USART_TypeDef *USART, int baudrate);
@@ -163,10 +163,12 @@ float c_io_herkulex_read_position(uint8_t servo_id);
 float c_io_herkulex_read_velocity(uint8_t servo_id);
 //set input toque to servo
 void c_io_herkulex_set_torque(uint8_t servo_id, int16_t pwm);
+void c_io_herkulex_set_goal_position(uint8_t servo_id, float position);
 
 //status get functions
 uint8_t c_io_herkulex_get_status_error();
 uint8_t c_io_herkulex_get_status_detail();
+uint8_t c_io_herkulex_get_status();
 
 #ifdef __cplusplus
 }

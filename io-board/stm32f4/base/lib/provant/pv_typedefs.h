@@ -88,8 +88,9 @@ typedef struct
 typedef struct
 {
 	uint32_t heartBeat;
-	uint16_t  pwm;
+	int16_t  pwm;
 	float angularSpeed;
+	float position;
 } pv_msg_servo;
 
 

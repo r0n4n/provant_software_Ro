@@ -136,7 +136,12 @@ uint8_t data_addr;
 uint8_t data_length;
 uint8_t status_error;
 uint8_t status_detail;
-uint8_t status;
+/** informa se pacotes foram recebidos e se estão inteiros
+ * status =
+ * 1- ok, recebido
+ * 0- erro: ou o pacote nao foi recebido, ou o pacote foi corrompido.
+ */
+uint8_t status;//informa se pacotes foram recebidos,
 
 uint8_t BUFFER[100];
 uint8_t DATA[100];
@@ -148,11 +153,11 @@ uint8_t servo_ids[2];
 uint8_t play_time;
 
 /* Private function prototypes -----------------------------------------------*/
-void raw2packet(char* new_buffer);
+uint8_t raw2packet(char* new_buffer);
 uint8_t serialize_io();
-//uint8_t receive(uint8_t size);
+uint8_t receive();
 void send();
-void serialize_jog();
+uint8_t serialize_jog();
 uint8_t translate_servo_id(uint8_t servo_id);
 uint8_t checksum1(uint8_t *buffer, uint8_t size);
 uint8_t checksum2(uint8_t checksum1);
@@ -187,48 +192,53 @@ uint8_t  c_io_herkulex_read(char mem, char servo_id, char reg_addr, unsigned cha
 	serialize_io();
 	send();
 	//le os dados enviados pelo servo
-	uint8_t out = receive(11+data_length);
-	if (out) {
-		raw2packet(BUFFER);
-		if (status>0) out=0;
+	status = receive();
+	if (status)
+	{ //se for corrompido, faz status = 0
+		status = raw2packet(BUFFER);
 	}
 
-	return out;
+	return status;
 }
+
 
 void send() {
 	for (int i=0; i < size ; ++i)
 		c_common_usart_putchar(usartx,BUFFER[i]);
 }
 
-uint8_t receive(uint8_t size) {// precisa de um timeout
+uint8_t receive() {// precisa de um timeout
 	int i=0;
-	uint8_t lastByte = 0, inByte = 0, ok=0;;
+	uint8_t lastByte = 0, inByte = 0, ok=0, size = 30;
 	long now = c_common_utils_millis();
-	long timeOut = now + 11;
-	while(c_common_usart_read(usartx)!=0xFF);
-	if (c_common_usart_read(usartx) != 0xFF) return 0;
+	long timeOut = now + 10;
+	//while(c_common_usart_read(usartx)!=0xFF);
+	//if (c_common_usart_read(usartx) != 0xFF) return 0;
+	//BUFFER[0]=0xFF;
+	//BUFFER[1]=0xFF;
+	//i=2;
 	while (now<=timeOut && i<size) {
-		while (!c_common_usart_available(usartx) && now<=timeOut) now=c_common_utils_millis();//verifica quando o primeiro byte chegou
+		//verifica quando o primeiro byte chegou
+		while (!c_common_usart_available(usartx) && now<=timeOut) now=c_common_utils_millis();
 		lastByte=inByte;
-		//now = c_common_utils_millis();
 		inByte = c_common_usart_read(usartx);
 		if (!ok && inByte == 0xFF && lastByte == 0xFF ) {
 			BUFFER[0]=0xFF;
-			BUFFER[1]=0xFF;
-			i=2;
+			i=1;
 			ok=1;
 		}
 		if (ok) {
 			BUFFER[i] = inByte;
+			if (i==2) size=BUFFER[2];
 			i++;
 		}
 	}
-	if (now>timeOut) {
+	if (now>=timeOut) {
 		return 0;
 	} else {
 		return 1;
 	}
+
 }
 
 /** \brief Escreve o valor dado um endereço de memoria, entre 0 e 0x18.
@@ -296,7 +306,7 @@ uint8_t c_io_herkulex_stat(uint8_t servo_id) {
 	//error[0]=status_error;
 	//error[1]=status_detail;
 	//decodeError(error);
-	return receive(9);
+	return receive();
 }
 void c_io_herkulex_rollback() {
 
@@ -383,25 +393,32 @@ float c_io_herkulex_read_velocity(uint8_t servo_id) {
 	int16_t rawValue = 0;
 	rawValue = ((DATA[1]&0xFF)<<8) | DATA[0];
 
-	return ((float)rawValue)*0.325*PI/(0.0112*180.0);
+	//return ((float)rawValue)*0.325*PI/(0.0112*180.0);
+	float vel = ((float)rawValue)*29.09*PI/180.0;
+	return vel;
 }
 //set input toque to servo
-void c_io_herkulex_set_torque(uint8_t servo_id, int16_t pwm) {
+void c_io_herkulex_set_torque(uint8_t servo_id, int16_t pwm)
+{
 	uint8_t led = 0;//LED_BLUE;
 	char sign = 0;
 
-	if (pwm == 0) {
+	if (pwm == 0)
+	{
 		//led=LED_RED;
 		//setTorqueControl(servo_id,TORQUE_BREAK);
 		//torque_status=TORQUE_BREAK;
 		//ledControl(servo_id,led);
-	} else {
-		if (pwm<0) {
+	} else
+	{
+		if (pwm<0)
+		{
 			pwm=pwm*-1;
 			sign=1;
 		}
 		if (pwm>8191) pwm=8191;
-		if (torque_status[translate_servo_id(servo_id)]!=TORQUE_ON) {
+		if (torque_status[translate_servo_id(servo_id)]!=TORQUE_ON)
+		{
 			c_io_herkulex_set_torque_control(servo_id,TORQUE_ON);
 		}
 		pwm|=sign<<14;
@@ -409,9 +426,16 @@ void c_io_herkulex_set_torque(uint8_t servo_id, int16_t pwm) {
 	c_io_herkulex_sjog(12,servo_id,pwm,0,ROTATION_MODE,led,0);
 }
 
+void c_io_herkulex_set_goal_position(uint8_t servo_id, float position)
+{
+	uint16_t raw_pos = (uint16_t)(position/0.325 + 0.5);//0.5 -> round
+	c_io_herkulex_sjog(12,servo_id,raw_pos,0,POSITION_MODE,0,0);
+}
+
+//so retorna 0 se size <=0, ou seja não há dados a serem serializados
 uint8_t serialize_io() {
 	//header
-	if (size == 0) {
+	if (size <= 0) {
 		return 0;
 	}
 
@@ -426,6 +450,7 @@ uint8_t serialize_io() {
 		BUFFER[7] = data_addr;
 		BUFFER[8] = data_length;
 	}
+
 	unsigned char i;
 	if (size>9) {
 		for (i=0;i<(data_length);i++) {
@@ -448,7 +473,7 @@ uint8_t serialize_io() {
 	return 1;
 }
 
-void raw2packet(char* new_buffer) {
+uint8_t raw2packet(char* new_buffer) {
 	uint8_t new_cksum1, new_cksum2;
 	size = (unsigned char)BUFFER[2];
 	pid = BUFFER[3];
@@ -457,47 +482,55 @@ void raw2packet(char* new_buffer) {
 	new_cksum1=checksum1(BUFFER,size);
 	cksum2 = BUFFER[6];
 	new_cksum2=checksum2(new_cksum1);
-	if ((new_cksum1!=cksum1) || (new_cksum2!=cksum2)) {
-		status=0;
-		return;
-	}
-	status=1;
+	if ((new_cksum1!=cksum1) || (new_cksum2!=cksum2)) return 0;
 
-	if (size> 7) {
-		if (cmd==ACK_STAT) {
+	if (size> 7)
+	{
+		if (cmd==ACK_STAT)
+		{
 			status_error=BUFFER[7];
 			status_detail=BUFFER[8];
-		} else {
+		} else
+		{
 			data_addr=BUFFER[7];
 			data_length=BUFFER[8];
 		}
 	}
 
-	if (size>9) {
+	if (size>9)
+	{
 		memcpy(DATA,BUFFER+9,data_length);
 		status_error=BUFFER[size-2];
 		status_detail=BUFFER[size-1];
-		status=2;
 	}
+
+	return 1;
 }
 
-uint8_t translate_servo_id(uint8_t servo_id) {
-	if (servo_id==servo_ids[0]) {
+uint8_t translate_servo_id(uint8_t servo_id)
+{
+	if (servo_id==servo_ids[0])
+	{
 		return 0;
-	} else {
+	} else
+	{
 		return 1;
 	}
 }
 
-uint8_t checksum1(uint8_t *buffer, uint8_t size) {
+uint8_t checksum1(uint8_t *buffer, uint8_t size)
+{
 	uint8_t i;
 	uint8_t chksum = 0;
-	for(i=2;i<5;i++) {
+	for(i=2;i<5;i++)
+	{
 			chksum=chksum^buffer[i];
 	}
 
-	if (size>7) {
-		for(i=7;i<size;i++) {
+	if (size>7)
+	{
+		for(i=7;i<size;i++)
+		{
 			chksum=chksum^buffer[i];
 		}
 	}
@@ -507,22 +540,29 @@ uint8_t checksum1(uint8_t *buffer, uint8_t size) {
 	return chksum;
 }
 
-uint8_t checksum2(uint8_t checksum1) {
+uint8_t checksum2(uint8_t checksum1)
+{
 	return (~checksum1) & 0xFE;
 }
 
-uint8_t c_io_herkulex_get_status_error() {
+uint8_t c_io_herkulex_get_status_error()
+{
 	return status_error;
 }
-uint8_t c_io_herkulex_get_status_detail() {
+uint8_t c_io_herkulex_get_status_detail()
+{
 	return status_detail;
 }
 
-void serialize_jog() {
+uint8_t c_io_herkulex_get_status()
+{
+	return status;
+}
 
-	if (size<12) {
-		return;
-	}
+uint8_t serialize_jog()
+{
+
+	if (size<12) return 0;
 	uint8_t cksum1;
 	uint8_t cksum2;
 
@@ -539,5 +579,7 @@ void serialize_jog() {
 	cksum2=checksum2(cksum1);
 	BUFFER[5] = cksum1;
 	BUFFER[6] = cksum2;
+
+	return 1;
 }
 

@@ -9,6 +9,7 @@
 
 #include "pv_module_serial.h"
 #include "c_io_herkulex.h"
+#include "queue.h"
 #include <stdio.h>
 #include <string.h>
 
@@ -25,9 +26,10 @@
 
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
-#define MODULE_PERIOD	    120//ms
+#define MODULE_PERIOD	    500//ms
 //#define USART_BAUDRATE     460800
 #define USART_BAUDRATE     115200
+#define QUEUE_SIZE 200
 
 
 /* Private macro -------------------------------------------------------------*/
@@ -42,10 +44,12 @@ int32_t msg_size;// = sizeof(pv_msg_esc);
 //pv_msg_controlOutput iControlOutputData;
 //GPIOPin debugPin;
 /* Private function prototypes -----------------------------------------------*/
+uint16_t one_time_sending();
 /* Private functions ---------------------------------------------------------*/
 void send_data(uint8_t size);
 void serialize_servo_msg(pv_msg_servo msg);
-uint8_t checksum(uint8_t buffer[]);
+uint8_t cksum1(uint8_t buffer[]);
+uint8_t cksum2(uint8_t checksum1);
 void stub();
 /* Exported functions definitions --------------------------------------------*/
 
@@ -68,7 +72,9 @@ void module_serial_init()
 		c_common_usart6_init(USART_BAUDRATE);
 	}
 	//stub();
-	c_io_herkulex_init(USARTx,USART_BAUDRATE);
+//#if SERIAL_TEST
+//	c_io_herkulex_init(USARTx,USART_BAUDRATE);
+//#endif
 
 
 
@@ -83,14 +89,15 @@ void stub() {
 	//codigo de teste
 	BUFFER[0]=0xFF;
 	BUFFER[1]=0xFF;
-	BUFFER[2]=0x0E;//13 valores fora o
+	BUFFER[2]=3*4+3;//3 float(32bits) + 1 byte de tamanho, +2 de checksum
 	float value=  3.14159265;
 	float value1=  3.14159265/2.0;
 	float value2=  3.14159265/4.0;
 	memcpy((BUFFER+3),&value,4);
 	memcpy((BUFFER+7),&value1,4);
 	memcpy((BUFFER+11),&value2,4);
-	BUFFER[15]=checksum(BUFFER);//0 a 14, 15 bytes
+	BUFFER[15]=cksum1(BUFFER);
+	BUFFER[16]=cksum2(BUFFER[15]);
 }
 
 /** \brief Função principal do módulo de data out.
@@ -100,20 +107,28 @@ void stub() {
   */
 void module_serial_run()
 {
-	unsigned int heartBeat=0;
+	unsigned int heartBeat=0, xKill=1;
 	portBASE_TYPE xStatus;
 	while(1)
 	{
 		lastWakeTime = xTaskGetTickCount();
 		heartBeat++;
-#if SERIAL_TESTE
-		//stub();
-		//send_data(BUFFER[2]+2);
-		uint8_t r = receive(12);
-		xStatus=r;
+#if SERIAL_TEST
+		stub();
+		send_data(BUFFER[2]+2);
+		xStatus=0;
+		//uint8_t r = receive();
+		//xStatus=r;
 #else
-		xStatus = xQueueReceive(pv_interface_serial.iServoOutput,&iServoOutput,1/portTICK_RATE_MS);
-		/*if (xStatus!= pdPASS) {
+		uint16_t queue_size = uxQueueMessagesWaiting(pv_interface_serial.iServoOutput);
+		if (queue_size>=QUEUE_SIZE)
+			xKill = one_time_sending();
+		else
+			xStatus = 0; //juntar a parte inferior
+		/*if (xStatus!=a pdPASS)
+		{
+
+
 			BUFFER[0]=0xFF;
 			BUFFER[1]=0xFF;
 			BUFFER[2]=5;
@@ -126,14 +141,40 @@ void module_serial_run()
 		//iServoOutput.angularSpeed=10.0;
 		//iServoOutput.heartBeat=53;
 		//iServoOutput.sampleTime=12;
-		if (xStatus == pdPASS) {
+
+		if (xStatus) {
 			serialize_servo_msg(iServoOutput);
 			send_data(BUFFER[2]+2);
 		}
-#endif
 
-		vTaskDelayUntil( &lastWakeTime, (MODULE_PERIOD / portTICK_RATE_MS));
+
+		if (xKill)
+		{
+#endif
+			vTaskDelayUntil( &lastWakeTime, (MODULE_PERIOD / portTICK_RATE_MS));
+#if !SERIAL_TEST
+		} else
+		{
+			break;
+		}
+#endif
 	}
+	vTaskDelete(NULL);
+}
+
+uint16_t one_time_sending()
+{
+	uint16_t xStatus = 0, i, queue_size = 1;
+	while (uxQueueMessagesWaiting(pv_interface_serial.iServoOutput)>0)
+	{
+		xStatus = xQueueReceive(pv_interface_serial.iServoOutput,&iServoOutput,1/portTICK_RATE_MS);
+		if (xStatus) {
+			serialize_servo_msg(iServoOutput);
+			send_data(BUFFER[2]+2);
+		}
+	}
+	return 0;
+
 }
 
 
@@ -141,9 +182,10 @@ void module_serial_run()
 
 
 
-uint8_t checksum(uint8_t buffer[]) {
+
+uint8_t cksum1(uint8_t buffer[]) {
   uint8_t i, chksum=0;
-  uint8_t n = BUFFER[2]-1+2;//-1-> tira o checksum  2->por começar em buffer[2]
+  uint8_t n = BUFFER[2];//-2-> tira o checksum  2->por começar em buffer[2]
   /* o buffer é passado inteiro, com o cabeçalho */
   for(i=2;i<n;i++) {
     chksum=chksum^buffer[i];
@@ -152,17 +194,24 @@ uint8_t checksum(uint8_t buffer[]) {
   return chksum&0xFE;
 }
 
+uint8_t cksum2(uint8_t checksum1)
+{
+	return (~checksum1) & 0xFE;
+}
 
-void serialize_servo_msg(pv_msg_servo msg) {
+void serialize_servo_msg(pv_msg_servo msg)
+{
 	int msg_size = sizeof(pv_msg_servo);
 	BUFFER[0]=0xFF;
 	BUFFER[1]=0xFF;
-	BUFFER[2]=msg_size+2;
+	BUFFER[2]=msg_size+3;
 	memcpy((BUFFER+3),&msg,msg_size);
-	BUFFER[msg_size+3]=checksum(BUFFER);
+	BUFFER[msg_size+3]=cksum1(BUFFER);
+	BUFFER[msg_size+4]=cksum2(BUFFER[msg_size+3]);
 }
 
-void send_data(uint8_t size) {
+void send_data(uint8_t size)
+{
 	for (int i = 0; i < size ; ++i)
 		c_common_usart_putchar(USARTx,BUFFER[i]);
 }
