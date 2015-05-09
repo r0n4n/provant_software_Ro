@@ -130,12 +130,16 @@ USART_TypeDef *usartx = 0;
 uint8_t size;
 uint8_t pid;
 uint8_t cmd;
-uint8_t cksum1;
-uint8_t cksum2;
+uint8_t csum1;
+uint8_t csum2;
 uint8_t data_addr;
 uint8_t data_length;
 uint8_t status_error;
 uint8_t status_detail;
+
+//for use with read_data function
+float position;
+float velocity;
 /** informa se pacotes foram recebidos e se estão inteiros
  * status =
  * 1- ok, recebido
@@ -160,9 +164,40 @@ void send();
 uint8_t serialize_jog();
 uint8_t translate_servo_id(uint8_t servo_id);
 uint8_t checksum1(uint8_t *buffer, uint8_t size);
-uint8_t checksum2(uint8_t checksum1);
+uint8_t checksum2(uint8_t cksum1);
+void zera_buffer();
+int16_t get_raw_position(uint8_t data[]);
+int16_t get_raw_velocity(uint8_t data[]);
+float convert_position(int16_t raw_data);
+float convert_velocity(int16_t raw_data);
 
 /* Private functions ---------------------------------------------------------*/
+void zera_buffer()
+{
+	int i;
+	for(i=0;i<50;i++)
+		BUFFER[i]=0;
+}
+int16_t get_raw_position(uint8_t data[])
+{
+	return (int16_t)(((data[1]&0x03)<<8) | data[0]);
+}
+int16_t get_raw_velocity(uint8_t data[])
+{
+	return (int16_t)(((data[1]&0xFF)<<8) | data[0]);
+}
+
+//convert raw_data to position in rad
+float convert_position(int16_t raw_data)
+{
+	return (((float)raw_data)*0.325-166.65)*PI/180;
+}
+
+//convert raw_data to velocity in rad/s
+float convert_velocity(int16_t raw_data)
+{
+	return ((float)raw_data)*29.09*PI/180.0;
+}
 /* Exported functions definitions --------------------------------------------*/
 
 //Direct servo commands
@@ -192,6 +227,7 @@ uint8_t  c_io_herkulex_read(char mem, char servo_id, char reg_addr, unsigned cha
 	serialize_io();
 	send();
 	//le os dados enviados pelo servo
+	zera_buffer();
 	status = receive();
 	if (status)
 	{ //se for corrompido, faz status = 0
@@ -376,17 +412,19 @@ void c_io_herkulex_set_torque_control(char servo_id, char control) {
 	 * position, the second read the angular velocity. The outputs
 	 * are converted to degrees and rad/s respectively
 	 */
-float c_io_herkulex_read_position(uint8_t servo_id) {
+float c_io_herkulex_read_position(uint8_t servo_id)
+{
 	if (!c_io_herkulex_read(RAM,servo_id,REG_ABSOLUTE_POS,2)) {
 		return -1;
 	}
 	int16_t rawValue;
 	rawValue=((DATA[1]&0x03)<<8) | DATA[0];
 
-	return ((float)rawValue)*0.325;
+	return (((float)rawValue)*0.325-166.65)*PI/180;
 }
 
-float c_io_herkulex_read_velocity(uint8_t servo_id) {
+float c_io_herkulex_read_velocity(uint8_t servo_id)
+{
 	if (!c_io_herkulex_read(RAM,servo_id,REG_DIFFERENTIAL_POS,2)) {
 		return -1;
 	}
@@ -397,6 +435,33 @@ float c_io_herkulex_read_velocity(uint8_t servo_id) {
 	float vel = ((float)rawValue)*29.09*PI/180.0;
 	return vel;
 }
+
+/**
+ * Read position and velocity in rad and rad/s
+ */
+
+int8_t c_io_herkulex_read_data(uint8_t servo_id)
+{
+	if (!c_io_herkulex_read(RAM,servo_id,REG_ABSOLUTE_POS,4)) {
+			return 0;
+	}
+	int16_t raw_position = get_raw_position(DATA);
+	int16_t raw_velocity = get_raw_velocity(DATA+2);
+	velocity = convert_velocity(raw_velocity);
+	position = convert_position(raw_position);
+	return 1;
+}
+
+float c_io_herkulex_get_position(uint8_t servo_id)
+{
+	return position;
+}
+
+float c_io_herkulex_get_velocity(uint8_t servo_id)
+{
+	return velocity;
+}
+
 //set input toque to servo
 void c_io_herkulex_set_torque(uint8_t servo_id, int16_t pwm)
 {
@@ -426,9 +491,15 @@ void c_io_herkulex_set_torque(uint8_t servo_id, int16_t pwm)
 	c_io_herkulex_sjog(12,servo_id,pwm,0,ROTATION_MODE,led,0);
 }
 
-void c_io_herkulex_set_goal_position(uint8_t servo_id, float position)
+void c_io_herkulex_set_goal_position_rad(uint8_t servo_id, float position_rad)
 {
-	uint16_t raw_pos = (uint16_t)(position/0.325 + 0.5);//0.5 -> round
+	float pos_deg = position_rad*180.0/PI;
+	c_io_herkulex_set_goal_position(servo_id,pos_deg);
+}
+
+void c_io_herkulex_set_goal_position(uint8_t servo_id, float position_deg)
+{
+	uint16_t raw_pos = ((uint16_t)(position_deg/0.325 + 0.5))+512;//0.5 -> round
 	c_io_herkulex_sjog(12,servo_id,raw_pos,0,POSITION_MODE,0,0);
 }
 
@@ -467,8 +538,8 @@ uint8_t serialize_io() {
 
 	BUFFER[5] = checksum1(BUFFER, size);
 	BUFFER[6] = checksum2(BUFFER[5]);
-	cksum1=BUFFER[5];
-	cksum2=BUFFER[6];
+	csum1=BUFFER[5];
+	csum2=BUFFER[6];
 
 	return 1;
 }
@@ -478,11 +549,11 @@ uint8_t raw2packet(char* new_buffer) {
 	size = (unsigned char)BUFFER[2];
 	pid = BUFFER[3];
 	cmd = BUFFER[4];
-	cksum1 = BUFFER[5];
+	csum1 = BUFFER[5];
 	new_cksum1=checksum1(BUFFER,size);
-	cksum2 = BUFFER[6];
+	csum2 = BUFFER[6];
 	new_cksum2=checksum2(new_cksum1);
-	if ((new_cksum1!=cksum1) || (new_cksum2!=cksum2)) return 0;
+	if ((new_cksum1!=csum1) || (new_cksum2!=csum2)) return 0;
 
 	if (size> 7)
 	{
@@ -521,21 +592,18 @@ uint8_t translate_servo_id(uint8_t servo_id)
 uint8_t checksum1(uint8_t *buffer, uint8_t size)
 {
 	uint8_t i;
-	uint8_t chksum = 0;
-	for(i=2;i<5;i++)
-	{
-			chksum=chksum^buffer[i];
+	char chksum=0;
+
+	for(i=2;i<5;i++) {
+		chksum=chksum^buffer[i];
 	}
 
-	if (size>7)
-	{
-		for(i=7;i<size;i++)
-		{
-			chksum=chksum^buffer[i];
-		}
+	for(i=7;i<size;i++) {
+		chksum=chksum^buffer[i];
 	}
+	//printf("i=%d\n",i);
+	//assert(i==size);
 	chksum=chksum&0xFE;
-	//cksum1=chksum;
 
 	return chksum;
 }
@@ -549,6 +617,7 @@ uint8_t c_io_herkulex_get_status_error()
 {
 	return status_error;
 }
+
 uint8_t c_io_herkulex_get_status_detail()
 {
 	return status_detail;
@@ -563,8 +632,6 @@ uint8_t serialize_jog()
 {
 
 	if (size<12) return 0;
-	uint8_t cksum1;
-	uint8_t cksum2;
 
 	BUFFER[0] = HEADER;
 	BUFFER[1] = HEADER;
@@ -575,11 +642,10 @@ uint8_t serialize_jog()
 
 	memcpy((BUFFER+8),(void*)(&jog_packet),4);
 
-	cksum1=checksum1(BUFFER,BUFFER[2]);
-	cksum2=checksum2(cksum1);
-	BUFFER[5] = cksum1;
-	BUFFER[6] = cksum2;
+	csum1=checksum1(BUFFER,BUFFER[2]);
+	csum2=checksum2(csum1);
+	BUFFER[5] = csum1;
+	BUFFER[6] = csum2;
 
 	return 1;
 }
-

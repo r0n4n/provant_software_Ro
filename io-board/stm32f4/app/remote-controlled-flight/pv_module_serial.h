@@ -38,7 +38,7 @@
  } pv_interface_serial;
 
 /* Exported constants --------------------------------------------------------*/
-#define SERIAL_TEST 1
+#define SERIAL_TEST 0
 /* Exported macro ------------------------------------------------------------*/
 
 /* Exported functions ------------------------------------------------------- */

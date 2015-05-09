@@ -29,7 +29,7 @@
 #define MODULE_PERIOD	    500//ms
 //#define USART_BAUDRATE     460800
 #define USART_BAUDRATE     115200
-#define QUEUE_SIZE 200
+#define QUEUE_SIZE 500
 
 
 /* Private macro -------------------------------------------------------------*/

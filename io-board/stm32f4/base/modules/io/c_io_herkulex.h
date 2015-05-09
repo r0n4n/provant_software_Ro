@@ -160,10 +160,15 @@ void c_io_herkulex_set_torque_control(char servo_id, char control);
 	 * are converted to degrees and rad/s respectively
 	 */
 float c_io_herkulex_read_position(uint8_t servo_id);
+float c_io_herkulex_read_position_rad(uint8_t servo_id);
 float c_io_herkulex_read_velocity(uint8_t servo_id);
+int8_t c_io_herkulex_read_data(uint8_t servo_id);
+float c_io_herkulex_get_position(uint8_t servo_id);
+float c_io_herkulex_get_velocity(uint8_t servo_id);
 //set input toque to servo
 void c_io_herkulex_set_torque(uint8_t servo_id, int16_t pwm);
-void c_io_herkulex_set_goal_position(uint8_t servo_id, float position);
+void c_io_herkulex_set_goal_position(uint8_t servo_id, float position_deg);
+void c_io_herkulex_set_goal_position_rad(uint8_t servo_id, float position_rad);
 
 //status get functions
 uint8_t c_io_herkulex_get_status_error();

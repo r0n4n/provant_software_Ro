@@ -29,7 +29,7 @@
 /* Private define ------------------------------------------------------------*/
 #define MODULE_PERIOD	    12//ms
 #define USART_BAUDRATE     115200
-#define QUEUE_SIZE 200
+#define QUEUE_SIZE 500
 
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
@@ -44,41 +44,50 @@ uint8_t servo_id;
 
 //GPIOPin debugPin;
 /* Private function prototypes -----------------------------------------------*/
-int16_t get_stepped_pwm(int heartBeat, int16_t pwm);
-int16_t velocity_controller(float r, float y);
-int16_t velocity_feedforward(float r);
+float position_controller(float r, float y);
+float velocity_controller(float r, float y);
+float velocity_feedforward(float r);
 int16_t saturate(float x, const float max);
+int16_t get_stepped_pwm(int heartBeat, int16_t pwm);
 /* Private functions ---------------------------------------------------------*/
-int16_t velocity_controller(float r, float y)
+float position_controller(float r, float y)
+{
+	return 13*(r-y);
+}
+
+float velocity_controller(float r, float y)
 {
 	static float e_old = 0, u = 0;
 	float e = r-y;
-
-	u=u+619.4*e-318.4955*e_old;
+	u=u+619.4*e-318.4955*e_old; //original
+	//u=u+15.966*e-7.9196*e_old; slow motherfucker PI
 	e_old=e;
 	//saturacao
-	int16_t out = saturate(u,1023);
 
-	assert(out>=(-1023) && out<=1023);
+	//assert(out>=(-1023) && out<=1023);
 
-	return out;
+	return u;
 }
 
-int16_t velocity_feedforward(float r)
+float velocity_feedforward(float r)
 {
-	static float y = 0, r_old = 0;
-	y=0.5142*(y+r_old);
-	r_old=r;
+	static float y = 0;
+	y=0.5142*(y+r);
 
-	return saturate(y,9);
+	return y;
 }
 
 int16_t saturate(float x, const float max)
 {
-	if (x>max) x=max;
-	else if (x<(-max)) x=-max;
+	if (x>max)
+		x=max;
+	else if (x<(-max))
+		x=-max;
+	if (x>0) x+=0.5;
+	if (x<0) x-=0.5;
 
-	return (int16_t)(x+0.5);
+
+	return (int16_t)x;
 }
 
 int16_t get_stepped_pwm(int heartBeat, int16_t pwm)
@@ -113,7 +122,8 @@ int16_t get_stepped_pwm(int heartBeat, int16_t pwm)
   */
 void module_servo_init()
 {
-	pv_interface_servo.oServoOutput = xQueueCreate(QUEUE_SIZE,sizeof(pv_msg_servo));
+	pv_interface_servo.oServoOutput = xQueueCreate(QUEUE_SIZE,
+			sizeof(pv_msg_servo));
 	servo_id=253;
 	/* Inicia a usart */
 	c_io_herkulex_init(USARTn,USART_BAUDRATE);
@@ -170,6 +180,7 @@ void module_servo_init()
 	//c_io_herkulex_write(RAM,servo_id,REG_KP,n,DATA);
 
 	c_io_herkulex_set_torque_control(servo_id,TORQUE_ON);//set torque on
+	c_common_utils_delayms(50);
 }
 
 /** \brief Função principal do módulo de data out.
@@ -179,17 +190,24 @@ void module_servo_init()
   */
 void module_servo_run()
 {
-	unsigned int heartBeat=0;
+	uint32_t heartBeat=0;
 	uint8_t status = 0;
-
+	int st =0, el=0;
 	uint8_t status_error=0, status_detail=0;
-	uint16_t pwm = 0, pos = 0;
-	float vel=0;
-	//c_io_herkulex_set_torque(servo_id, pwm);
-	//c_io_herkulex_set_goal_position(servo_id,pos);
-	//c_common_utils_delayms(12);
-	portBASE_TYPE xStatus;
+	int16_t pwm = 0;
+	float new_vel=0, pos = 0;
+	c_io_herkulex_set_torque(servo_id, pwm);
+	c_common_utils_delayms(100);
+	int32_t data_counter=0;
+	int32_t queue_data_counter = 0;
+	int32_t lost_data_counter = 0;
+	uint8_t data_received = 0;
+	//c_io_herkulex_set_goal_position(servo_id,50);
 
+	//float initial_position = c_io_herkulex_read_position(servo_id);
+	//float ref_pos = initial_position + 5;
+	//ref_pos = ref_pos*PI/180;
+	portBASE_TYPE xStatus;
 
 	while(1)
 	{
@@ -197,11 +215,17 @@ void module_servo_run()
 		heartBeat++;
 
 
+		/**
+		 * Teste das escadas
+		 */
 		//pwm=get_stepped_pwm(heartBeat,pwm);
-		//pwm=500;
 		//c_io_herkulex_set_torque(servo_id, pwm);
 
-		/* Teste do controle de posição interno do servo.
+
+		/**
+		 *  Teste do controle de posição interno do servo.
+		 */
+		/*
 		if (heartBeat%200 == 0)
 		{
 			pos+=5;
@@ -209,33 +233,80 @@ void module_servo_run()
 		}
 		*/
 
+		//resposta ao pulso unitario pwm=1 antes do loop
+		//c_io_herkulex_set_torque(servo_id,pwm);
+		//pwm=0;
+
 		/**
 		 * Leitura de dados
 		 */
-		//oServoMsg.angularSpeed=1024;
-		oServoMsg.angularSpeed = c_io_herkulex_read_velocity(servo_id);
-		//oServoMsg.position = c_io_herkulex_read_position(servo_id);
+#if !SERVO_IN_TEST
+		if (c_io_herkulex_read_data(servo_id))
+		{
+			new_vel = c_io_herkulex_get_velocity(servo_id);
+			oServoMsg.position = c_io_herkulex_get_position(servo_id);
+			oServoMsg.status=1;
+			data_counter++;
+			data_received=1;
+			status_error = c_io_herkulex_get_status_error();
+			status_detail = c_io_herkulex_get_status_detail();
+			if (status_error) {
+				c_io_herkulex_clear(servo_id);
+			}
+		} else
+		{
+			data_received = 0;
+			oServoMsg.angularSpeed=0;
+			oServoMsg.position=0;
+			oServoMsg.heartBeat=heartBeat;
+			oServoMsg.pwm=0;
+			oServoMsg.status=0;
+		}
+
+
 
 		/**
-		 * Controle
+		 * Controle de posicao
 		 */
-		float ref = 1;
-		//pwm=500;
-		pwm = velocity_controller(velocity_feedforward(ref),oServoMsg.angularSpeed);
+		//float ref_vel = velocity_feedforward(position_controller(ref_pos,
+		//		oServoMsg.position));
+		//pwm = saturate(velocity_controller(ref_vel,	oServoMsg.angularSpeed),1023);
+
+		/**
+		 * Controle de velocidade
+		 */
+		float ref_vel=5;
+		if (data_received)
+		{	//somente atualiza o pwm se receber dados.
+			if (new_vel>oServoMsg.angularSpeed*0.6) {//checar precedencia
+				oServoMsg.angularSpeed = new_vel;
+				pwm = saturate(velocity_controller(ref_vel,oServoMsg.angularSpeed),1023);
+			}
+		}
 		c_io_herkulex_set_torque(servo_id, pwm);
 
+
+#endif
+		//pwm=200;
+
+#if !SERVO_IN_TEST
 
 		/**
 		 * Envio dos dados para o modulo de comunicação
 		 * Verificação da integridade dos pacotes recebidos
 		 */
-		status = c_io_herkulex_get_status();//status verifica meramente erros de comunicação
+		status = c_io_herkulex_get_status();//indica erros de comunicação
+
 		if (status)
 		{
 			oServoMsg.pwm=pwm;
 			oServoMsg.heartBeat=heartBeat;
-			//ServoMsg.angularSpeed = 0;
-			xStatus = xQueueSend(pv_interface_servo.oServoOutput,&oServoMsg,1/portTICK_RATE_MS);
+			xStatus = xQueueSend(pv_interface_servo.oServoOutput,
+					&oServoMsg,1/portTICK_RATE_MS);
+			if (!xStatus) xQueueSend(pv_interface_servo.oServoOutput,
+					&oServoMsg,1/portTICK_RATE_MS);
+
+			queue_data_counter++;
 		} else
 		{
 			c_io_herkulex_stat(servo_id);
@@ -245,6 +316,7 @@ void module_servo_run()
 			{
 				c_io_herkulex_clear(servo_id);
 			}
+			lost_data_counter++;
 		}
 
 
@@ -253,15 +325,19 @@ void module_servo_run()
 		 * O tamanho da fila(xQueue) indica o numero de pontos acumulados
 		 */
 		//c_common_utils_delayms(1);=1000
-		uint16_t queue_size = uxQueueMessagesWaiting(pv_interface_servo.oServoOutput);
+		uint16_t queue_size = uxQueueMessagesWaiting(
+				pv_interface_servo.oServoOutput);
 		if (queue_size<QUEUE_SIZE)
 		{
+#endif
 			lastWakeTime=wakeTime;
 			vTaskDelayUntil( &lastWakeTime, (MODULE_PERIOD / portTICK_RATE_MS));
+#if !SERVO_IN_TEST
 		} else
 		{
 			break;
 		}
+#endif
 	}
 	c_io_herkulex_set_torque(servo_id, 0);
 	c_io_herkulex_set_torque_control(servo_id,TORQUE_BREAK);//set torque free
