@@ -34,7 +34,7 @@
 /** \brief Um par de floats. */
 typedef struct
 {
-	float accRaw[3];
+  float accRaw[3];
   float gyrRaw[3];
   float magRaw[3];
   float temp;
@@ -61,10 +61,10 @@ typedef struct
 /** \brief Tipo do ESC com informações.*/
 typedef struct 
 {
-	char  ID;
-	float angularSpeed;
-	float current;
-	float voltage;
+  char  ID;
+  float angularSpeed;
+  float current;
+  float voltage;
   float rpm;
   unsigned int  sampleTime;
 } pv_type_escOutput;
@@ -86,6 +86,15 @@ typedef struct
   float roll, pitch, yaw;
   float dotRoll, dotPitch, dotYaw;
 } pv_type_datapr_attitude;
+
+/** \brief Estrutura para referencias do VANT.*/
+typedef struct
+{
+  float refroll, refpitch, refyaw;
+  float refx, refy, refz;
+  float refdotRoll, refdotPitch, refdotYaw;
+  float refdotx, refdoty, refdotz;
+} pv_type_reference;
 
 /** \brief Estrutura para dados de atuação.*/
 typedef struct
@@ -142,6 +151,7 @@ typedef struct
   pv_type_escOutput       escOutput;
   pv_type_servoOutput     servoOutput;
   pv_type_datapr_attitude attitude;
+  pv_type_reference       reference;
   unsigned int cicleTime;
   unsigned int heartBeat;
 } pv_msg_input;

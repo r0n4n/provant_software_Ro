@@ -69,7 +69,7 @@ float invSqrt(float x);
  * @param mz medida magnetometro eixo Z
  */
 
-void c_datapr_MahonyAHRSupdate(float * q, float * velAngular_corrigida, float gx, float gy, float gz, float ax, float ay, float az,
+void c_datapr_MahonyAHRSupdate(float * q, float gx, float gy, float gz, float ax, float ay, float az,
 								float mx, float my, float mz,long sample_time_gyro_us) {
 	float recipNorm;
     float q0q0, q0q1, q0q2, q0q3, q1q1, q1q2, q1q3, q2q2, q2q3, q3q3;  
@@ -85,7 +85,7 @@ void c_datapr_MahonyAHRSupdate(float * q, float * velAngular_corrigida, float gx
 
 	// Use IMU algorithm if magnetometer measurement invalid (avoids NaN in magnetometer normalisation)
 	if((mx == 0.0f) && (my == 0.0f) && (mz == 0.0f)) {
-		c_datapr_MahonyAHRSupdateIMU(q, velAngular_corrigida, gx, gy, gz, ax, ay, az);
+		c_datapr_MahonyAHRSupdateIMU(q, gx, gy, gz, ax, ay, az);
 		return;
 	}
 
@@ -197,7 +197,7 @@ void c_datapr_MahonyAHRSupdate(float * q, float * velAngular_corrigida, float gx
  * @param az medida acelerometro eixo Z
  */
 
-void c_datapr_MahonyAHRSupdateIMU(float * q, float * velAngular_corrigida, float gx, float gy, float gz, float ax, float ay, float az) {
+void c_datapr_MahonyAHRSupdateIMU(float * q, float gx, float gy, float gz, float ax, float ay, float az) {
 	float recipNorm;
 	float halfvx, halfvy, halfvz;
 	float halfex, halfey, halfez;
