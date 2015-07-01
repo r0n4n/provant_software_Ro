@@ -36,21 +36,25 @@
 #include "queue.h"
 #include "task.h"
 
-/* proVANT includes */
+ /* kernel includes */
 #include "c_common_gpio.h"
 #include "c_common_i2c.h"
 #include "c_common_uart.h"
 #include "c_common_utils.h"
-
+ /* proVANT includes */
 #include "c_io_blctrl.h"
-#include "c_io_rx24f.h"
+#include "c_io_rx24f.h" // Depois serao trocado pelo servo novo
 #include "c_io_imu.h"
 #include "c_io_sonar.h"
 #include "c_rc_receiver.h"
 
 #include "pv_typedefs.h"
 #include "c_datapr_MultWii.h"
+
+/* Filtros Complementares */
 #include "c_datapr_MahonyAHRS.h"
+ /* Filtro */
+ #include "c_datapr_filter.h"
 
 /* Exported types ------------------------------------------------------------*/
 struct pv_interface_in

@@ -25,7 +25,7 @@
 
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
-#define MODULE_PERIOD	   10//ms
+#define MODULE_PERIOD	   5//ms
 
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
@@ -50,7 +50,7 @@ void module_in_init()
 	c_io_imu_init(I2C1); 
 
   /* Inicializador do sonar */
-  c_io_sonar_init();
+  //c_io_sonar_init();
 
   /* Inicializador do receiver */
 	c_rc_receiver_init();
