@@ -92,11 +92,29 @@ void module_in_run()
   	int n_valid_samples=0;
   	long sample_time_gyro_us[1] ={0};
   ////////////////
-  	/* Inicializa os dados da Roll Pitch Yaw*/
-  	oInputData.attitude.roll  =0;
-  	oInputData.attitude.pitch =0;
-  	oInputData.attitude.yaw   =0;
-	while(1)
+  	/*Dados usados no sonar*/
+  	float k1_1o_10Hz=0.7265, k2_1o_10Hz=0.1367, k3_1o_10Hz=0.1367;
+  	float k1_2o_10Hz=1.56102, k2_2o_10Hz=-0.64135, k3_2o_10Hz=0.02008, k4_2o_10Hz=0.04017, k5_2o_10Hz=0.02008;
+  	float sonar_raw_k_minus_1=0.0f, sonar_raw_k_minus_2=0.0f, sonar_filtered_k_minus_1=0.0f;
+  	float dotZ_filtered_k_minus_1=0.0f, dotZ_k_minus_1=0.0f;
+  	float last_reference_z=0;
+  	/* Inicializa os dados da attitude*/
+  	oInputData.attitude.roll  = 0;
+  	oInputData.attitude.pitch = 0;
+  	oInputData.attitude.yaw   = 0;
+  	oInputData.attitude.dotRoll  = 0;
+  	oInputData.attitude.dotPitch = 0;
+  	oInputData.attitude.dotYaw   = 0;
+
+  	/* Inicializa os dados da posiçao*/
+  	oInputData.position.x = 0;
+  	oInputData.position.y = 0;
+  	oInputData.position.z = 0;
+  	oInputData.position.dotX = 0;
+  	oInputData.position.dotY = 0;
+  	oInputData.position.dotZ = 0;
+
+  	while(1)
 	{
     oInputData.heartBeat=heartBeat+=1;
 
@@ -114,20 +132,22 @@ void module_in_run()
 	c_io_imu_EulerMatrix(rpy,oInputData.imuOutput.gyrRaw);
 	oInputData.imuOutput.sampleTime =xTaskGetTickCount() -lastWakeTime;
 
-    /* Saida dos dados de posição limitada a uma variaçao minima e velocidade angular*/
+    /* Saida dos dados de posição limitada a uma variaçao minima */
     if (abs2(rpy[0]-oInputData.attitude.roll)>ATTITUDE_MINIMUM_STEP)
     	oInputData.attitude.roll= rpy[0];
     if (abs2(rpy[1]-oInputData.attitude.pitch)>ATTITUDE_MINIMUM_STEP)
-    	oInputData.attitude.pitch= rpy[PV_IMU_PITCH ];
+    	oInputData.attitude.pitch= rpy[1];
     if (abs2(rpy[2]-oInputData.attitude.yaw)>ATTITUDE_MINIMUM_STEP)
     	oInputData.attitude.yaw= rpy[2];
+
+    /* Saida dos dados da velocidade angular*/
     oInputData.attitude.dotRoll  = rpy[3];
     oInputData.attitude.dotPitch = rpy[4];
     oInputData.attitude.dotYaw   = rpy[5];
 
     /*----------------------Tratamento da Referencia---------------------*/
 
-    /* Realiza a laitura dos canais do radio-controle */
+    /* Realiza a leitura dos canais do radio-controle */
 	oInputData.receiverOutput.joystick[0]=c_rc_receiver_getChannel(C_RC_CHANNEL_THROTTLE);
 	oInputData.receiverOutput.joystick[1]=c_rc_receiver_getChannel(C_RC_CHANNEL_PITCH);
 	oInputData.receiverOutput.joystick[2]=c_rc_receiver_getChannel(C_RC_CHANNEL_ROLL);
@@ -136,17 +156,66 @@ void module_in_run()
 	oInputData.receiverOutput.bButton    =c_rc_receiver_getChannel(C_RC_CHANNEL_B);
 	oInputData.receiverOutput.sampleTime =xTaskGetTickCount();
 
+	/*Referencia de attitude*/
 	oInputData.reference.refroll = (REF_ROLL_MAX*oInputData.receiverOutput.joystick[2]/100)+REF_ROLL_BIAS;
 	oInputData.reference.refpitch = REF_PITCH_MAX*oInputData.receiverOutput.joystick[1]/100+REF_PITCH_BIAS;
 	oInputData.reference.refyaw   = attitude_yaw_initial;// + REF_YAW_MAX*channel_YAW/100;
 
+	/*Referencia de altitude*/
+	//Se o canal 3 esta ligado ele muda a referencia de altura se nao esta ligado fica na referencia pasada
+	// Trothel varia de -100 a 100 -> adiciono 100 para ficar 0-200 e divido para 200 para ficar 0->1
+	if (oInputData.receiverOutput.joystick[3]){
+		oInputData.reference.refz=((oInputData.receiverOutput.joystick[0]+100)/200)*HEIGHT_REFERENCE_MAX;
+		last_reference_z = oInputData.reference.refz;
+	}
+	else
+		oInputData.reference.refz = last_reference_z;
+
 	/*----------------------Tratamento do Sonar---------------------*/
-	/* Executra a leitura do sonar */
+	/* Executa a leitura do sonar */
 	oInputData.sonarOutput.altitude  =c_io_sonar_read();
+	sonar_raw= sonar_raw_real/100;
     oInputData.sonarOutput.sampleTime=xTaskGetTickCount() - lastWakeTime;
     oInputData.cicleTime             =xTaskGetTickCount() - lastWakeTime;
 
-    /*----------------------Init-------------------------------------*/
+	#ifdef LIMIT_SONAR_VAR
+		if ( ( (oInputData.reference.refz-SONAR_MAX_VAR)<sonar_raw && (oInputData.reference.refz+SONAR_MAX_VAR)>sonar_raw ) || init){
+			sonar_corrected = (sonar_raw)*cos(oInputData.attitude.roll)*cos(oInputData.attitude.pitch);//the altitude must be in meters
+		}
+	#else
+		sonar_corrected = (sonar_raw)*cos(oInputData.attitude.roll)*cos(oInputData.attitude.pitch);;
+	#endif
+	/*Filtrajem das amostras do sonar*/
+	#ifdef SONAR_FILTER_1_ORDER_10HZ
+		//1st order filter with fc=10Hz
+		sonar_filtered = k1_1o_10Hz*sonar_filtered_k_minus_1 + k2_1o_10Hz*sonar_corrected + k3_1o_10Hz*sonar_raw_k_minus_1;
+		// Filter memory
+		sonar_raw_k_minus_1 = sonar_corrected;
+		sonar_filtered_k_minus_1 = sonar_filtered;
+	#elif defined SONAR_FILTER_2_ORDER_10HZ
+		//1st order filter with fc=10Hz
+		sonar_filtered = k1_2o_10Hz*sonar_filtered_k_minus_1 + k2_2o_10Hz*sonar_filtered_k_minus_2 + k3_2o_10Hz*sonar_corrected + k4_2o_10Hz*sonar_raw_k_minus_1 + k5_2o_10Hz*sonar_raw_k_minus_2;
+		// Filter memory
+		sonar_raw_k_minus_2 = sonar_raw_k_minus_1;
+		sonar_raw_k_minus_1 = sonar_corrected;
+		sonar_filtered_k_minus_2 = sonar_filtered_k_minus_1;
+		sonar_filtered_k_minus_1 = sonar_filtered;
+	#else //If no filter is active, the result is the measurement
+		sonar_filtered = sonar_corrected;
+	#endif
+
+	// Derivada = (dado_atual-dado_anterior )/(tempo entre medicoes) - fiz a derivada do sinal filtrado, REVER
+	dotZ = (sonar_filtered - oInputData.position.z)/0.005;
+	// 1st order filter with fc=10Hz
+	dotZ_filtered = k1_1o_10Hz*dotZ_filtered_k_minus_1 + k2_1o_10Hz*dotZ + k3_1o_10Hz*dotZ_k_minus_1;
+	// Filter memory
+	dotZ_filtered_k_minus_1 = dotZ_filtered;
+	dotZ_k_minus_1 = dotZ;
+
+	//Filtered measurements
+	oInputData.position.z = sonar_filtered;
+	oInputData.position.dotZ = dotZ_filtered;
+	/*----------------------Init-------------------------------------*/
     //Falta resolver
 
     /* toggle pin for debug */
