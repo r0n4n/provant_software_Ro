@@ -69,21 +69,18 @@ const float mag_ellipsoid_center[3] = {79.8977, -113.117, -136.064};
 const float mag_ellipsoid_transform[3][3] = {{0.792428, -0.00418974, 0.00504922}, {-0.00418974, 0.841005, -0.0430735}, {0.00504922, -0.0430735, 0.988147}};
 
 //calibration_matrix[3][3] is the transformation matrix
- double mag_calibration_matrix[3][3] = {{M11, M12, M13},{M21, M22, M23},{M31, M32, M33} };
-
- //bias[3] is the bias
- double mag_bias[3] = {Bx,By,Bz};
- float acc_filtered[3]={0}, acc_filtered_k_minus_1[3]={0}, acc_filtered_k_minus_2[3]={0}, acc_raw_k_minus_1[3]={0}, acc_raw_k_minus_2[3]={0};
- float mag_filtered[3]={0}, mag_filtered_k_minus_1[3]={0}, mag_filtered_k_minus_2[3]={0}, mag_raw_k_minus_1[3]={0}, mag_raw_k_minus_2[3]={0};
-
- /* Private function prototypes -----------------------------------------------*/
+double mag_calibration_matrix[3][3] = {{M11, M12, M13},{M21, M22, M23},{M31, M32, M33} };
+//bias[3] is the bias
+double mag_bias[3] = {Bx,By,Bz};
+float acc_filtered[3]={0}, acc_filtered_k_minus_1[3]={0}, acc_filtered_k_minus_2[3]={0}, acc_raw_k_minus_1[3]={0}, acc_raw_k_minus_2[3]={0};
+float mag_filtered[3]={0}, mag_filtered_k_minus_1[3]={0}, mag_filtered_k_minus_2[3]={0}, mag_raw_k_minus_1[3]={0}, mag_raw_k_minus_2[3]={0};
+/* Private function prototypes -----------------------------------------------*/
 float abs2(float num);
 void c_io_imu_calibrate();
 void c_io_imu_EulerMatrix(float * rpy, float * velAngular);
 void c_io_imu_Quaternion2Euler(float * q, float * rpy);
 void c_io_imu_Quaternion2EulerMadgwick(float * q, float * rpy);
 
-#define PV_IMU_SAMPLETIME  0.005
 /* Private functions ---------------------------------------------------------*/
 
 /* Exported functions definitions --------------------------------------------*/
@@ -164,7 +161,7 @@ void c_io_imu_init(I2C_TypeDef* I2Cx)
 #endif
 }
 
-/** \brief Nao sei que faz esta função
+/** \brief Calcula o periodo de amostragem
  *
  *
  */
@@ -197,13 +194,15 @@ long c_io_imu_sample_time_us(){
  * @param magRaw Buffer onde serão escritos os dados do magnetômetro.
  */
 void c_io_imu_getRaw(float  * accRaw, float * gyrRaw, float * magRaw, long * sample_time_gyro_us){
-	float mag_tmp[3]={0};
-	#ifdef C_IO_IMU_USE_ITG_ADXL_HMC
+float mag_tmp[3]={0};
+#ifdef C_IO_IMU_USE_ITG_ADXL_HMC
    	// Read x, y, z acceleration, pack the data.
    	uint8_t  buffer[14]={};
    	float accScale =0.00390625f; // 1/256
    	/*All g-ranges, full resolution - typical sensitivity = 256 LSB/g*/
+
    	c_common_i2c_readBytes(I2Cx_imu, ACCL_ADDR, ACCL_X_ADDR, 6, imuBuffer);
+
    	// Para transformar em valores no SI -> acc/256 *G m/s^2
    	accRaw[0] = (int16_t)(imuBuffer[0] | (imuBuffer[1] << 8))*accScale;
    	accRaw[1] = (int16_t)(imuBuffer[2] | (imuBuffer[3] << 8))*accScale;
@@ -212,7 +211,8 @@ void c_io_imu_getRaw(float  * accRaw, float * gyrRaw, float * magRaw, long * sam
    	//2nd order filter with fc=5Hz
    	#ifdef ACC_FILTER_2OD_5HZ
    		float k1_2o_5Hz=-1.778631777824585, k2_2o_5Hz=0.800802646665708, k3_2o_5Hz=0.005542717210281, k4_2o_5Hz=0.011085434420561, k5_2o_5Hz=0.005542717210281;
-		for (int i=0; i<3; i++){
+
+   		for (int i=0; i<3; i++){
 			acc_filtered[i] = -k1_2o_5Hz*acc_filtered_k_minus_1[i] - k2_2o_5Hz*acc_filtered_k_minus_2[i] + k3_2o_5Hz*accRaw[i] + k4_2o_5Hz*acc_raw_k_minus_1[i] + k5_2o_5Hz*acc_raw_k_minus_2[i];
 			// Filter memory
 			acc_raw_k_minus_2[i] = acc_raw_k_minus_1[i];
@@ -237,13 +237,15 @@ void c_io_imu_getRaw(float  * accRaw, float * gyrRaw, float * magRaw, long * sam
 
     c_common_i2c_readBytes(I2Cx_imu, GYRO_ADDR, GYRO_X_ADDR, 6, imuBuffer);
     sample_time_gyro_us[0] = c_io_imu_sample_time_us();
+
     gyrRaw[0] =  (int16_t)((imuBuffer[1] | (imuBuffer[0] << 8)))*gyrScale;
     gyrRaw[1] =  (int16_t)((imuBuffer[3] | (imuBuffer[2] << 8)))*gyrScale;
     gyrRaw[2] =  (int16_t)((imuBuffer[5] | (imuBuffer[4] << 8)))*gyrScale;
 
     // Read x, y, z from magnetometer;
+
     c_common_i2c_readBytes(I2Cx_imu, MAGN_ADDR, MAGN_X_ADDR, 6, imuBuffer);
-   
+
     magRaw[0] =  (int16_t)((imuBuffer[1] | (imuBuffer[0] << 8)));// X
     magRaw[1] =  (int16_t)((imuBuffer[5] | (imuBuffer[4] << 8)));// Y
     magRaw[2] =  (int16_t)((imuBuffer[3] | (imuBuffer[2] << 8)));// Z
@@ -262,49 +264,49 @@ void c_io_imu_getRaw(float  * accRaw, float * gyrRaw, float * magRaw, long * sam
     #endif
 
 	#ifdef CALIBRATE
-   // Compensate accelerometer error
-	#ifdef ACC_FILTER_2OD_5HZ
-   	accRaw[0] = (acc_filtered[0] - ACCEL_X_OFFSET) * ACCEL_X_SCALE;
-   	accRaw[1] = (acc_filtered[1] - ACCEL_Y_OFFSET) * ACCEL_Y_SCALE;
-   	accRaw[2] = (acc_filtered[2] - ACCEL_Z_OFFSET) * ACCEL_Z_SCALE;
-	#else
-		accRaw[0] = (accRaw[0] - ACCEL_X_OFFSET) * ACCEL_X_SCALE;
-		accRaw[1] = (accRaw[1] - ACCEL_Y_OFFSET) * ACCEL_Y_SCALE;
-		accRaw[2] = (accRaw[2] - ACCEL_Z_OFFSET) * ACCEL_Z_SCALE;
+    	// Compensate accelerometer error
+		#ifdef ACC_FILTER_2OD_5HZ
+    		accRaw[0] = (acc_filtered[0] - ACCEL_X_OFFSET) * ACCEL_X_SCALE;
+    		accRaw[1] = (acc_filtered[1] - ACCEL_Y_OFFSET) * ACCEL_Y_SCALE;
+    		accRaw[2] = (acc_filtered[2] - ACCEL_Z_OFFSET) * ACCEL_Z_SCALE;
+		#else
+    		accRaw[0] = (accRaw[0] - ACCEL_X_OFFSET) * ACCEL_X_SCALE;
+    		accRaw[1] = (accRaw[1] - ACCEL_Y_OFFSET) * ACCEL_Y_SCALE;
+    		accRaw[2] = (accRaw[2] - ACCEL_Z_OFFSET) * ACCEL_Z_SCALE;
+		#endif
+
+    	// Compensate magnetometer error
+		#ifdef MAG_FILTER_2OD_5HZ
+    		for (int i=0; i<3; i++)
+    			magRaw[i] = mag_filtered[i] - mag_bias[i];
+
+    		float result[3] = {0, 0, 0};
+    		for (int i=0; i<3; i++)
+    			for (int j=0; j<3; ++j)
+    				result[i] += mag_calibration_matrix[i][j] * magRaw[j];
+
+    		//calibrated values
+    		for (int i=0; i<3; i++) magRaw[i] = result[i];
+
+		#else
+    		for (int i=0; i<3; ++i)
+    			magRaw[i] = magRaw[i] - mag_bias[i];
+
+    		float result[3] = {0, 0, 0};
+    		for (int i=0; i<3; ++i)
+    			for (int j=0; j<3; ++j)
+    				result[i] += mag_calibration_matrix[i][j] * magRaw[j];
+
+    		//calibrated values
+    		for (int i=0; i<3; ++i) magRaw[i] = result[i];
+
+		#endif
+
+    	// Compensate gyroscope error
+    	gyrRaw[0] -= OFFSET_GYRO_X;
+    	gyrRaw[1] -= OFFSET_GYRO_Y;
+    	gyrRaw[2] -= OFFSET_GYRO_Z;
 	#endif
-
-	// Compensate magnetometer error
-	#ifdef MAG_FILTER_2OD_5HZ
-		 for (int i=0; i<3; i++)
-			 magRaw[i] = mag_filtered[i] - mag_bias[i];
-
-		 float result[3] = {0, 0, 0};
-			 for (int i=0; i<3; i++)
-				 for (int j=0; j<3; ++j)
-					 result[i] += mag_calibration_matrix[i][j] * magRaw[j];
-
-		 //calibrated values
-		 for (int i=0; i<3; i++) magRaw[i] = result[i];
-
-	#else
-		 for (int i=0; i<3; ++i)
-			 magRaw[i] = magRaw[i] - mag_bias[i];
-
-		 float result[3] = {0, 0, 0};
-			 for (int i=0; i<3; ++i)
-				 for (int j=0; j<3; ++j)
-					 result[i] += mag_calibration_matrix[i][j] * magRaw[j];
-
-		 //calibrated values
-		 for (int i=0; i<3; ++i) magRaw[i] = result[i];
-
-	#endif
-
-   // Compensate gyroscope error
-   gyrRaw[0] -= OFFSET_GYRO_X;
-   gyrRaw[1] -= OFFSET_GYRO_Y;
-   gyrRaw[2] -= OFFSET_GYRO_Z;
-   #endif
     
 #endif
 

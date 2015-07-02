@@ -110,8 +110,8 @@ void module_co_run()
     #if SERVO_ON
       if(iInputData.receiverOutput.joystick[0]<45 && iInputData.receiverOutput.joystick[0]>-45)
       {
-        c_io_rx24f_move(2, 150+iInputData.receiverOutput.joystick[0]);
-        c_io_rx24f_move(1, 130+iInputData.receiverOutput.joystick[0]);
+        c_io_rx24f_move(2, 150+iInputData.receiverOutput.joystick[1]);
+        c_io_rx24f_move(1, 130+iInputData.receiverOutput.joystick[1]);
       }
     #endif
 
@@ -119,9 +119,9 @@ void module_co_run()
     #if ESC_ON
       if (iInputData.receiverOutput.vrPot!=0)
       {
-        c_io_blctrl_setSpeed(0, 10  );
+        c_io_blctrl_setSpeed(0, (iInputData.receiverOutput.joystick[0]+100) );
         c_common_utils_delayus(10);
-        c_io_blctrl_setSpeed(1, 10 );
+        c_io_blctrl_setSpeed(1, (iInputData.receiverOutput.joystick[0]+100) );
       }
       else
       {

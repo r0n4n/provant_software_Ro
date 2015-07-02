@@ -139,9 +139,9 @@ void c_datapr_MahonyAHRSupdate(float * q, float gx, float gy, float gz, float ax
 
 		// Compute and apply integral feedback if enabled
 		if(twoKi > 0.0f) {
-			integralFBx += twoKi * halfex * (1.0f / sampleFreq);	// integral error scaled by Ki
-			integralFBy += twoKi * halfey * (1.0f / sampleFreq);
-			integralFBz += twoKi * halfez * (1.0f / sampleFreq);
+			integralFBx += twoKi * halfex * sample_time_gyro;;	// integral error scaled by Ki
+			integralFBy += twoKi * halfey * sample_time_gyro;
+			integralFBz += twoKi * halfez * sample_time_gyro;
 			gx += integralFBx;	// apply integral feedback
 			gy += integralFBy;
 			gz += integralFBz;

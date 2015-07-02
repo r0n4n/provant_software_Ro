@@ -61,7 +61,7 @@ void module_in_init()
 	c_io_imu_init(I2C1); 
 
   /* Inicializador do sonar */
-  //c_io_sonar_init();
+  c_io_sonar_init();
 
   /* Inicializador do receiver */
 	c_rc_receiver_init();
@@ -88,16 +88,16 @@ void module_in_run()
   	float rpy[6] = {0}, attitude_yaw_initial=0.0f, last_valid_sonar_raw=0.35f, position_reference_initial=0.0f;
   	int iterations=1, channel_flight_mode=0, sample=0;
   	float sonar_raw=0.0f, sonar_raw_real=0.0f, sonar_raw_filter=0.0f, sonar_corrected_debug=0.0f, sonar_corrected=0.0f, sonar_filtered=0.0f, dotZ=0.0f, dotZ_filtered=0.0f;
-   	int valid_sonar_measurements=0;
-  	int n_valid_samples=0;
+   	int n_valid_samples=0;
   	long sample_time_gyro_us[1] ={0};
   ////////////////
   	/*Dados usados no sonar*/
   	float k1_1o_10Hz=0.7265, k2_1o_10Hz=0.1367, k3_1o_10Hz=0.1367;
   	float k1_2o_10Hz=1.56102, k2_2o_10Hz=-0.64135, k3_2o_10Hz=0.02008, k4_2o_10Hz=0.04017, k5_2o_10Hz=0.02008;
-  	float sonar_raw_k_minus_1=0.0f, sonar_raw_k_minus_2=0.0f, sonar_filtered_k_minus_1=0.0f;
+  	float sonar_raw_k_minus_1=0.0f, sonar_raw_k_minus_2=0.0f, sonar_filtered_k_minus_1=0.0f, sonar_filtered_k_minus_2=0.0f;
   	float dotZ_filtered_k_minus_1=0.0f, dotZ_k_minus_1=0.0f;
   	float last_reference_z=0;
+	int valid_sonar_measurements=0;
   	/* Inicializa os dados da attitude*/
   	oInputData.attitude.roll  = 0;
   	oInputData.attitude.pitch = 0;
@@ -114,15 +114,30 @@ void module_in_run()
   	oInputData.position.dotY = 0;
   	oInputData.position.dotZ = 0;
 
+  	/*Inicializa as referencias*/
+  	oInputData.reference.refx = 0;
+  	oInputData.reference.refy = 0;
+  	oInputData.reference.refz = 0;
+  	oInputData.reference.refdotx = 0;
+  	oInputData.reference.refdoty = 0;
+  	oInputData.reference.refdotz = 0;
+
+  	oInputData.reference.refroll  = 0;
+  	oInputData.reference.refpitch = 0;
+  	oInputData.reference.refyaw   = 0;
+  	oInputData.reference.refdotRoll  = 0;
+  	oInputData.reference.refdotPitch = 0;
+  	oInputData.reference.refdotYaw   = 0;
+
   	while(1)
 	{
     oInputData.heartBeat=heartBeat+=1;
 
     /* toggle pin for debug */
-    //c_common_gpio_toggle(debugPin);
+    c_common_gpio_toggle(LED_builtin_io);
 
     /* Leitura do numero de ciclos atuais */
-		lastWakeTime = xTaskGetTickCount();
+	lastWakeTime = xTaskGetTickCount();
 
 	/*----------------------Tratamento da IMU---------------------*/
     /* Pega e trata os valores da imu */
@@ -133,17 +148,17 @@ void module_in_run()
 	oInputData.imuOutput.sampleTime =xTaskGetTickCount() -lastWakeTime;
 
     /* Saida dos dados de posição limitada a uma variaçao minima */
-    if (abs2(rpy[0]-oInputData.attitude.roll)>ATTITUDE_MINIMUM_STEP)
-    	oInputData.attitude.roll= rpy[0];
-    if (abs2(rpy[1]-oInputData.attitude.pitch)>ATTITUDE_MINIMUM_STEP)
-    	oInputData.attitude.pitch= rpy[1];
-    if (abs2(rpy[2]-oInputData.attitude.yaw)>ATTITUDE_MINIMUM_STEP)
-    	oInputData.attitude.yaw= rpy[2];
+    if (abs2(rpy[PV_IMU_ROLL]-oInputData.attitude.roll)>ATTITUDE_MINIMUM_STEP)
+    	oInputData.attitude.roll= rpy[PV_IMU_ROLL];
+    if (abs2(rpy[PV_IMU_PITCH]-oInputData.attitude.pitch)>ATTITUDE_MINIMUM_STEP)
+    	oInputData.attitude.pitch= rpy[PV_IMU_PITCH];
+    if (abs2(rpy[PV_IMU_YAW]-oInputData.attitude.yaw)>ATTITUDE_MINIMUM_STEP)
+    	oInputData.attitude.yaw= rpy[PV_IMU_YAW];
 
     /* Saida dos dados da velocidade angular*/
-    oInputData.attitude.dotRoll  = rpy[3];
-    oInputData.attitude.dotPitch = rpy[4];
-    oInputData.attitude.dotYaw   = rpy[5];
+    oInputData.attitude.dotRoll  = rpy[PV_IMU_DROLL];
+    oInputData.attitude.dotPitch = rpy[PV_IMU_DPITCH];
+    oInputData.attitude.dotYaw   = rpy[PV_IMU_DYAW ];
 
     /*----------------------Tratamento da Referencia---------------------*/
 
@@ -157,15 +172,15 @@ void module_in_run()
 	oInputData.receiverOutput.sampleTime =xTaskGetTickCount();
 
 	/*Referencia de attitude*/
-	oInputData.reference.refroll = (REF_ROLL_MAX*oInputData.receiverOutput.joystick[2]/100)+REF_ROLL_BIAS;
-	oInputData.reference.refpitch = REF_PITCH_MAX*oInputData.receiverOutput.joystick[1]/100+REF_PITCH_BIAS;
+	oInputData.reference.refroll  = ((float)oInputData.receiverOutput.joystick[2]/100)*REF_ROLL_MAX+REF_ROLL_BIAS;
+	oInputData.reference.refpitch = ((float)oInputData.receiverOutput.joystick[1]/100)*REF_PITCH_MAX+REF_PITCH_BIAS;
 	oInputData.reference.refyaw   = attitude_yaw_initial;// + REF_YAW_MAX*channel_YAW/100;
 
 	/*Referencia de altitude*/
 	//Se o canal 3 esta ligado ele muda a referencia de altura se nao esta ligado fica na referencia pasada
 	// Trothel varia de -100 a 100 -> adiciono 100 para ficar 0-200 e divido para 200 para ficar 0->1
 	if (oInputData.receiverOutput.joystick[3]){
-		oInputData.reference.refz=((oInputData.receiverOutput.joystick[0]+100)/200)*HEIGHT_REFERENCE_MAX;
+		oInputData.reference.refz=(((float)oInputData.receiverOutput.joystick[0]+100)/200)*HEIGHT_REFERENCE_MAX;
 		last_reference_z = oInputData.reference.refz;
 	}
 	else
@@ -219,7 +234,7 @@ void module_in_run()
     //Falta resolver
 
     /* toggle pin for debug */
-    //c_common_gpio_toggle(debugPin);
+    //c_common_gpio_toggle(LED_builtin_io);
 
     /* Realiza o trabalho de mutex */
 	if(pv_interface_in.oInputData != 0)
