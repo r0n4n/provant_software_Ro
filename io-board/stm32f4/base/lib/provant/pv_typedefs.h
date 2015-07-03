@@ -180,6 +180,8 @@ typedef struct
   unsigned int heartBeat;
   bool init;
   bool securityStop;
+  bool flightmode;
+  bool enableintegration;
 } pv_msg_input;
 
 /** \brief Estrutura de mensagem de saida da estrutura thread de controle.*/

@@ -76,7 +76,7 @@
 #define THRUST_MAX_MANUAL			(2.0f*THRUST_ROTOR_MAX-THRUST_FLIGHT_THRESHOLD)	// Newtons. It is the total thrust applied by the brushless motors combined
 
 #define ENABLE_RC_HEIGHT_REFERENCE
-#define HEIGHT_REFERENCE_MAX	2 //meters
+#define HEIGHT_REFERENCE_MAX	0.5 //meters
 //#define ENABLE_TAKEOFF_PROCEDURE
 
  //keeping here to keep it practical, move it to sensors after test

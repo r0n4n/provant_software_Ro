@@ -71,6 +71,7 @@ void module_in_init()
 	pv_interface_in.oInputData  = xQueueCreate(1, sizeof(pv_msg_input));
 	oInputData.init=1;
 	oInputData.securityStop=0;
+	oInputData.flightmode=0;
 }
 
 /** \brief Função principal do módulo de IO.
@@ -84,7 +85,7 @@ void module_in_run()
 {
 	unsigned int heartBeat=0;
 	/////////////////
-	bool lock_increment_roll=false, lock_increment_pitch=false, lock_increment_yaw=false, enable_integration=false, lock_increment_z=false;
+	bool lock_increment_roll=false, lock_increment_pitch=false, lock_increment_yaw=false, lock_increment_z=false;
   	float rpy[6] = {0}, attitude_yaw_initial=0.0f, last_valid_sonar_raw=0.35f, position_reference_initial=0.0f;
   	int iterations=1, channel_flight_mode=0, sample=0;
   	float sonar_raw=0.0f, sonar_raw_real=0.0f, sonar_raw_filter=0.0f, sonar_corrected_debug=0.0f, sonar_corrected=0.0f, sonar_filtered=0.0f, dotZ=0.0f, dotZ_filtered=0.0f;
@@ -165,38 +166,57 @@ void module_in_run()
     oInputData.attitude.dotPitch = rpy[PV_IMU_DPITCH];
     oInputData.attitude.dotYaw   = rpy[PV_IMU_DYAW ];
 
+    // A referencia é a orientacao que o UAV é iniciado
+    if (oInputData.init)
+    	attitude_yaw_initial = rpy[PV_IMU_YAW];
+
     /*----------------------Tratamento da Referencia---------------------*/
 
     /* Realiza a leitura dos canais do radio-controle */
-	oInputData.receiverOutput.joystick[0]=c_rc_receiver_getChannel(C_RC_CHANNEL_THROTTLE);
+	oInputData.receiverOutput.joystick[0]=c_rc_receiver_getChannel(C_RC_CHANNEL_THROTTLE)+100;
 	oInputData.receiverOutput.joystick[1]=c_rc_receiver_getChannel(C_RC_CHANNEL_PITCH);
 	oInputData.receiverOutput.joystick[2]=c_rc_receiver_getChannel(C_RC_CHANNEL_ROLL);
 	oInputData.receiverOutput.joystick[3]=c_rc_receiver_getChannel(C_RC_CHANNEL_YAW);
 	oInputData.receiverOutput.aButton	 =c_rc_receiver_getChannel(C_RC_CHANNEL_A);
 	oInputData.receiverOutput.bButton    =c_rc_receiver_getChannel(C_RC_CHANNEL_B);
-	oInputData.receiverOutput.sampleTime =xTaskGetTickCount();
+
+//	if (oInputData.receiverOutput.joystick[0] < 0)
+//			oInputData.receiverOutput.joystick[0] = 0;
 
 	/*Referencia de attitude*/
 	oInputData.attitude_reference.refroll  = ((float)oInputData.receiverOutput.joystick[2]/100)*REF_ROLL_MAX+REF_ROLL_BIAS;
 	oInputData.attitude_reference.refpitch = ((float)oInputData.receiverOutput.joystick[1]/100)*REF_PITCH_MAX+REF_PITCH_BIAS;
 	oInputData.attitude_reference.refyaw   = attitude_yaw_initial;// + REF_YAW_MAX*channel_YAW/100;
 
-	/*Referencia de altitude*/
-	//Se o canal 3 esta ligado ele muda a referencia de altura se nao esta ligado fica na referencia pasada
-	// Trothel varia de -100 a 100 -> adiciono 100 para ficar 0-200 e divido para 200 para ficar 0->1
-	if (oInputData.receiverOutput.joystick[3]){
-		oInputData.position_refrence.refz=(((float)oInputData.receiverOutput.joystick[0]+100)/200)*HEIGHT_REFERENCE_MAX;
-		last_reference_z = oInputData.position_refrence.refz;
+	/*Como o canal YAW da valores -100 ou 100 */
+	if (oInputData.receiverOutput.joystick[3]<0)
+		oInputData.flightmode=0;
+	else{
+		oInputData.flightmode=1;
+		oInputData.position_refrence.refz = sonar_filtered;
 	}
+
+
+//	/*Referencia de altitude*/
+//	//Se o canal 3 esta ligado ele muda a referencia de altura se nao esta ligado fica na referencia pasada
+//	// Trothel varia de -100 a 100 -> adiciono 100 para ficar 0-200 e divido para 200 para ficar 0->1
+//	if (oInputData.receiverOutput.joystick[3]){
+//		oInputData.position_refrence.refz=((oInputData.receiverOutput.joystick[0]+100)/200)*HEIGHT_REFERENCE_MAX;
+//		last_reference_z = oInputData.position_refrence.refz;
+//	}
+//	else
+//		oInputData.position_refrence.refz = last_reference_z;
+
+	/*Como o canal B da valores 1 ou 100 */
+	if (oInputData.receiverOutput.bButton>50)
+		oInputData.enableintegration = true;
 	else
-		oInputData.position_refrence.refz = last_reference_z;
+		oInputData.enableintegration = false;
 
 	/*----------------------Tratamento do Sonar---------------------*/
 	/* Executa a leitura do sonar */
-	oInputData.sonarOutput.altitude  =c_io_sonar_read();
+	sonar_raw_real  =c_io_sonar_read();
 	sonar_raw= sonar_raw_real/100;
-    oInputData.sonarOutput.sampleTime=xTaskGetTickCount() - lastWakeTime;
-    oInputData.cicleTime             =xTaskGetTickCount() - lastWakeTime;
 
 	#ifdef LIMIT_SONAR_VAR
 		if ( ( (oInputData.position_refrence.refz-SONAR_MAX_VAR)<sonar_raw && (oInputData.position_refrence.refz+SONAR_MAX_VAR)>sonar_raw ) || oInputData.init){
@@ -233,18 +253,19 @@ void module_in_run()
 	dotZ_k_minus_1 = dotZ;
 
 	//Filtered measurements
-	oInputData.position.z = sonar_filtered;
+	//oInputData.position.z = sonar_filtered;
+	oInputData.position.z=sonar_filtered;
 	oInputData.position.dotZ = dotZ_filtered;
 
 	/*----------------------Seguranças-------------------------------------*/
 	// Se o yaw está perto da zona de perigo a emergencia é acionada e o birotor é desligado
-	if ( (rpy[2]*RAD_TO_DEG < -160) || (rpy[2]*RAD_TO_DEG > 160) )
+	if ( (rpy[PV_IMU_YAW]*RAD_TO_DEG < -160) || (rpy[PV_IMU_YAW]*RAD_TO_DEG > 160) )
 		oInputData.securityStop=1;
 
 	if (!oInputData.receiverOutput.aButton && !oInputData.init)
 		oInputData.securityStop = 1;
 	else
-		if (!oInputData.receiverOutput.aButton)
+		if (oInputData.receiverOutput.aButton)
 			oInputData.securityStop = 0;
 
 	if (oInputData.init)
