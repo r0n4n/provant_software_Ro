@@ -45,10 +45,10 @@ pv_msg_controlOutput iControlOutputData;
 void module_do_init() 
 {
   /* Inicia a usart2 */
-	c_common_usart2_init(USART_BAUDRATE);
+  c_common_usart2_init(USART_BAUDRATE);
 
   /* Reserva o local de memoria compartilhado */
-	pv_interface_do.iInputData          = xQueueCreate(1, sizeof(pv_msg_input));
+  pv_interface_do.iInputData          = xQueueCreate(1, sizeof(pv_msg_input));
   pv_interface_do.iControlOutputData  = xQueueCreate(1, sizeof(pv_msg_controlOutput));
 
   /* Pin for debug */
@@ -81,7 +81,7 @@ void module_do_run()
 		c_common_datapr_multwii_attitude(iInputData.attitude.roll*RAD_TO_DEG,iInputData.attitude.pitch*RAD_TO_DEG,iInputData.attitude.yaw*RAD_TO_DEG);
 		//c_common_datapr_multwii2_rcNormalize(channel);
 		c_common_datapr_multwii_altitude(iInputData.position.z,0);
-		c_common_datapr_multwii_debug(iInputData.reference.refroll,iInputData.reference.refpitch,iInputData.reference.refz,0);
+		c_common_datapr_multwii_debug(iInputData.attitude_reference.refroll,iInputData.attitude_reference.refpitch,iInputData.position_refrence.refz,0);
 		c_common_datapr_multwii_sendstack(USART2);
   
 		//c_common_datapr_multwii2_sendControldatain(iControlOutputData.vantBehavior.rpy, iControlOutputData.vantBehavior.drpy, iControlOutputData.vantBehavior.xyz, iControlOutputData.vantBehavior.dxyz);

@@ -34,8 +34,7 @@ char str[256];
 GPIOPin LED_builtin_io;
 //GPIOPin debugPin;
 float attitude_quaternion[4]={1,0,0,0};
-int securityStop=0; //Promove uma parada de seguranca - desliga os atuadores
-int init=1; //Se 1 entao o UAV está em fase de inicializacao
+
 
 /* Output Message */
 pv_msg_input oInputData;
@@ -59,18 +58,19 @@ void module_in_init()
 	/* Inicialização da imu */
 	c_common_i2c_init(I2C1); 
 	c_io_imu_init(I2C1); 
+	/* Inicializador do sonar */
+	c_io_sonar_init();
 
-  /* Inicializador do sonar */
-  c_io_sonar_init();
-
-  /* Inicializador do receiver */
+	/* Inicializador do receiver */
 	c_rc_receiver_init();
 
-  /* Pin for debug */
-  //debugPin = c_common_gpio_init(GPIOE, GPIO_Pin_13, GPIO_Mode_OUT);
+	/* Pin for debug */
+	//debugPin = c_common_gpio_init(GPIOE, GPIO_Pin_13, GPIO_Mode_OUT);
 
-  /* Resevar o espaco para a variavel compartilhada */
+	/* Resevar o espaco para a variavel compartilhada */
 	pv_interface_in.oInputData  = xQueueCreate(1, sizeof(pv_msg_input));
+	oInputData.init=1;
+	oInputData.securityStop=0;
 }
 
 /** \brief Função principal do módulo de IO.
@@ -82,15 +82,16 @@ void module_in_init()
   */
 void module_in_run() 
 {
-  unsigned int heartBeat=0;
-  /////////////////
-  bool lock_increment_roll=false, lock_increment_pitch=false, lock_increment_yaw=false, enable_integration=false, lock_increment_z=false;
+	unsigned int heartBeat=0;
+	/////////////////
+	bool lock_increment_roll=false, lock_increment_pitch=false, lock_increment_yaw=false, enable_integration=false, lock_increment_z=false;
   	float rpy[6] = {0}, attitude_yaw_initial=0.0f, last_valid_sonar_raw=0.35f, position_reference_initial=0.0f;
   	int iterations=1, channel_flight_mode=0, sample=0;
   	float sonar_raw=0.0f, sonar_raw_real=0.0f, sonar_raw_filter=0.0f, sonar_corrected_debug=0.0f, sonar_corrected=0.0f, sonar_filtered=0.0f, dotZ=0.0f, dotZ_filtered=0.0f;
    	int n_valid_samples=0;
   	long sample_time_gyro_us[1] ={0};
-  ////////////////
+  	////////////////
+
   	/*Dados usados no sonar*/
   	float k1_1o_10Hz=0.7265, k2_1o_10Hz=0.1367, k3_1o_10Hz=0.1367;
   	float k1_2o_10Hz=1.56102, k2_2o_10Hz=-0.64135, k3_2o_10Hz=0.02008, k4_2o_10Hz=0.04017, k5_2o_10Hz=0.02008;
@@ -98,7 +99,8 @@ void module_in_run()
   	float dotZ_filtered_k_minus_1=0.0f, dotZ_k_minus_1=0.0f;
   	float last_reference_z=0;
 	int valid_sonar_measurements=0;
-  	/* Inicializa os dados da attitude*/
+
+	/* Inicializa os dados da attitude*/
   	oInputData.attitude.roll  = 0;
   	oInputData.attitude.pitch = 0;
   	oInputData.attitude.yaw   = 0;
@@ -115,26 +117,29 @@ void module_in_run()
   	oInputData.position.dotZ = 0;
 
   	/*Inicializa as referencias*/
-  	oInputData.reference.refx = 0;
-  	oInputData.reference.refy = 0;
-  	oInputData.reference.refz = 0;
-  	oInputData.reference.refdotx = 0;
-  	oInputData.reference.refdoty = 0;
-  	oInputData.reference.refdotz = 0;
+  	oInputData.position_refrence.refx = 0;
+  	oInputData.position_refrence.refy = 0;
+  	oInputData.position_refrence.refz = 0;
+  	oInputData.position_refrence.refdotX = 0;
+  	oInputData.position_refrence.refdotY = 0;
+  	oInputData.position_refrence.refdotZ = 0;
 
-  	oInputData.reference.refroll  = 0;
-  	oInputData.reference.refpitch = 0;
-  	oInputData.reference.refyaw   = 0;
-  	oInputData.reference.refdotRoll  = 0;
-  	oInputData.reference.refdotPitch = 0;
-  	oInputData.reference.refdotYaw   = 0;
+  	oInputData.attitude_reference.refroll  = 0;
+  	oInputData.attitude_reference.refpitch = 0;
+  	oInputData.attitude_reference.refyaw   = 0;
+  	oInputData.attitude_reference.refdotRoll  = 0;
+  	oInputData.attitude_reference.refdotPitch = 0;
+  	oInputData.attitude_reference.refdotYaw   = 0;
 
   	while(1)
 	{
     oInputData.heartBeat=heartBeat+=1;
+    /* Verifica init*/
+    if (iterations > INIT_ITERATIONS)
+    		oInputData.init = 0; //Sai da fase de inicializacao
 
     /* toggle pin for debug */
-    c_common_gpio_toggle(LED_builtin_io);
+    //c_common_gpio_toggle(LED_builtin_io);
 
     /* Leitura do numero de ciclos atuais */
 	lastWakeTime = xTaskGetTickCount();
@@ -167,24 +172,24 @@ void module_in_run()
 	oInputData.receiverOutput.joystick[1]=c_rc_receiver_getChannel(C_RC_CHANNEL_PITCH);
 	oInputData.receiverOutput.joystick[2]=c_rc_receiver_getChannel(C_RC_CHANNEL_ROLL);
 	oInputData.receiverOutput.joystick[3]=c_rc_receiver_getChannel(C_RC_CHANNEL_YAW);
-	oInputData.receiverOutput.vrPot		 =c_rc_receiver_getChannel(C_RC_CHANNEL_A);
+	oInputData.receiverOutput.aButton	 =c_rc_receiver_getChannel(C_RC_CHANNEL_A);
 	oInputData.receiverOutput.bButton    =c_rc_receiver_getChannel(C_RC_CHANNEL_B);
 	oInputData.receiverOutput.sampleTime =xTaskGetTickCount();
 
 	/*Referencia de attitude*/
-	oInputData.reference.refroll  = ((float)oInputData.receiverOutput.joystick[2]/100)*REF_ROLL_MAX+REF_ROLL_BIAS;
-	oInputData.reference.refpitch = ((float)oInputData.receiverOutput.joystick[1]/100)*REF_PITCH_MAX+REF_PITCH_BIAS;
-	oInputData.reference.refyaw   = attitude_yaw_initial;// + REF_YAW_MAX*channel_YAW/100;
+	oInputData.attitude_reference.refroll  = ((float)oInputData.receiverOutput.joystick[2]/100)*REF_ROLL_MAX+REF_ROLL_BIAS;
+	oInputData.attitude_reference.refpitch = ((float)oInputData.receiverOutput.joystick[1]/100)*REF_PITCH_MAX+REF_PITCH_BIAS;
+	oInputData.attitude_reference.refyaw   = attitude_yaw_initial;// + REF_YAW_MAX*channel_YAW/100;
 
 	/*Referencia de altitude*/
 	//Se o canal 3 esta ligado ele muda a referencia de altura se nao esta ligado fica na referencia pasada
 	// Trothel varia de -100 a 100 -> adiciono 100 para ficar 0-200 e divido para 200 para ficar 0->1
 	if (oInputData.receiverOutput.joystick[3]){
-		oInputData.reference.refz=(((float)oInputData.receiverOutput.joystick[0]+100)/200)*HEIGHT_REFERENCE_MAX;
-		last_reference_z = oInputData.reference.refz;
+		oInputData.position_refrence.refz=(((float)oInputData.receiverOutput.joystick[0]+100)/200)*HEIGHT_REFERENCE_MAX;
+		last_reference_z = oInputData.position_refrence.refz;
 	}
 	else
-		oInputData.reference.refz = last_reference_z;
+		oInputData.position_refrence.refz = last_reference_z;
 
 	/*----------------------Tratamento do Sonar---------------------*/
 	/* Executa a leitura do sonar */
@@ -194,7 +199,7 @@ void module_in_run()
     oInputData.cicleTime             =xTaskGetTickCount() - lastWakeTime;
 
 	#ifdef LIMIT_SONAR_VAR
-		if ( ( (oInputData.reference.refz-SONAR_MAX_VAR)<sonar_raw && (oInputData.reference.refz+SONAR_MAX_VAR)>sonar_raw ) || init){
+		if ( ( (oInputData.position_refrence.refz-SONAR_MAX_VAR)<sonar_raw && (oInputData.position_refrence.refz+SONAR_MAX_VAR)>sonar_raw ) || oInputData.init){
 			sonar_corrected = (sonar_raw)*cos(oInputData.attitude.roll)*cos(oInputData.attitude.pitch);//the altitude must be in meters
 		}
 	#else
@@ -230,8 +235,20 @@ void module_in_run()
 	//Filtered measurements
 	oInputData.position.z = sonar_filtered;
 	oInputData.position.dotZ = dotZ_filtered;
-	/*----------------------Init-------------------------------------*/
-    //Falta resolver
+
+	/*----------------------Seguranças-------------------------------------*/
+	// Se o yaw está perto da zona de perigo a emergencia é acionada e o birotor é desligado
+	if ( (rpy[2]*RAD_TO_DEG < -160) || (rpy[2]*RAD_TO_DEG > 160) )
+		oInputData.securityStop=1;
+
+	if (!oInputData.receiverOutput.aButton && !oInputData.init)
+		oInputData.securityStop = 1;
+	else
+		if (!oInputData.receiverOutput.aButton)
+			oInputData.securityStop = 0;
+
+	if (oInputData.init)
+		iterations++;
 
     /* toggle pin for debug */
     //c_common_gpio_toggle(LED_builtin_io);

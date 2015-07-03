@@ -25,9 +25,11 @@
 /* proVANT includes */
 #include "c_common_gpio.h"
 #include "c_common_i2c.h"
-#include "c_rc_control.h"
 #include "c_io_blctrl.h"
 #include "c_io_rx24f.h"
+
+/*Control includes*/
+#include "c_rc_BS_control.h"
 
 #include "pv_typedefs.h"
 
@@ -39,7 +41,7 @@ struct pv_interface_co
 } pv_interface_co;
 /* Exported constants --------------------------------------------------------*/
 /* Exported macro ------------------------------------------------------------*/
-
+#define ESC_MINIMUM_VELOCITY	10//esc set point value (0-255)
 /* Exported functions ------------------------------------------------------- */
 void module_co_init();
 void module_co_run();

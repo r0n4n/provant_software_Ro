@@ -87,29 +87,35 @@ typedef struct
   float dotRoll, dotPitch, dotYaw;
 } pv_type_datapr_attitude;
 
-/** \brief Estrutura para orientação do VANT.*/
+/** \brief Estrutura para refrencia da orientação do VANT.*/
+typedef struct
+{
+  float refroll, refpitch, refyaw;
+  float refdotRoll, refdotPitch, refdotYaw;
+} pv_type_datapr_attitude_refrence;
+
+/** \brief Estrutura para posição do VANT.*/
 typedef struct
 {
   float x, y, z;
   float dotX, dotY, dotZ;
 } pv_type_datapr_position;
 
-/** \brief Estrutura para referencias do VANT.*/
+/** \brief Estrutura para referencia da posição do VANT.*/
 typedef struct
 {
-  float refroll, refpitch, refyaw;
   float refx, refy, refz;
-  float refdotRoll, refdotPitch, refdotYaw;
-  float refdotx, refdoty, refdotz;
-} pv_type_reference;
+  float refdotX, refdotY, refdotZ;
+} pv_type_datapr_position_reference;
 
 /** \brief Estrutura para dados de atuação.*/
 typedef struct
 {
-  float servoTorque[2];
-  float servoPosition[2];
-  float escNewtons[2];
-  float escRpm[2];
+  bool  servoTorqueControlEnable;
+  float servoLeft;
+  float servoRight;
+  float escRightSpeed;
+  float escLeftSpeed;
 } pv_type_actuation;
 
 /** \brief Estrutura para dados de comportamento.*/
@@ -139,6 +145,15 @@ typedef struct
   unsigned int sampleTime;
 } pv_type_gpsOutput;
 
+/** \brief Integral do erro dos angulos de orientacao VANT.*/
+typedef struct {
+	float z, roll, pitch, yaw;
+} pv_type_stability_error;
+
+typedef struct {
+	float x, y, z, yaw;
+} pv_type_pathtrack_error;
+
 /* Exported messages ---------------------------------------------------------*/
 
 /** \brief Estrutura de mensagens para os dois RX24f e ESCs.
@@ -152,16 +167,19 @@ typedef struct
 /** \brief Estrutura de mensagem de saida da estrutura thread input.*/
 typedef struct
 {
-  pv_type_imuOutput       imuOutput;
-  pv_type_receiverOutput  receiverOutput;
-  pv_type_sonarOutput     sonarOutput;
-  pv_type_escOutput       escOutput;
-  pv_type_servoOutput     servoOutput;
+  pv_type_imuOutput      imuOutput;
+  pv_type_receiverOutput receiverOutput;
+  pv_type_sonarOutput    sonarOutput;
+  pv_type_escOutput      escOutput;
+  pv_type_servoOutput    servoOutput;
   pv_type_datapr_attitude attitude;
   pv_type_datapr_position position;
-  pv_type_reference       reference;
+  pv_type_datapr_attitude_refrence  attitude_reference;
+  pv_type_datapr_position_reference position_refrence;
   unsigned int cicleTime;
   unsigned int heartBeat;
+  bool init;
+  bool securityStop;
 } pv_msg_input;
 
 /** \brief Estrutura de mensagem de saida da estrutura thread de controle.*/

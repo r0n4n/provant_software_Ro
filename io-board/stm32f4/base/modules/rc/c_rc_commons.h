@@ -80,7 +80,7 @@
 //#define ENABLE_TAKEOFF_PROCEDURE
 
  //keeping here to keep it practical, move it to sensors after test
-#define ESC_MINIMUM_VELOCITY	10//esc set point value (0-255)
+
 #define ATTITUDE_MINIMUM_STEP	0.01// Radians. Minimum change in angle that is passed to the controller
 //#define ATTITUDE_MINIMUM_STEP	0.0035f// Radians. Minimum change in angle that is passed to the controller
 
@@ -176,15 +176,6 @@
 
 
 /* Exported types ------------------------------------------------------------*/
-
-/** \brief Integral do erro dos angulos de orientacao VANT.*/
-typedef struct {
-	float z, roll, pitch, yaw;
-} c_rc_stability_error;
-
-typedef struct {
-	float x, y, z, yaw;
-} c_rc_pathtrack_error;
 
 /* Exported variables ------------------------------------------------------------*/
 bool c_rc_commons_manual_height_control; //If 1 the thrust is controlled with the remote control

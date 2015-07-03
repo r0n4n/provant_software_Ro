@@ -28,20 +28,25 @@
 #define ENABLE_ESC		0
 #define ENABLE_SONAR	0
 #define ENALBE_DEBUG	1
-/*Def da IMU*/
+
+ /*Def da IMU*/
 #define ATTITUDE_MINIMUM_STEP	0.01// Radians. Minimum change in angle that is passed to the controller
 #define REF_ROLL_MAX		0.2 //radians
 #define REF_PITCH_MAX		0.3 //radians
 #define REF_YAW_MAX			0.0 //radians
 #define REF_ROLL_BIAS		-0.0087 //radians
 #define REF_PITCH_BIAS		-0.1169
+
  /*Def da IMU*/
 #define LIMIT_SONAR_VAR
 #define SONAR_MAX_VAR		0.5
+
 /*Define o filtro a utilizar para o sonar*/
 #define SONAR_FILTER_1_ORDER_10HZ
 //#define SONAR_FILTER_2_ORDER_10HZ
 
+/*Define o tempo de init */
+#define INIT_ITERATIONS 1000 //For a period of 5ms, it is 5 seconds
 
 /* Includes ------------------------------------------------------------------*/
 
