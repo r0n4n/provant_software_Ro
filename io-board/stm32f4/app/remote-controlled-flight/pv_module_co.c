@@ -23,7 +23,7 @@
 
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
-#define MODULE_PERIOD	 5//ms
+#define MODULE_PERIOD	 6//ms
 #define ESC_ON           1
 #define SERVO_ON         1
 
@@ -33,6 +33,7 @@ portTickType lastWakeTime;
 pv_msg_input iInputData;
 pv_msg_controlOutput oControlOutputData; 
 //GPIOPin debugPin;
+GPIOPin LED_builtin_io;
 /* Inboxes buffers */
 pv_type_actuation    iActuation;
 /* Outboxes buffers*/
@@ -51,6 +52,7 @@ unsigned char setPointESC_Forca(float forca);
   */
 void module_co_init() 
 {
+  LED_builtin_io = c_common_gpio_init(GPIOD, GPIO_Pin_15, GPIO_Mode_OUT);
 
   /* Inicializar os escs*/
   c_common_i2c_init(I2C3);
@@ -107,7 +109,7 @@ void module_co_run()
 	heartBeat+=1;
 
 	/* toggle pin for debug */
-	//c_common_gpio_toggle(debugPin);
+	//c_common_gpio_toggle(LED_builtin_io);
 
     /* Passa os valores davariavel compartilha para a variavel iInputData */
     xQueueReceive(pv_interface_co.iInputData, &iInputData, 0);
@@ -120,7 +122,7 @@ void module_co_run()
 	 * Neste codigo ja esta corregido mas deijo esse bit sempre ligado no contorle
 	 * */
 	//iActuation = c_rc_BS_AH_controller(iInputData.attitude,iInputData.attitude_reference,iInputData.position,iInputData.position_refrence,(float)iInputData.receiverOutput.joystick[0]/200,iInputData.flightmode,iInputData.enableintegration);
-	iActuation = c_rc_BS_AH_controller(iInputData.attitude,iInputData.attitude_reference,iInputData.position,iInputData.position_refrence,(float)iInputData.receiverOutput.joystick[0]/200,iInputData.flightmode,1);
+	iActuation = c_rc_BS_AH_controller(iInputData.attitude,iInputData.attitude_reference,iInputData.position,iInputData.position_refrence,(float)(iInputData.receiverOutput.joystick[0]+100)/200,iInputData.flightmode,1);
 	// Ajusta o eixo de referencia do servo (montado ao contrario)
 	iActuation.servoLeft = -iActuation.servoLeft;
 

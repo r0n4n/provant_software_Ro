@@ -31,11 +31,11 @@
 
  /*Def da IMU*/
 #define ATTITUDE_MINIMUM_STEP	0.01// Radians. Minimum change in angle that is passed to the controller
-#define REF_ROLL_MAX		0.2 //radians
-#define REF_PITCH_MAX		0.3 //radians
-#define REF_YAW_MAX			0.0 //radians
-#define REF_ROLL_BIAS		-0.0087 //radians
-#define REF_PITCH_BIAS		-0.1169
+//#define REF_ROLL_MAX		0.2 //radians
+//#define REF_PITCH_MAX		0.3 //radians
+//#define REF_YAW_MAX			0.0 //radians
+//#define REF_ROLL_BIAS		-0.0087 //radians
+//#define REF_PITCH_BIAS		-0.1169
 
  /*Def da IMU*/
 #define LIMIT_SONAR_VAR

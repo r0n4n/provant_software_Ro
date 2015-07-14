@@ -72,7 +72,7 @@
 
 //Maximum value for the thrust when in manual height mode
 #define THRUST_ROTOR_MAX			14.2f   // Newtons. It is the maximum thrust that can be appliesd to a rotor
-#define THRUST_FLIGHT_THRESHOLD		(M*G-14.0f)	// Newtons. The thrust needed for the aircraft to almost take flight
+#define THRUST_FLIGHT_THRESHOLD		1.0f//(M*G-14.0f)	// Newtons. The thrust needed for the aircraft to almost take flight
 #define THRUST_MAX_MANUAL			(2.0f*THRUST_ROTOR_MAX-THRUST_FLIGHT_THRESHOLD)	// Newtons. It is the total thrust applied by the brushless motors combined
 
 #define ENABLE_RC_HEIGHT_REFERENCE
@@ -85,7 +85,7 @@
 //#define ATTITUDE_MINIMUM_STEP	0.0035f// Radians. Minimum change in angle that is passed to the controller
 
  // Fixed Sample Time
- #define CONTROL_SAMPLE_TIME 	0.005f
+ #define CONTROL_SAMPLE_TIME 	0.006f
 
  // Saturation limits for the anti-windup
 #define INT_ROLL_LOWER_ER_LIMIT		-0.01
@@ -107,9 +107,9 @@
 //	#define REF_ROLL_BIAS		0.0 //radians
 //	#define REF_ROLL_BIAS		-0.0087 //radians
 	#define REF_ROLL_BIAS		-0.0087 //radians
-	#define REF_ROLL_MAX		0.2 //radians
+	#define REF_ROLL_MAX		0.25 //radians
 //	#define REF_PITCH_MAX		0.2 //radians
-    #define REF_PITCH_MAX		0.3 //radians
+    #define REF_PITCH_MAX		0.4 //radians
 //	#define REF_PITCH_BIAS		0.148 //radians //funciona no chowdhurry
 //	#define REF_PITCH_BIAS		-0.0576
 	#define REF_PITCH_BIAS		-0.1169

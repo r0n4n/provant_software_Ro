@@ -333,12 +333,10 @@ pv_type_actuation c_rc_BS_AH_controller(pv_type_datapr_attitude attitude,
 	if (manual_height_control)
 		Fzb = c_rc_BS_AH_Fzb_RC(throttle_control);
 	else{
-		#ifdef ENABLE_RC_HEIGHT_REFERENCE
-			Fzb = c_rc_BS_AH_altitude_controller_step(position.z, throttle_control*HEIGHT_REFERENCE_MAX, position.dotZ, position_reference.refdotZ, attitude);
-		#else
-			Fzb = c_rc_BS_AH_altitude_controller_step(position.z, position_reference.refz, position.dotZ, position_reference.refdotZ, attitude);
-		#endif
-		}
+
+		Fzb = c_rc_BS_AH_altitude_controller_step(position.z, position_reference.refz, position.dotZ, position_reference.refdotZ, attitude);
+
+	}
 	actuation_signals = c_rc_BS_AH_actuators_signals_step(tau, Fzb);
 
 	return actuation_signals;

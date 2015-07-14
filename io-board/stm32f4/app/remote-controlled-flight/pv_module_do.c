@@ -23,15 +23,19 @@
 
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
-#define MODULE_PERIOD	    100//ms
+#define MODULE_PERIOD	    6//ms
 #define USART_BAUDRATE     460800
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
 portTickType lastWakeTime;
 unsigned int heartBeat=0;
 pv_msg_input iInputData;
-pv_msg_controlOutput iControlOutputData; 
+pv_msg_controlOutput iControlOutputData;
+float data1[2];
+float data2[2];
+float data3[2];
 //GPIOPin debugPin;
+GPIOPin LED_builtin_io;
 /* Private function prototypes -----------------------------------------------*/
 /* Private functions ---------------------------------------------------------*/
 /* Exported functions definitions --------------------------------------------*/
@@ -53,6 +57,7 @@ void module_do_init()
 
   /* Pin for debug */
   //debugPin = c_common_gpio_init(GPIOE, GPIO_Pin_13, GPIO_Mode_OUT);
+  LED_builtin_io = c_common_gpio_init(GPIOD, GPIO_Pin_15, GPIO_Mode_OUT);
 }
 
 /** \brief Função principal do módulo de data out.
@@ -68,7 +73,7 @@ void module_do_run()
 		heartBeat++;
 
 		/* toggle pin for debug */
-		//c_common_gpio_toggle(debugPin);
+		c_common_gpio_toggle(LED_builtin_io);
 
 		xQueueReceive(pv_interface_do.iInputData, &iInputData, 0);
 		xQueueReceive(pv_interface_do.iControlOutputData, &iControlOutputData, 0);
@@ -78,15 +83,22 @@ void module_do_run()
 		int channel[]={iInputData.receiverOutput.joystick[0],iInputData.receiverOutput.joystick[1],iInputData.receiverOutput.joystick[2],iInputData.receiverOutput.joystick[3],iInputData.receiverOutput.aButton,iInputData.receiverOutput.bButton,iInputData.receiverOutput.vrPot};
 
 		//c_common_datapr_multwii_raw_imu(iInputData.imuOutput.accRaw,iInputData.imuOutput.gyrRaw,iInputData.imuOutput.magRaw);
-		c_common_datapr_multwii_attitude(iInputData.attitude.roll*RAD_TO_DEG,iInputData.attitude.pitch*RAD_TO_DEG,iInputData.attitude.yaw*RAD_TO_DEG);
+		c_common_datapr_multwii_attitude(iInputData.attitude.roll*RAD_TO_DEG*10,iInputData.attitude.pitch*RAD_TO_DEG*10,iInputData.attitude.yaw*RAD_TO_DEG*10);
 		//c_common_datapr_multwii2_rcNormalize(channel);
 		c_common_datapr_multwii_altitude(iInputData.position.z*100,iInputData.position_refrence.refz*100);
-		c_common_datapr_multwii_debug(0,0,0,0);
+		//c_common_datapr_multwii_debug(iControlOutputData.actuation.servoLeft,iControlOutputData.actuation.servoRight,iControlOutputData.actuation.escLeftSpeed,iControlOutputData.actuation.escRightSpeed);
 		c_common_datapr_multwii_sendstack(USART2);
-  
-		//c_common_datapr_multwii2_sendControldatain(iControlOutputData.vantBehavior.rpy, iControlOutputData.vantBehavior.drpy, iControlOutputData.vantBehavior.xyz, iControlOutputData.vantBehavior.dxyz);
-		//c_common_datapr_multwii2_sendControldataout(iControlOutputData.actuation.servoPosition, iControlOutputData.actuation.escNewtons, iControlOutputData.actuation.escRpm);
-		//c_common_datapr_multwii_sendstack(USART2);
+
+        data1[0]=iControlOutputData.actuation.servoLeft*RAD_TO_DEG;
+        data1[1]=iControlOutputData.actuation.servoRight*RAD_TO_DEG;
+        data2[0]=iControlOutputData.actuation.escLeftSpeed;
+        data2[1]=iControlOutputData.actuation.escRightSpeed;
+        data3[0]=iInputData.attitude_reference.refroll*RAD_TO_DEG;
+        data3[1]=iInputData.attitude_reference.refpitch*RAD_TO_DEG;
+
+//		//c_common_datapr_multwii2_sendControldatain(iControlOutputData.actuation.servoLeftvantBehavior.rpy, iControlOutputData.vantBehavior.drpy, iControlOutputData.vantBehavior.xyz, iControlOutputData.vantBehavior.dxyz);
+		c_common_datapr_multwii2_sendControldataout(data1,data3,data2);
+//		c_common_datapr_multwii_sendstack(USART2);
 
 		/* toggle pin for debug */
 		//c_common_gpio_toggle(debugPin);

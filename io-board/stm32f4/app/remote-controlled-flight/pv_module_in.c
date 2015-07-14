@@ -25,7 +25,7 @@
 
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
-#define MODULE_PERIOD	   5//ms
+#define MODULE_PERIOD	   3//ms
 
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
@@ -189,23 +189,23 @@ void module_in_run()
 	oInputData.attitude_reference.refyaw   = attitude_yaw_initial;// + REF_YAW_MAX*channel_YAW/100;
 
 	/*Como o canal YAW da valores -100 ou 100 */
-	if (oInputData.receiverOutput.joystick[3]<0)
-		oInputData.flightmode=0;
-	else{
-		oInputData.flightmode=1;
-		oInputData.position_refrence.refz = sonar_filtered;
-	}
+//	if (oInputData.receiverOutput.joystick[3]<0)
+//		oInputData.flightmode=0;
+//	else{
+//		oInputData.flightmode=1;
+//		oInputData.position_refrence.refz = sonar_filtered;
+//	}
 
 
 //	/*Referencia de altitude*/
 //	//Se o canal 3 esta ligado ele muda a referencia de altura se nao esta ligado fica na referencia pasada
 //	// Trothel varia de -100 a 100 -> adiciono 100 para ficar 0-200 e divido para 200 para ficar 0->1
-//	if (oInputData.receiverOutput.joystick[3]){
-//		oInputData.position_refrence.refz=((oInputData.receiverOutput.joystick[0]+100)/200)*HEIGHT_REFERENCE_MAX;
-//		last_reference_z = oInputData.position_refrence.refz;
-//	}
-//	else
-//		oInputData.position_refrence.refz = last_reference_z;
+	if (oInputData.receiverOutput.joystick[3]){
+		oInputData.position_refrence.refz=((float)(oInputData.receiverOutput.joystick[0]+100)/200)*1;
+		last_reference_z = oInputData.position_refrence.refz;
+	}
+	else
+		oInputData.position_refrence.refz = last_reference_z;
 
 	/*Como o canal B da valores 1 ou 100 */
 	if (oInputData.receiverOutput.bButton>50)
