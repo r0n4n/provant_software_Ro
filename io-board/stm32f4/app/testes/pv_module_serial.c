@@ -1,4 +1,4 @@
-/**
+ /**
   ******************************************************************************
   * @file    app/remote-controlled-flight/pv_module_serial.c
   * @author  Iuro Baptista Pereira Nascimento

@@ -317,6 +317,7 @@ void c_io_herkulex_ijog() {
 void c_io_herkulex_sjog(char psize, char servo_id, uint16_t data, char stop, char mode, char led, char ptime) {
 	size=psize;
 	cmd=S_JOG;
+	pid=servo_id;
 	jog_packet.iJogData= data;
 	jog_packet.uiStop = stop;
 	jog_packet.uiMode = mode;
@@ -649,3 +650,7 @@ uint8_t serialize_jog()
 
 	return 1;
 }
+
+/* @}
+ * @}
+ */

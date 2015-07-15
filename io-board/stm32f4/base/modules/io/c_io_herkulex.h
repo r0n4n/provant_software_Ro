@@ -4,7 +4,7 @@
   * @author  Iuro Baptista Pereira Nascimento
   * @version V1.0.0
   * @date    01/12/2014
-  * @brief   Implementação do esc BL-Ctrl 2.0.
+  * @brief   Implementação do Servo Herkulex DRS-0201
   *****************************************************************************/
 
 #ifndef BASE_MODULES_IO_C_IO_HERKULEX_H_
@@ -24,7 +24,6 @@
 /* Includes ------------------------------------------------------------------*/
 /* Exported types ------------------------------------------------------------*/
 /* Exported constants --------------------------------------------------------*/
-#define BLCTRL_ADDR  0x29
 #define KV 0.325*PI/(0.0112*180)
 #define TIME_OUT 10
 #define INTER_PKG_TIME 0.000105

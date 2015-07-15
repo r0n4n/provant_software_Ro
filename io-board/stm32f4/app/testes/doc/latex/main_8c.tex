@@ -1,0 +1,90 @@
+\hypertarget{main_8c}{\section{Referência ao ficheiro /home/iuro/git/provant-\/software/io-\/board/stm32f4/app/remote-\/controlled-\/flight/main.c}
+\label{main_8c}\index{/home/iuro/git/provant-\/software/io-\/board/stm32f4/app/remote-\/controlled-\/flight/main.\-c@{/home/iuro/git/provant-\/software/io-\/board/stm32f4/app/remote-\/controlled-\/flight/main.\-c}}
+}
+
+
+Startup do projeto.  
+
+
+{\ttfamily \#include $<$stdio.\-h$>$}\\*
+{\ttfamily \#include $<$math.\-h$>$}\\*
+{\ttfamily \#include \char`\"{}inttypes.\-h\char`\"{}}\\*
+{\ttfamily \#include \char`\"{}stm32f4xx\-\_\-conf.\-h\char`\"{}}\\*
+{\ttfamily \#include \char`\"{}system\-\_\-stm32f4xx.\-h\char`\"{}}\\*
+{\ttfamily \#include \char`\"{}arm\-\_\-math.\-h\char`\"{}}\\*
+{\ttfamily \#include \char`\"{}Free\-R\-T\-O\-S.\-h\char`\"{}}\\*
+{\ttfamily \#include \char`\"{}queue.\-h\char`\"{}}\\*
+{\ttfamily \#include \char`\"{}timers.\-h\char`\"{}}\\*
+{\ttfamily \#include \char`\"{}task.\-h\char`\"{}}\\*
+{\ttfamily \#include \char`\"{}trc\-User.\-h\char`\"{}}\\*
+{\ttfamily \#include \char`\"{}pv\-\_\-module\-\_\-co.\-h\char`\"{}}\\*
+{\ttfamily \#include \char`\"{}pv\-\_\-module\-\_\-in.\-h\char`\"{}}\\*
+{\ttfamily \#include \char`\"{}pv\-\_\-module\-\_\-do.\-h\char`\"{}}\\*
+{\ttfamily \#include \char`\"{}pv\-\_\-module\-\_\-gps.\-h\char`\"{}}\\*
+{\ttfamily \#include \char`\"{}pv\-\_\-module\-\_\-sm.\-h\char`\"{}}\\*
+{\ttfamily \#include \char`\"{}c\-\_\-common\-\_\-gpio.\-h\char`\"{}}\\*
+{\ttfamily \#include \char`\"{}c\-\_\-io\-\_\-blctrl.\-h\char`\"{}}\\*
+{\ttfamily \#include \char`\"{}c\-\_\-io\-\_\-sonar.\-h\char`\"{}}\\*
+{\ttfamily \#include \char`\"{}c\-\_\-io\-\_\-rx24f.\-h\char`\"{}}\\*
+Diagrama de dependências de inclusão para main.\-c\-:
+\subsection*{Macros}
+\begin{DoxyCompactItemize}
+\item 
+\#define \hyperlink{main_8c_a42e162ee7b8b8c2663d1dbd31c7b590b}{A\-R\-M\-\_\-\-M\-A\-T\-H\-\_\-\-C\-M4}
+\end{DoxyCompactItemize}
+\subsection*{Funções}
+\begin{DoxyCompactItemize}
+\item 
+void \hyperlink{group__ProVANT__Modules_ga2850b09d1bb227364b5ff6de6f85f740}{v\-Application\-Tick\-Hook} ()
+\item 
+void \hyperlink{group__ProVANT__Modules_ga11cbdd335da884dec1204e230554bfd9}{v\-Application\-Idle\-Hook} ()
+\item 
+void \hyperlink{group__ProVANT__Modules_ga8f5b98d87cfd1379b8d6573159bcbdd3}{v\-Application\-Stack\-Overflow\-Hook} ()
+\item 
+void \hyperlink{group__ProVANT__Modules_ga73f6aa45470ada02a5d6f3a522d8f13c}{v\-Application\-Malloc\-Failed\-Hook} ()
+\item 
+void \hyperlink{group__ProVANT__Modules_ga73e2a1fcfc7e7f2bb22937e543997019}{F\-P\-U\-\_\-init} ()
+\item 
+void \hyperlink{group__ProVANT__Modules_ga39e7a5088757fe328c0162fe25d907bf}{blink\-\_\-led\-\_\-task} (void $\ast$pv\-Parameters)
+\item 
+void \hyperlink{group__ProVANT__Modules_gab0c5d271dba436247302632e599731ba}{module\-\_\-co\-\_\-task} (void $\ast$pv\-Parameters)
+\item 
+void \hyperlink{group__ProVANT__Modules_ga7de15cbee9a0ca9eafb3eb25f5e3d691}{module\-\_\-in\-\_\-task} (void $\ast$pv\-Parameters)
+\item 
+void \hyperlink{group__ProVANT__Modules_ga466679da7a6953ce332271681ce397c7}{module\-\_\-do\-\_\-task} (void $\ast$pv\-Parameters)
+\item 
+void \hyperlink{group__ProVANT__Modules_gac55e5b60dffafe957dddc7aa452bfa9d}{module\-\_\-gps\-\_\-task} (void $\ast$pv\-Parameters)
+\item 
+void \hyperlink{group__ProVANT__Modules_gaad8bcaa035ca56eddd3ccbf522298711}{module\-\_\-sm\-\_\-task} (void $\ast$pv\-Parameters)
+\item 
+int \hyperlink{group__ProVANT__Modules_ga840291bc02cba5474a4cb46a9b9566fe}{main} (void)
+\end{DoxyCompactItemize}
+
+
+\subsection{Descrição detalhada}
+Startup do projeto. \begin{DoxyAuthor}{Autor}
+Martin Vincent Bloedorn \& Patrick José Pereira 
+\end{DoxyAuthor}
+\begin{DoxyVersion}{Versão}
+V1.\-0.\-0 
+\end{DoxyVersion}
+\begin{DoxyDate}{Data}
+27-\/\-August-\/2014 
+\end{DoxyDate}
+\begin{DoxyWarning}{Aviso}
+Modificar os arquivos provant-\/software/io-\/board/stm32f4/common/modules/common/stm32f4xx\-\_\-conf.\-h provant-\/software/io-\/board/stm32f4/lib/cmsis/inc/stm32f4xx.\-h provant-\/software/io-\/board/stm32f4/lib/cmsis/inc/stm32f4xx\-\_\-conf.\-h dependendo da placa que esta trabalhando. Recompilando com\-: make allclean make T\-O\-D\-O 
+\end{DoxyWarning}
+
+
+Definido no ficheiro \hyperlink{main_8c_source}{main.\-c}.
+
+
+
+\subsection{Documentação das macros}
+\hypertarget{main_8c_a42e162ee7b8b8c2663d1dbd31c7b590b}{\index{main.\-c@{main.\-c}!A\-R\-M\-\_\-\-M\-A\-T\-H\-\_\-\-C\-M4@{A\-R\-M\-\_\-\-M\-A\-T\-H\-\_\-\-C\-M4}}
+\index{A\-R\-M\-\_\-\-M\-A\-T\-H\-\_\-\-C\-M4@{A\-R\-M\-\_\-\-M\-A\-T\-H\-\_\-\-C\-M4}!main.c@{main.\-c}}
+\subsubsection[{A\-R\-M\-\_\-\-M\-A\-T\-H\-\_\-\-C\-M4}]{\setlength{\rightskip}{0pt plus 5cm}\#define A\-R\-M\-\_\-\-M\-A\-T\-H\-\_\-\-C\-M4}}\label{main_8c_a42e162ee7b8b8c2663d1dbd31c7b590b}
+
+
+Definido na linha 29 do ficheiro main.\-c.
+

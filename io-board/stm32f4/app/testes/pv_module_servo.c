@@ -49,18 +49,38 @@ float velocity_controller(float r, float y);
 float velocity_feedforward(float r);
 int16_t saturate(float x, const float max);
 int16_t get_stepped_pwm(int heartBeat, int16_t pwm);
+int check_outlier(int new,int sec);
 /* Private functions ---------------------------------------------------------*/
 float position_controller(float r, float y)
 {
-	return 13*(r-y);
+	static float e_old = 0, u = 0;
+	float e = r-y;
+	//Tset=200ms PASSOU no teste RP 5/6
+	//int K1 = 144.1257, K2 = 92.8029;
+	//int K1=619.4, K2=318.4955; //original
+	//Passou no teste RP 5x
+	//int K1 = 22.0272, K2=20.6867;// slow motherfucker PI
+	int K1 = 11.1838, K2 = -10.8214;
+	u=u+K1*e-K2*e_old; //intermediario
+	e_old=e;
+	//saturacao
+
+	//assert(out>=(-1023) && out<=1023);
+
+	return u;
 }
 
 float velocity_controller(float r, float y)
 {
 	static float e_old = 0, u = 0;
 	float e = r-y;
-	u=u+619.4*e-318.4955*e_old; //original
-	//u=u+15.966*e-7.9196*e_old; slow motherfucker PI
+	//Tset=200ms PASSOU no teste RP 5/6
+	int K1 = 144.1257, K2 = 92.8029;
+	//int K1=619.4, K2=318.4955; //original
+	//Passou no teste RP 5x20.6867
+	//int K1 = 15.966, K2=7.9196;// slow motherfucker PI
+
+	u=u+K1*e-K2*e_old;
 	e_old=e;
 	//saturacao
 
@@ -72,7 +92,8 @@ float velocity_controller(float r, float y)
 float velocity_feedforward(float r)
 {
 	static float y = 0;
-	y=0.5142*(y+r);
+	//y=0.5142*(y+r); //original
+	y=0.6439*y+0.3561*r; //slow
 
 	return y;
 }
@@ -111,6 +132,13 @@ int16_t get_stepped_pwm(int heartBeat, int16_t pwm)
   }
 
   return pwm;
+}
+//new value, and secure value
+int check_outlier(int new, int sec)
+{
+	int limite = 0.6;
+	return ((sec>=0 && (new>=sec*limite)) ||
+			(sec<0 && (new<=sec*limite)));
 }
 /* Exported functions definitions --------------------------------------------*/
 
@@ -184,7 +212,7 @@ void module_servo_init()
 }
 
 /** \brief Função principal do módulo de data out.
-  * @param  None
+  * @param  None			last_vel=new_vel;
   * @retval None
   *
   */
@@ -195,19 +223,21 @@ void module_servo_run()
 	int st =0, el=0;
 	uint8_t status_error=0, status_detail=0;
 	int16_t pwm = 0;
-	float new_vel=0, pos = 0;
+	float new_vel=0, new_pos = 0, sec_vel = 0, sec_pos = 0;
 	c_io_herkulex_set_torque(servo_id, pwm);
-	c_common_utils_delayms(100);
+	//c_common_utils_delayms(100);
 	int32_t data_counter=0;
 	int32_t queue_data_counter = 0;
 	int32_t lost_data_counter = 0;
 	uint8_t data_received = 0;
-	//c_io_herkulex_set_goal_position(servo_id,50);
+	c_io_herkulex_set_goal_position(servo_id,0);
 
-	//float initial_position = c_io_herkulex_read_position(servo_id);
-	//float ref_pos = initial_position + 5;
-	//ref_pos = ref_pos*PI/180;
+	c_io_herkulex_read_data(servo_id);
+	float initial_position = c_io_herkulex_get_position(servo_id);
+
+	float ref_pos = initial_position + 5*PI/180;
 	portBASE_TYPE xStatus;
+	c_common_utils_delayms(1);
 
 	while(1)
 	{
@@ -221,17 +251,16 @@ void module_servo_run()
 		//pwm=get_stepped_pwm(heartBeat,pwm);
 		//c_io_herkulex_set_torque(servo_id, pwm);
 
-
 		/**
 		 *  Teste do controle de posição interno do servo.
 		 */
 		/*
-		if (heartBeat%200 == 0)
+		if (heartBeat%50 == 0)
 		{
-			pos+=5;
-			c_io_herkulex_set_goal_position(servo_id,pos);
-		}
-		*/
+			ref_pos+=5;
+			c_io_herkulex_set_goal_position(servo_id,ref_pos);
+		}*/
+
 
 		//resposta ao pulso unitario pwm=1 antes do loop
 		//c_io_herkulex_set_torque(servo_id,pwm);
@@ -244,7 +273,9 @@ void module_servo_run()
 		if (c_io_herkulex_read_data(servo_id))
 		{
 			new_vel = c_io_herkulex_get_velocity(servo_id);
-			oServoMsg.position = c_io_herkulex_get_position(servo_id);
+			oServoMsg.angularSpeed = new_vel;
+			new_pos = c_io_herkulex_get_position(servo_id);
+			oServoMsg.position = new_pos;
 			oServoMsg.status=1;
 			data_counter++;
 			data_received=1;
@@ -264,25 +295,32 @@ void module_servo_run()
 		}
 
 
+		//float ref_vel=5;
 
-		/**
-		 * Controle de posicao
-		 */
-		//float ref_vel = velocity_feedforward(position_controller(ref_pos,
-		//		oServoMsg.position));
-		//pwm = saturate(velocity_controller(ref_vel,	oServoMsg.angularSpeed),1023);
-
-		/**
-		 * Controle de velocidade
-		 */
-		float ref_vel=5;
 		if (data_received)
 		{	//somente atualiza o pwm se receber dados.
-			if (new_vel>oServoMsg.angularSpeed*0.6) {//checar precedencia
-				oServoMsg.angularSpeed = new_vel;
-				pwm = saturate(velocity_controller(ref_vel,oServoMsg.angularSpeed),1023);
+			if (check_outlier(new_vel,sec_vel)) {//checar precedencia
+		 	 	//Controle de velocidade - funciona, dependendo do controlador
+				//
+				//float rv = velocity_feedforward(ref_vel);
+				//pwm = saturate(velocity_controller(ref_vel,new_vel),1023);
+				sec_vel=new_vel;
+
+				 // Controle de posicao
+
+				//float ref_vel = velocity_feedforward(position_controller(ref_pos,
+						//oServoMsg.position));
+				if (check_outlier(new_pos,sec_pos))
+				{
+					sec_pos=new_pos;
+					float ref_vel = position_controller(ref_pos,new_pos);
+					pwm = saturate(velocity_controller(ref_vel,	new_vel),1023);
+				}
+
 			}
 		}
+
+		//pwm=1023;
 		c_io_herkulex_set_torque(servo_id, pwm);
 
 

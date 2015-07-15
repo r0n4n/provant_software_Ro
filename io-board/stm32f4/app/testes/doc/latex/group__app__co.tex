@@ -1,0 +1,138 @@
+\hypertarget{group__app__co}{\section{App\-\_\-co}
+\label{group__app__co}\index{App\-\_\-co@{App\-\_\-co}}
+}
+
+
+Módulo com as principais funcionalidades para calculo de controle e escrita de atuadores.  
+
+
+Diagrama de colaboração para App\-\_\-co\-:
+\subsection*{Macros}
+\begin{DoxyCompactItemize}
+\item 
+\#define \hyperlink{group__app__co_ga0ac6c9f2991b096e49c354e5cce6fae0}{M\-O\-D\-U\-L\-E\-\_\-\-P\-E\-R\-I\-O\-D}~10
+\item 
+\#define \hyperlink{group__app__co_gaec8246e954743c1eca3ed9d0b934bf8e}{E\-S\-C\-\_\-\-O\-N}~1
+\item 
+\#define \hyperlink{group__app__co_ga162e9e4abd94f1558733bbf17fca28e9}{S\-E\-R\-V\-O\-\_\-\-O\-N}~1
+\end{DoxyCompactItemize}
+\subsection*{Funções}
+\begin{DoxyCompactItemize}
+\item 
+void \hyperlink{group__app__co_gabedb9a5c3739466a359c93b3585a3640}{module\-\_\-co\-\_\-init} ()
+\begin{DoxyCompactList}\small\item\em Inicializacao do módulo de controle + output. \end{DoxyCompactList}\item 
+void \hyperlink{group__app__co_gaab8216fc955d01b47e3431aae288d9d3}{module\-\_\-co\-\_\-run} ()
+\begin{DoxyCompactList}\small\item\em Função principal do módulo de R\-C. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Variáveis}
+\begin{DoxyCompactItemize}
+\item 
+port\-Tick\-Type \hyperlink{group__app__co_gaa8db3871cb5f64abbd94ddd5a1db73a6}{last\-Wake\-Time}
+\item 
+pv\-\_\-msg\-\_\-input \hyperlink{group__app__co_gac40b8cfe5fd2000670ad57fe3e75ec89}{i\-Input\-Data}
+\item 
+pv\-\_\-msg\-\_\-control\-Output \hyperlink{group__app__co_ga0a14ca4568444d2d76c256fa91585cdf}{o\-Control\-Output\-Data}
+\end{DoxyCompactItemize}
+
+
+\subsection{Descrição detalhada}
+Módulo com as principais funcionalidades para calculo de controle e escrita de atuadores. Definição do módulo. 
+
+\subsection{Documentação das macros}
+\hypertarget{group__app__co_gaec8246e954743c1eca3ed9d0b934bf8e}{\index{App\-\_\-co@{App\-\_\-co}!E\-S\-C\-\_\-\-O\-N@{E\-S\-C\-\_\-\-O\-N}}
+\index{E\-S\-C\-\_\-\-O\-N@{E\-S\-C\-\_\-\-O\-N}!App_co@{App\-\_\-co}}
+\subsubsection[{E\-S\-C\-\_\-\-O\-N}]{\setlength{\rightskip}{0pt plus 5cm}\#define E\-S\-C\-\_\-\-O\-N~1}}\label{group__app__co_gaec8246e954743c1eca3ed9d0b934bf8e}
+
+
+Definido na linha 27 do ficheiro pv\-\_\-module\-\_\-co.\-c.
+
+\hypertarget{group__app__co_ga0ac6c9f2991b096e49c354e5cce6fae0}{\index{App\-\_\-co@{App\-\_\-co}!M\-O\-D\-U\-L\-E\-\_\-\-P\-E\-R\-I\-O\-D@{M\-O\-D\-U\-L\-E\-\_\-\-P\-E\-R\-I\-O\-D}}
+\index{M\-O\-D\-U\-L\-E\-\_\-\-P\-E\-R\-I\-O\-D@{M\-O\-D\-U\-L\-E\-\_\-\-P\-E\-R\-I\-O\-D}!App_co@{App\-\_\-co}}
+\subsubsection[{M\-O\-D\-U\-L\-E\-\_\-\-P\-E\-R\-I\-O\-D}]{\setlength{\rightskip}{0pt plus 5cm}\#define M\-O\-D\-U\-L\-E\-\_\-\-P\-E\-R\-I\-O\-D~10}}\label{group__app__co_ga0ac6c9f2991b096e49c354e5cce6fae0}
+
+
+Definido na linha 26 do ficheiro pv\-\_\-module\-\_\-co.\-c.
+
+\hypertarget{group__app__co_ga162e9e4abd94f1558733bbf17fca28e9}{\index{App\-\_\-co@{App\-\_\-co}!S\-E\-R\-V\-O\-\_\-\-O\-N@{S\-E\-R\-V\-O\-\_\-\-O\-N}}
+\index{S\-E\-R\-V\-O\-\_\-\-O\-N@{S\-E\-R\-V\-O\-\_\-\-O\-N}!App_co@{App\-\_\-co}}
+\subsubsection[{S\-E\-R\-V\-O\-\_\-\-O\-N}]{\setlength{\rightskip}{0pt plus 5cm}\#define S\-E\-R\-V\-O\-\_\-\-O\-N~1}}\label{group__app__co_ga162e9e4abd94f1558733bbf17fca28e9}
+
+
+Definido na linha 28 do ficheiro pv\-\_\-module\-\_\-co.\-c.
+
+
+
+\subsection{Documentação das funções}
+\hypertarget{group__app__co_gabedb9a5c3739466a359c93b3585a3640}{\index{App\-\_\-co@{App\-\_\-co}!module\-\_\-co\-\_\-init@{module\-\_\-co\-\_\-init}}
+\index{module\-\_\-co\-\_\-init@{module\-\_\-co\-\_\-init}!App_co@{App\-\_\-co}}
+\subsubsection[{module\-\_\-co\-\_\-init}]{\setlength{\rightskip}{0pt plus 5cm}void module\-\_\-co\-\_\-init (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)}}\label{group__app__co_gabedb9a5c3739466a359c93b3585a3640}
+
+
+Inicializacao do módulo de controle + output. 
+
+Instancia as Queues de comunicação inter-\/thread, inicializa a pinagem necessária para os perifericos e aloca o que for necessário para as equações de controle. 
+\begin{DoxyParams}{Parâmetros}
+{\em None} & \\
+\hline
+\end{DoxyParams}
+
+\begin{DoxyRetVals}{Valores retornados}
+{\em None} & \\
+\hline
+\end{DoxyRetVals}
+
+
+Definido na linha 51 do ficheiro pv\-\_\-module\-\_\-co.\-c.
+
+\hypertarget{group__app__co_gaab8216fc955d01b47e3431aae288d9d3}{\index{App\-\_\-co@{App\-\_\-co}!module\-\_\-co\-\_\-run@{module\-\_\-co\-\_\-run}}
+\index{module\-\_\-co\-\_\-run@{module\-\_\-co\-\_\-run}!App_co@{App\-\_\-co}}
+\subsubsection[{module\-\_\-co\-\_\-run}]{\setlength{\rightskip}{0pt plus 5cm}void module\-\_\-co\-\_\-run (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)}}\label{group__app__co_gaab8216fc955d01b47e3431aae288d9d3}
+
+
+Função principal do módulo de R\-C. 
+
+
+\begin{DoxyParams}{Parâmetros}
+{\em None} & \\
+\hline
+\end{DoxyParams}
+
+\begin{DoxyRetVals}{Valores retornados}
+{\em None} & Interpreta o recebimento de P\-P\-M, calcula sinais de controle e os envia via interface. Devido as diferenças do modelo matematica com a construção mecanica o sinal do angulo do servo direito deve ser adaptado. \\
+\hline
+\end{DoxyRetVals}
+
+
+Definido na linha 91 do ficheiro pv\-\_\-module\-\_\-co.\-c.
+
+
+
+\subsection{Documentação das variáveis}
+\hypertarget{group__app__co_gac40b8cfe5fd2000670ad57fe3e75ec89}{\index{App\-\_\-co@{App\-\_\-co}!i\-Input\-Data@{i\-Input\-Data}}
+\index{i\-Input\-Data@{i\-Input\-Data}!App_co@{App\-\_\-co}}
+\subsubsection[{i\-Input\-Data}]{\setlength{\rightskip}{0pt plus 5cm}pv\-\_\-msg\-\_\-input i\-Input\-Data}}\label{group__app__co_gac40b8cfe5fd2000670ad57fe3e75ec89}
+
+
+Definido na linha 33 do ficheiro pv\-\_\-module\-\_\-co.\-c.
+
+\hypertarget{group__app__co_gaa8db3871cb5f64abbd94ddd5a1db73a6}{\index{App\-\_\-co@{App\-\_\-co}!last\-Wake\-Time@{last\-Wake\-Time}}
+\index{last\-Wake\-Time@{last\-Wake\-Time}!App_co@{App\-\_\-co}}
+\subsubsection[{last\-Wake\-Time}]{\setlength{\rightskip}{0pt plus 5cm}port\-Tick\-Type last\-Wake\-Time}}\label{group__app__co_gaa8db3871cb5f64abbd94ddd5a1db73a6}
+
+
+Definido na linha 32 do ficheiro pv\-\_\-module\-\_\-co.\-c.
+
+\hypertarget{group__app__co_ga0a14ca4568444d2d76c256fa91585cdf}{\index{App\-\_\-co@{App\-\_\-co}!o\-Control\-Output\-Data@{o\-Control\-Output\-Data}}
+\index{o\-Control\-Output\-Data@{o\-Control\-Output\-Data}!App_co@{App\-\_\-co}}
+\subsubsection[{o\-Control\-Output\-Data}]{\setlength{\rightskip}{0pt plus 5cm}pv\-\_\-msg\-\_\-control\-Output o\-Control\-Output\-Data}}\label{group__app__co_ga0a14ca4568444d2d76c256fa91585cdf}
+
+
+Definido na linha 34 do ficheiro pv\-\_\-module\-\_\-co.\-c.
+

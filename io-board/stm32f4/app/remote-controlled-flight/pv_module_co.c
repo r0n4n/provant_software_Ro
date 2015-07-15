@@ -25,7 +25,7 @@
 /* Private define ------------------------------------------------------------*/
 #define MODULE_PERIOD	   10//ms
 #define ESC_ON           1
-#define SERVO_ON         0
+#define SERVO_ON         1
 
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/

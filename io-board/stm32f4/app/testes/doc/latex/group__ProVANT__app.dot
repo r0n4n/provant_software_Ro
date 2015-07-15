@@ -1,0 +1,17 @@
+digraph "ProVANT_app"
+{
+  edge [fontname="Helvetica",fontsize="10",labelfontname="Helvetica",labelfontsize="10"];
+  node [fontname="Helvetica",fontsize="10",shape=record];
+  rankdir=LR;
+  Node1 [label="App_co",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$group__app__co.html",tooltip="Módulo com as principais funcionalidades para calculo de controle e escrita de atuadores. "];
+  Node2 [label="App_do",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$group__app__do.html",tooltip="Módulo responsavel por transmitir dados. "];
+  Node3 [label="App_gps",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$group__app__gps.html",tooltip="Módulo responsavel por tratar os dados do GPS. "];
+  Node4 [label="App_in",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$group__app__in.html",tooltip="Componentes para o sensoriamento do VANT. "];
+  Node5 [label="App_sm",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$group__app__sm.html",tooltip="Módulo responsavel pela maquina de estados do VANT. "];
+  Node0 [label="ProVANT_app",height=0.2,width=0.4,color="black", fillcolor="grey75", style="filled" fontcolor="black"];
+  Node0->Node1 [shape=plaintext, color="midnightblue", dir="back", style="solid"];
+  Node0->Node2 [shape=plaintext, color="midnightblue", dir="back", style="solid"];
+  Node0->Node3 [shape=plaintext, color="midnightblue", dir="back", style="solid"];
+  Node0->Node4 [shape=plaintext, color="midnightblue", dir="back", style="solid"];
+  Node0->Node5 [shape=plaintext, color="midnightblue", dir="back", style="solid"];
+}

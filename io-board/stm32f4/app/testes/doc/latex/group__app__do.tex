@@ -1,0 +1,138 @@
+\hypertarget{group__app__do}{\section{App\-\_\-do}
+\label{group__app__do}\index{App\-\_\-do@{App\-\_\-do}}
+}
+
+
+Módulo responsavel por transmitir dados.  
+
+
+Diagrama de colaboração para App\-\_\-do\-:
+\subsection*{Macros}
+\begin{DoxyCompactItemize}
+\item 
+\#define \hyperlink{group__app__do_ga0ac6c9f2991b096e49c354e5cce6fae0}{M\-O\-D\-U\-L\-E\-\_\-\-P\-E\-R\-I\-O\-D}~100
+\item 
+\#define \hyperlink{group__app__do_ga6a53a6c94a70cc286e300a0ea8f46ba4}{U\-S\-A\-R\-T\-\_\-\-B\-A\-U\-D\-R\-A\-T\-E}~460800
+\end{DoxyCompactItemize}
+\subsection*{Funções}
+\begin{DoxyCompactItemize}
+\item 
+void \hyperlink{group__app__do_ga901c023651503207f5cfd8cdb8c305b3}{module\-\_\-do\-\_\-init} ()
+\begin{DoxyCompactList}\small\item\em Inicializacao do módulo de data out. \end{DoxyCompactList}\item 
+void \hyperlink{group__app__do_ga1f08b4b431624465a47f47eca0520253}{module\-\_\-do\-\_\-run} ()
+\begin{DoxyCompactList}\small\item\em Função principal do módulo de data out. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Variáveis}
+\begin{DoxyCompactItemize}
+\item 
+port\-Tick\-Type \hyperlink{group__app__do_gaa8db3871cb5f64abbd94ddd5a1db73a6}{last\-Wake\-Time}
+\item 
+unsigned int \hyperlink{group__app__do_ga24475be702ffcc5a6f0a5557040368ef}{heart\-Beat} =0
+\item 
+pv\-\_\-msg\-\_\-input \hyperlink{group__app__do_gac40b8cfe5fd2000670ad57fe3e75ec89}{i\-Input\-Data}
+\item 
+pv\-\_\-msg\-\_\-control\-Output \hyperlink{group__app__do_gacabca53fbaffdbf13b8e5a1c29b73bc4}{i\-Control\-Output\-Data}
+\end{DoxyCompactItemize}
+
+
+\subsection{Descrição detalhada}
+Módulo responsavel por transmitir dados. Definição do módulo de transmissão de dados. 
+
+\subsection{Documentação das macros}
+\hypertarget{group__app__do_ga0ac6c9f2991b096e49c354e5cce6fae0}{\index{App\-\_\-do@{App\-\_\-do}!M\-O\-D\-U\-L\-E\-\_\-\-P\-E\-R\-I\-O\-D@{M\-O\-D\-U\-L\-E\-\_\-\-P\-E\-R\-I\-O\-D}}
+\index{M\-O\-D\-U\-L\-E\-\_\-\-P\-E\-R\-I\-O\-D@{M\-O\-D\-U\-L\-E\-\_\-\-P\-E\-R\-I\-O\-D}!App_do@{App\-\_\-do}}
+\subsubsection[{M\-O\-D\-U\-L\-E\-\_\-\-P\-E\-R\-I\-O\-D}]{\setlength{\rightskip}{0pt plus 5cm}\#define M\-O\-D\-U\-L\-E\-\_\-\-P\-E\-R\-I\-O\-D~100}}\label{group__app__do_ga0ac6c9f2991b096e49c354e5cce6fae0}
+
+
+Definido na linha 26 do ficheiro pv\-\_\-module\-\_\-do.\-c.
+
+\hypertarget{group__app__do_ga6a53a6c94a70cc286e300a0ea8f46ba4}{\index{App\-\_\-do@{App\-\_\-do}!U\-S\-A\-R\-T\-\_\-\-B\-A\-U\-D\-R\-A\-T\-E@{U\-S\-A\-R\-T\-\_\-\-B\-A\-U\-D\-R\-A\-T\-E}}
+\index{U\-S\-A\-R\-T\-\_\-\-B\-A\-U\-D\-R\-A\-T\-E@{U\-S\-A\-R\-T\-\_\-\-B\-A\-U\-D\-R\-A\-T\-E}!App_do@{App\-\_\-do}}
+\subsubsection[{U\-S\-A\-R\-T\-\_\-\-B\-A\-U\-D\-R\-A\-T\-E}]{\setlength{\rightskip}{0pt plus 5cm}\#define U\-S\-A\-R\-T\-\_\-\-B\-A\-U\-D\-R\-A\-T\-E~460800}}\label{group__app__do_ga6a53a6c94a70cc286e300a0ea8f46ba4}
+
+
+Definido na linha 27 do ficheiro pv\-\_\-module\-\_\-do.\-c.
+
+
+
+\subsection{Documentação das funções}
+\hypertarget{group__app__do_ga901c023651503207f5cfd8cdb8c305b3}{\index{App\-\_\-do@{App\-\_\-do}!module\-\_\-do\-\_\-init@{module\-\_\-do\-\_\-init}}
+\index{module\-\_\-do\-\_\-init@{module\-\_\-do\-\_\-init}!App_do@{App\-\_\-do}}
+\subsubsection[{module\-\_\-do\-\_\-init}]{\setlength{\rightskip}{0pt plus 5cm}void module\-\_\-do\-\_\-init (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)}}\label{group__app__do_ga901c023651503207f5cfd8cdb8c305b3}
+
+
+Inicializacao do módulo de data out. 
+
+Instancia as Queues de comunicação inter-\/thread. 
+\begin{DoxyParams}{Parâmetros}
+{\em None} & \\
+\hline
+\end{DoxyParams}
+
+\begin{DoxyRetVals}{Valores retornados}
+{\em None} & \\
+\hline
+\end{DoxyRetVals}
+
+
+Definido na linha 45 do ficheiro pv\-\_\-module\-\_\-do.\-c.
+
+\hypertarget{group__app__do_ga1f08b4b431624465a47f47eca0520253}{\index{App\-\_\-do@{App\-\_\-do}!module\-\_\-do\-\_\-run@{module\-\_\-do\-\_\-run}}
+\index{module\-\_\-do\-\_\-run@{module\-\_\-do\-\_\-run}!App_do@{App\-\_\-do}}
+\subsubsection[{module\-\_\-do\-\_\-run}]{\setlength{\rightskip}{0pt plus 5cm}void module\-\_\-do\-\_\-run (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)}}\label{group__app__do_ga1f08b4b431624465a47f47eca0520253}
+
+
+Função principal do módulo de data out. 
+
+
+\begin{DoxyParams}{Parâmetros}
+{\em None} & \\
+\hline
+\end{DoxyParams}
+
+\begin{DoxyRetVals}{Valores retornados}
+{\em None} & \\
+\hline
+\end{DoxyRetVals}
+
+
+Definido na linha 63 do ficheiro pv\-\_\-module\-\_\-do.\-c.
+
+
+
+\subsection{Documentação das variáveis}
+\hypertarget{group__app__do_ga24475be702ffcc5a6f0a5557040368ef}{\index{App\-\_\-do@{App\-\_\-do}!heart\-Beat@{heart\-Beat}}
+\index{heart\-Beat@{heart\-Beat}!App_do@{App\-\_\-do}}
+\subsubsection[{heart\-Beat}]{\setlength{\rightskip}{0pt plus 5cm}unsigned int heart\-Beat =0}}\label{group__app__do_ga24475be702ffcc5a6f0a5557040368ef}
+
+
+Definido na linha 31 do ficheiro pv\-\_\-module\-\_\-do.\-c.
+
+\hypertarget{group__app__do_gacabca53fbaffdbf13b8e5a1c29b73bc4}{\index{App\-\_\-do@{App\-\_\-do}!i\-Control\-Output\-Data@{i\-Control\-Output\-Data}}
+\index{i\-Control\-Output\-Data@{i\-Control\-Output\-Data}!App_do@{App\-\_\-do}}
+\subsubsection[{i\-Control\-Output\-Data}]{\setlength{\rightskip}{0pt plus 5cm}pv\-\_\-msg\-\_\-control\-Output i\-Control\-Output\-Data}}\label{group__app__do_gacabca53fbaffdbf13b8e5a1c29b73bc4}
+
+
+Definido na linha 33 do ficheiro pv\-\_\-module\-\_\-do.\-c.
+
+\hypertarget{group__app__do_gac40b8cfe5fd2000670ad57fe3e75ec89}{\index{App\-\_\-do@{App\-\_\-do}!i\-Input\-Data@{i\-Input\-Data}}
+\index{i\-Input\-Data@{i\-Input\-Data}!App_do@{App\-\_\-do}}
+\subsubsection[{i\-Input\-Data}]{\setlength{\rightskip}{0pt plus 5cm}pv\-\_\-msg\-\_\-input i\-Input\-Data}}\label{group__app__do_gac40b8cfe5fd2000670ad57fe3e75ec89}
+
+
+Definido na linha 32 do ficheiro pv\-\_\-module\-\_\-do.\-c.
+
+\hypertarget{group__app__do_gaa8db3871cb5f64abbd94ddd5a1db73a6}{\index{App\-\_\-do@{App\-\_\-do}!last\-Wake\-Time@{last\-Wake\-Time}}
+\index{last\-Wake\-Time@{last\-Wake\-Time}!App_do@{App\-\_\-do}}
+\subsubsection[{last\-Wake\-Time}]{\setlength{\rightskip}{0pt plus 5cm}port\-Tick\-Type last\-Wake\-Time}}\label{group__app__do_gaa8db3871cb5f64abbd94ddd5a1db73a6}
+
+
+Definido na linha 30 do ficheiro pv\-\_\-module\-\_\-do.\-c.
+
