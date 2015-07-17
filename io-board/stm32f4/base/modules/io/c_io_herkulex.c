@@ -157,11 +157,12 @@ uint8_t servo_ids[2];
 uint8_t play_time;
 
 /* Private function prototypes -----------------------------------------------*/
-uint8_t raw2packet(char* new_buffer);
+uint8_t raw2packet(uint8_t* new_buffer);
 uint8_t serialize_io();
 uint8_t receive();
 void send();
-uint8_t serialize_jog();
+uint8_t serialize_sjog(pv_sjog_herkulex sjog[], uint8_t num_jogs, uint8_t ptime);
+uint8_t serialize_ijog(pv_ijog_herkulex ijog[], uint8_t num_jogs, uint8_t ptime);
 uint8_t translate_servo_id(uint8_t servo_id);
 uint8_t checksum1(uint8_t *buffer, uint8_t size);
 uint8_t checksum2(uint8_t cksum1);
@@ -170,6 +171,7 @@ int16_t get_raw_position(uint8_t data[]);
 int16_t get_raw_velocity(uint8_t data[]);
 float convert_position(int16_t raw_data);
 float convert_velocity(int16_t raw_data);
+static inline int16_t c_io_herkulex_deg2raw(float position_deg);
 
 /* Private functions ---------------------------------------------------------*/
 void zera_buffer()
@@ -211,7 +213,8 @@ float convert_velocity(int16_t raw_data)
   * @param data_length Tamanho dos dados a serem escritos
   * @retval ponteiro para os dados lidos.
   */
-uint8_t  c_io_herkulex_read(char mem, char servo_id, char reg_addr, unsigned char datalength) {
+uint8_t  c_io_herkulex_read(char mem, char servo_id, char reg_addr, unsigned char datalength)
+{
 	pid = servo_id;
 	size=9;
 	if (mem==EEP) {
@@ -238,12 +241,14 @@ uint8_t  c_io_herkulex_read(char mem, char servo_id, char reg_addr, unsigned cha
 }
 
 
-void send() {
+void send()
+{
 	for (int i=0; i < size ; ++i)
 		c_common_usart_putchar(usartx,BUFFER[i]);
 }
 
-uint8_t receive() {// precisa de um timeout
+uint8_t receive()
+{// precisa de um timeout
 	int i=0;
 	uint8_t lastByte = 0, inByte = 0, ok=0, size = 30;
 	long now = c_common_utils_millis();
@@ -310,28 +315,54 @@ uint8_t c_io_herkulex_write(char mem, char servo_id, char reg_addr, unsigned cha
 	}
 }
 
-void c_io_herkulex_ijog() {
 
+pv_ijog_herkulex c_io_herkulex_create_ijog(uint8_t servo_id, int16_t data, uint8_t stop, uint8_t mode, uint8_t led, uint8_t ptime)
+{
+	pv_ijog_herkulex ijog;
+	ijog.iJogData = data;
+	ijog.uiStop = stop;
+	ijog.uiMode = mode;
+	ijog.uiLed = led;
+	ijog.ucID = servo_id;
+	ijog.uiReserved1=0;
+	ijog.uiJogInvalid=0;
+	ijog.uiReserved2=0;
+	ijog.ucJogTime_ms;
+
+
+	return ijog;
 }
 
-void c_io_herkulex_sjog(char psize, char servo_id, uint16_t data, char stop, char mode, char led, char ptime) {
-	size=psize;
-	cmd=S_JOG;
-	pid=servo_id;
-	jog_packet.iJogData= data;
-	jog_packet.uiStop = stop;
-	jog_packet.uiMode = mode;
-	jog_packet.uiLed = led;
-	jog_packet.ucID = servo_id;
-	jog_packet.uiReserved1=0;
-	jog_packet.uiJogInvalid=0;
-	jog_packet.uiReserved2=0;
-	play_time = ptime;
-	serialize_jog();
+pv_sjog_herkulex c_io_herkulex_create_sjog(uint8_t servo_id, int16_t data,
+		uint8_t stop, uint8_t mode, uint8_t led)
+{
+	pv_sjog_herkulex sjog;
+	sjog.iJogData = data;
+	sjog.uiStop = stop;
+	sjog.uiMode = mode;
+	sjog.uiLed = led;
+	sjog.ucID = servo_id;
+	sjog.uiReserved1=0;
+	sjog.uiJogInvalid=0;
+	sjog.uiReserved2=0;
+
+	return sjog;
+}
+
+void c_io_herkulex_ijog(pv_ijog_herkulex ijog[], uint8_t num_servos, uint8_t ptime)
+{
+	serialize_ijog(ijog,num_servos,ptime);
 	send();
 }
 
-uint8_t c_io_herkulex_stat(uint8_t servo_id) {
+void c_io_herkulex_sjog(pv_sjog_herkulex sjog[], uint8_t num_servos, uint8_t ptime)
+{
+	serialize_sjog(sjog,num_servos,ptime);
+	send();
+}
+
+uint8_t c_io_herkulex_stat(uint8_t servo_id)
+{
 	pid=servo_id;
 	cmd=STAT;
 	size=7;
@@ -345,11 +376,14 @@ uint8_t c_io_herkulex_stat(uint8_t servo_id) {
 	//decodeError(error);
 	return receive();
 }
-void c_io_herkulex_rollback() {
+
+void c_io_herkulex_rollback()
+{
 
 }
 
-void c_io_herkulex_reboot(uint8_t servo_id) {
+void c_io_herkulex_reboot(uint8_t servo_id)
+{
 	pid=servo_id;
 	cmd=REBOOT;
 	size=7;
@@ -383,25 +417,44 @@ void c_io_herkulex_init(USART_TypeDef *usartn, int baudrate)
 	torque_status[1]=0;
 }
 
-void c_io_herkulex_config_ack_policy(char servo_id, char policy) {
+void c_io_herkulex_config_ack_policy(char servo_id, char policy)
+{
 	DATA[0]=policy;
 	c_io_herkulex_write(RAM,servo_id,REG_ACK_POLICY,1,DATA);
 }
-void c_io_herkulex_config_led_policy(char servo_id, char policy) {
+void c_io_herkulex_config_led_policy(char servo_id, char policy)
+{
 	DATA[0]=policy;
 	c_io_herkulex_write(RAM,servo_id,REG_ACK_POLICY,1,DATA);
 }
-void c_io_herkulex_led_control(char servo_id, char led) {
+void c_io_herkulex_led_control(char servo_id, char led)
+{
 	DATA[0]=led;
 	c_io_herkulex_write(RAM,servo_id,REG_LED_CONTROL,1,DATA);
 }
-void c_io_herkulex_clear(uint8_t servo_id) {
+void c_io_herkulex_clear(uint8_t servo_id)
+{
 	DATA[0]=0;
 	DATA[1]=0;
 	c_io_herkulex_write(RAM,servo_id,REG_STATUS_ERROR,2,DATA);
 }
 
-void c_io_herkulex_set_torque_control(char servo_id, char control) {
+
+/** \brief Muda o modo de funcionamento do servomotor entre rotação/posição
+ *
+ * @param servo_id ID do servo
+ * @param mode Modo de funcionamento. Usar ROTATION_MODE para rotação ou \
+ * 	POSITION_MODE para posição
+ */
+void c_io_herkulex_change_mode(uint8_t servo_id,uint8_t mode)
+{
+	c_io_herkulex_set_torque_control(servo_id,TORQUE_FREE);
+	pv_sjog_herkulex jog = c_io_herkulex_create_sjog(servo_id,0,0,mode,0);
+	c_io_herkulex_set_torque_control(servo_id,TORQUE_ON);
+}
+
+void c_io_herkulex_set_torque_control(uint8_t servo_id, uint8_t control)
+{
 	DATA[0]=control;
 	torque_status[translate_servo_id(servo_id)] = control;
 	c_io_herkulex_write(RAM,servo_id,REG_TORQUE_CONTROL,1,DATA);
@@ -466,46 +519,95 @@ float c_io_herkulex_get_velocity(uint8_t servo_id)
 //set input toque to servo
 void c_io_herkulex_set_torque(uint8_t servo_id, int16_t pwm)
 {
-	uint8_t led = 0;//LED_BLUE;
-	char sign = 0;
+	int8_t sign = 0;
 
-	if (pwm == 0)
+	if (pwm<0)
 	{
-		//led=LED_RED;
-		//setTorqueControl(servo_id,TORQUE_BREAK);
-		//torque_status=TORQUE_BREAK;
-		//ledControl(servo_id,led);
-	} else
-	{
-		if (pwm<0)
-		{
-			pwm=pwm*-1;
-			sign=1;
-		}
-		if (pwm>8191) pwm=8191;
-		if (torque_status[translate_servo_id(servo_id)]!=TORQUE_ON)
-		{
-			c_io_herkulex_set_torque_control(servo_id,TORQUE_ON);
-		}
-		pwm|=sign<<14;
+		pwm=pwm*-1;
+		sign=1;
 	}
-	c_io_herkulex_sjog(12,servo_id,pwm,0,ROTATION_MODE,led,0);
+	if (pwm>8191)
+		pwm=8191;
+	/*
+	if (torque_status[translate_servo_id(servo_id)]!=TORQUE_ON)
+	{
+		c_io_herkulex_set_torque_control(servo_id,TORQUE_ON);
+	}
+	*/
+	pwm|=sign<<14;
+	pv_sjog_herkulex sjog =  c_io_herkulex_create_sjog(servo_id,pwm,0,ROTATION_MODE,0);
+	c_io_herkulex_sjog(&sjog,1,0);
 }
 
-void c_io_herkulex_set_goal_position_rad(uint8_t servo_id, float position_rad)
+//set input toque to servo
+void c_io_herkulex_set_torque2(uint8_t servo1_id, int16_t pwm1, uint8_t servo2_id, int16_t pwm2)
 {
-	float pos_deg = position_rad*180.0/PI;
-	c_io_herkulex_set_goal_position(servo_id,pos_deg);
+	int8_t sign1 = 0, sign2 = 0;
+
+	if (pwm1<0)
+	{
+		pwm1=pwm1*-1;
+		sign1=1;
+	}
+	if (pwm1>8191)
+		pwm1=8191;
+
+	if (pwm2<0)
+	{
+		pwm2=pwm2*-1;
+		sign1=1;
+	}
+	if (pwm2>8191)
+		pwm2=8191;
+	/*
+	if (torque_status[translate_servo_id(servo_id)]!=TORQUE_ON)
+	{
+		c_io_herkulex_set_torque_control(servo_id,TORQUE_ON);
+	}
+	*/
+	pwm1|=sign1<<14;
+	pv_sjog_herkulex sjog[2];
+	sjog[0] =  c_io_herkulex_create_sjog(servo1_id,pwm1,0,ROTATION_MODE,0);
+
+	pwm2|=sign2<<14;
+	sjog[1] =  c_io_herkulex_create_sjog(servo2_id,pwm2,0,ROTATION_MODE,0);
+	c_io_herkulex_sjog(sjog,2,0);
+}
+
+
+static inline void c_io_herkulex_set_goal_position_rad(uint8_t servo_id, float position_rad)
+{
+	c_io_herkulex_set_goal_position(servo_id,r2d(position_rad));
 }
 
 void c_io_herkulex_set_goal_position(uint8_t servo_id, float position_deg)
 {
-	uint16_t raw_pos = ((uint16_t)(position_deg/0.325 + 0.5))+512;//0.5 -> round
-	c_io_herkulex_sjog(12,servo_id,raw_pos,0,POSITION_MODE,0,0);
+	int16_t raw_pos = c_io_herkulex_deg2raw(position_deg);
+	pv_sjog_herkulex sjog = c_io_herkulex_create_sjog(servo_id,raw_pos,0,POSITION_MODE,0);
+	c_io_herkulex_sjog(&sjog,1,0);
+}
+
+void c_io_herkulex_set_goal_position2(uint8_t servo1_id, float pos1_deg, uint8_t servo2_id, float pos2_deg)
+{
+	int16_t raw_pos1 = c_io_herkulex_deg2raw(pos1_deg);
+	int16_t raw_pos2 = c_io_herkulex_deg2raw(pos2_deg);
+	pv_sjog_herkulex sjog[2];
+	sjog[0] = c_io_herkulex_create_sjog(servo1_id, raw_pos1,0, POSITION_MODE, 0);
+	sjog[1] = c_io_herkulex_create_sjog(servo2_id, raw_pos2,0, POSITION_MODE, 0);
+	c_io_herkulex_sjog(sjog, 2, 0);
+}
+
+/**
+ * Converte de graus para um inteiro aceito pelo servo.
+ */
+static inline int16_t c_io_herkulex_deg2raw(float position_deg)
+{
+	return ((int16_t)(position_deg/0.325 + 0.5))+512;//0.5 -> round
 }
 
 //so retorna 0 se size <=0, ou seja não há dados a serem serializados
-uint8_t serialize_io() {
+uint8_t serialize_io()
+{
 	//header
 	if (size <= 0) {
 		return 0;
@@ -545,7 +647,8 @@ uint8_t serialize_io() {
 	return 1;
 }
 
-uint8_t raw2packet(char* new_buffer) {
+uint8_t raw2packet(uint8_t* new_buffer)
+{
 	uint8_t new_cksum1, new_cksum2;
 	size = (unsigned char)BUFFER[2];
 	pid = BUFFER[3];
@@ -629,24 +732,45 @@ uint8_t c_io_herkulex_get_status()
 	return status;
 }
 
-uint8_t serialize_jog()
+uint8_t serialize_sjog(pv_sjog_herkulex sjog[], uint8_t num_jogs, uint8_t ptime)
 {
-
-	if (size<12) return 0;
-
+	if (size < 0)
+		return 0;
+	int n = sizeof(pv_sjog_herkulex);
 	BUFFER[0] = HEADER;
 	BUFFER[1] = HEADER;
-	BUFFER[2] = size;
-	BUFFER[3] = pid;
-	BUFFER[4] = cmd;
-	BUFFER[7] = play_time;
+	BUFFER[2] = num_jogs * n + 8; /* numero_sjogs*bytes_por_sjog+bytes_de_cabecalho */
+	BUFFER[3] = sjog[0].ucID;
+	BUFFER[4] = S_JOG;
+	BUFFER[7] = ptime;
 
-	memcpy((BUFFER+8),(void*)(&jog_packet),4);
+	memcpy((BUFFER+8), (void*) sjog, n * num_jogs);
 
-	csum1=checksum1(BUFFER,BUFFER[2]);
-	csum2=checksum2(csum1);
-	BUFFER[5] = csum1;
-	BUFFER[6] = csum2;
+	//csum1=checksum1(BUFFER,BUFFER[2]); /* por que usar csum??????? */
+	//csum2=checksum2(csum1);
+	BUFFER[5] = checksum1(BUFFER, BUFFER[2]);
+	BUFFER[6] = checksum2(BUFFER[5]);
+
+	return 1;
+}
+
+uint8_t serialize_ijog(pv_ijog_herkulex ijog[], uint8_t num_jogs, uint8_t ptime)
+{
+	if (size < 0)
+		return 0;
+	int n = sizeof(ijog);
+	BUFFER[0] = HEADER;
+	BUFFER[1] = HEADER;
+	BUFFER[2] = num_jogs * n + 7; /* numero_sjogs*bytes_por_sjog+bytes_de_cabecalho */
+	BUFFER[3] = ijog[0].ucID;
+	BUFFER[4] = I_JOG;
+
+	memcpy((BUFFER+7), (void*) ijog, n * num_jogs);
+
+	//csum1=checksum1(BUFFER,BUFFER[2]); /* por que usar csum??????? */
+	//csum2=checksum2(csum1);
+	BUFFER[5] = checksum1(BUFFER, BUFFER[2]);
+	BUFFER[6] = checksum2(BUFFER[5]);
 
 	return 1;
 }

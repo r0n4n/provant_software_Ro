@@ -26,10 +26,10 @@
 
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
-#define MODULE_PERIOD	    500//ms
+#define MODULE_PERIOD	    12//ms
 //#define USART_BAUDRATE     460800
 #define USART_BAUDRATE     115200
-#define QUEUE_SIZE 500
+
 
 
 /* Private macro -------------------------------------------------------------*/
@@ -120,11 +120,13 @@ void module_serial_run()
 		//uint8_t r = receive();
 		//xStatus=r;
 #else
+#if TESTE_FINITO
 		uint16_t queue_size = uxQueueMessagesWaiting(pv_interface_serial.iServoOutput);
 		if (queue_size>=QUEUE_SIZE)
 			xKill = one_time_sending();
 		else
 			xStatus = 0; //juntar a parte inferior
+#endif
 		/*if (xStatus!=a pdPASS)
 		{
 
@@ -143,16 +145,16 @@ void module_serial_run()
 		//iServoOutput.sampleTime=12;
 
 		if (xStatus) {
-			serialize_servo_msg(iServoOutput);
-			send_data(BUFFER[2]+2);
+			one_time_sending();
 		}
 
-
+#if TESTE_FINITO
 		if (xKill)
 		{
 #endif
+#endif
 			vTaskDelayUntil( &lastWakeTime, (MODULE_PERIOD / portTICK_RATE_MS));
-#if !SERIAL_TEST
+#if !SERIAL_TEST & TESTE_FINITO
 		} else
 		{
 			break;
@@ -174,7 +176,6 @@ uint16_t one_time_sending()
 		}
 	}
 	return 0;
-
 }
 
 

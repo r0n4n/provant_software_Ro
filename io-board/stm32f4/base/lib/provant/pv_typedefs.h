@@ -87,11 +87,11 @@ typedef struct
 /** \brief Tipo do Servo com informações. (Iuro)*/
 typedef struct
 {
+	uint32_t servo_id;
 	uint32_t heartBeat;
 	int32_t  pwm;
 	float angularSpeed;
 	float position;
-	uint32_t status;
 } pv_msg_servo;
 
 

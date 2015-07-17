@@ -39,11 +39,6 @@
 #include "trcUser.h"
 
 /* ProVANT Modules */
-#include "pv_module_co.h"
-#include "pv_module_in.h"
-#include "pv_module_do.h"
-#include "pv_module_gps.h"
-#include "pv_module_sm.h"
 #include "pv_module_esc.h"
 #include "pv_module_serial.h"
 #include "pv_module_servo.h"
@@ -107,36 +102,6 @@ void blink_led_task(void *pvParameters)
     }
 }
 
-// Task control output 
-void module_co_task(void *pvParameters)
-{
-	module_co_run();
-}
-
-// Task input 
-void module_in_task(void *pvParameters)
-{
-	module_in_run();
-}
-
-// Task data out 
-void module_do_task(void *pvParameters)
-{
-  module_do_run();
-}
-
-// Task gps
-void module_gps_task(void *pvParameters)
-{
-  module_gps_run();
-}
-
-// Task state machine
-void module_sm_task(void *pvParameters)
-{
-  module_sm_run();
-}
-
 void arduino_i2c_task() {
 	char buffer[20];//create a temporary buffer with size of IMU_MSG struct
 	uint8_t device = 5;
@@ -181,9 +146,6 @@ int main(void)
 
 #if !SERIAL_TEST
 	/* Init modules */
-	//module_in_init();
-	//module_co_init();
-	//module_do_init();
 	//module_esc_init();
 	module_servo_init();
 #endif
@@ -206,11 +168,6 @@ int main(void)
 	//xTaskCreate(arduino_i2c_task, (signed char *)"Arduino", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+2, NULL);
 	//xTaskCreate(module_esc_task, (signed char *)"ESC", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+3, NULL);
 	xTaskCreate(module_servo_task, (signed char *)"Servo", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+3, NULL);
-	//xTaskCreate(module_do_task, (signed char *)"Data out", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+1, NULL);
-	//xTaskCreate(module_in_task, (signed char *)"Data input", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+3, NULL);
-	//xTaskCreate(module_co_task, (signed char *)"Control + output", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+3, NULL);
-	//xTaskCreate(module_gps_task, (signed char *)"Gps", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+2, NULL);
-	//xTaskCreate(module_sm_task, (signed char *)"State machine", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+1, NULL);
 #endif
 #if !SERVO_IN_TEST
 	xTaskCreate(module_serial_task, (signed char *)"Serial", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+2, NULL);

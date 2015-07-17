@@ -130,15 +130,17 @@
 #define LED_RED 4
 
 /* Exported macro ------------------------------------------------------------*/
-
+#define r2d(deg) deg*180.0/PI
 /* Exported functions ------------------------------------------------------- */
-
 
 //Direct servo commands
 uint8_t  c_io_herkulex_read(char mem, char servo_id, char reg_addr, unsigned char data_length);
 uint8_t c_io_herkulex_write(char mem, char servo_id, char reg_addr, unsigned char datalength, char *data);
-void c_io_herkulex_ijog();
-void c_io_herkulex_sjog(char size, char servo_id, uint16_t data, char stop, char mode, char led, char ptime);
+pv_ijog_herkulex c_io_herkulex_create_ijog(uint8_t servo_id, int16_t data, uint8_t stop, uint8_t mode, uint8_t led, uint8_t ptime);
+pv_sjog_herkulex c_io_herkulex_create_sjog(uint8_t servo_id, int16_t data, uint8_t stop, uint8_t mode, uint8_t led);
+void c_io_herkulex_sjog(pv_sjog_herkulex sjog[], uint8_t num_servos, uint8_t ptime);
+void c_io_herkulex_ijog(pv_ijog_herkulex ijog[], uint8_t num_servos, uint8_t ptime);
+//void c_io_herkulex_sjog(char size, char servo_id, int16_t data, char stop, char mode, char led, char ptime);
 uint8_t c_io_herkulex_stat(uint8_t servo_id);
 void c_io_herkulex_rollback();//not implemented yet
 void c_io_herkulex_reboot(uint8_t servo_id);
@@ -150,7 +152,8 @@ void c_io_herkulex_config_ack_policy(char servo_id, char policy);
 void c_io_herkulex_config_led_policy(char servo_id, char policy);
 void c_io_herkulex_led_control(char servo_id, char led);
 void c_io_herkulex_clear(uint8_t servo_id);
-void c_io_herkulex_set_torque_control(char servo_id, char control);
+void c_io_herkulex_set_torque_control(uint8_t servo_id, uint8_t control);
+
 
 /** Control Interface
 	 *
@@ -165,9 +168,12 @@ int8_t c_io_herkulex_read_data(uint8_t servo_id);
 float c_io_herkulex_get_position(uint8_t servo_id);
 float c_io_herkulex_get_velocity(uint8_t servo_id);
 //set input toque to servo
+void c_io_herkulex_change_mode(uint8_t servo_id,uint8_t mode);
 void c_io_herkulex_set_torque(uint8_t servo_id, int16_t pwm);
+void c_io_herkulex_set_torque2(uint8_t servo1_id, int16_t pwm1, uint8_t servo2_id, int16_t pwm2);
 void c_io_herkulex_set_goal_position(uint8_t servo_id, float position_deg);
-void c_io_herkulex_set_goal_position_rad(uint8_t servo_id, float position_rad);
+void c_io_herkulex_set_goal_position2(uint8_t servo1_id, float pos1_deg, uint8_t servo2_id, float pos2_deg);
+static inline void c_io_herkulex_set_goal_position_rad(uint8_t servo_id, float position_rad);
 
 //status get functions
 uint8_t c_io_herkulex_get_status_error();
