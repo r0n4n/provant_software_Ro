@@ -122,7 +122,7 @@ void module_co_run()
 	 * Neste codigo ja esta corregido mas deijo esse bit sempre ligado no contorle
 	 * */
 	//iActuation = c_rc_BS_AH_controller(iInputData.attitude,iInputData.attitude_reference,iInputData.position,iInputData.position_refrence,(float)iInputData.receiverOutput.joystick[0]/200,iInputData.flightmode,iInputData.enableintegration);
-	iActuation = c_rc_BS_AH_controller(iInputData.attitude,iInputData.attitude_reference,iInputData.position,iInputData.position_refrence,(float)(iInputData.receiverOutput.joystick[0]+100)/200,iInputData.flightmode,1);
+	iActuation = c_rc_BS_AH_controller(iInputData.attitude,iInputData.attitude_reference,iInputData.position,iInputData.position_refrence,(float)(iInputData.receiverOutput.joystick[0])/200,iInputData.flightmode,iInputData.enableintegration);
 	// Ajusta o eixo de referencia do servo (montado ao contrario)
 	iActuation.servoLeft = -iActuation.servoLeft;
 
@@ -170,25 +170,13 @@ void module_co_run()
 			c_io_blctrl_setSpeed(0, sp_left );//sp_left
 		}
 	}
+	oControlOutputData.actuation.escLeftSpeed=iActuation.escLeftSpeed;
+	oControlOutputData.actuation.escRightSpeed=iActuation.escRightSpeed;
+	oControlOutputData.actuation.servoLeft=iActuation.servoLeft;
+	oControlOutputData.actuation.servoRight=iActuation.servoRight;
 
+	oControlOutputData.heartBeat                  = heartBeat;
 
-    oControlOutputData.actuation.servoRight = c_io_blctrl_readVoltage(1);
-    oControlOutputData.actuation.servoLeft = c_io_blctrl_readSpeed(1);
-    oControlOutputData.actuation.escRightSpeed    = 13.3;
-    oControlOutputData.actuation.escLeftSpeed    = 13.4;
-    oControlOutputData.vantBehavior.rpy[0]        = 7.1;
-    oControlOutputData.vantBehavior.rpy[1]        = 7.2;
-    oControlOutputData.vantBehavior.rpy[2]        = 7.3;
-    oControlOutputData.vantBehavior.drpy[0]       = 8.1;
-    oControlOutputData.vantBehavior.drpy[1]       = 8.2;
-    oControlOutputData.vantBehavior.drpy[2]       = 8.3;
-    oControlOutputData.vantBehavior.xyz[0]        = 3.1;
-    oControlOutputData.vantBehavior.xyz[1]        = 3.2;
-    oControlOutputData.vantBehavior.xyz[2]        = 3.3;
-    oControlOutputData.vantBehavior.dxyz[0]       = 4.1;
-    oControlOutputData.vantBehavior.dxyz[1]       = 4.2;
-    oControlOutputData.vantBehavior.dxyz[2]       = 4.3;
-    oControlOutputData.heartBeat                  = heartBeat;
     unsigned int timeNow=xTaskGetTickCount();
     oControlOutputData.cicleTime                  = timeNow - lastWakeTime;
 

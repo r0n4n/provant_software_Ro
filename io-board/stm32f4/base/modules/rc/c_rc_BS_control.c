@@ -330,7 +330,7 @@ pv_type_actuation c_rc_BS_AH_controller(pv_type_datapr_attitude attitude,
 
 	tau = c_rc_BS_AH_torque_calculation_step(attitude, gamma);
 
-	if (manual_height_control)
+	if (!manual_height_control)
 		Fzb = c_rc_BS_AH_Fzb_RC(throttle_control);
 	else{
 

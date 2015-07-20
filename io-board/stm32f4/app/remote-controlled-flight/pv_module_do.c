@@ -86,7 +86,7 @@ void module_do_run()
 		c_common_datapr_multwii_attitude(iInputData.attitude.roll*RAD_TO_DEG*10,iInputData.attitude.pitch*RAD_TO_DEG*10,iInputData.attitude.yaw*RAD_TO_DEG*10);
 		//c_common_datapr_multwii2_rcNormalize(channel);
 		c_common_datapr_multwii_altitude(iInputData.position.z*100,iInputData.position_refrence.refz*100);
-		//c_common_datapr_multwii_debug(iControlOutputData.actuation.servoLeft,iControlOutputData.actuation.servoRight,iControlOutputData.actuation.escLeftSpeed,iControlOutputData.actuation.escRightSpeed);
+		//c_common_datapr_multwii_debug(iInputData.flightmode,iInputData.enableintegration,0,0);
 		c_common_datapr_multwii_sendstack(USART2);
 
         data1[0]=iControlOutputData.actuation.servoLeft*RAD_TO_DEG;

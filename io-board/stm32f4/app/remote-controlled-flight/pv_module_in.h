@@ -40,6 +40,7 @@
  /*Def da IMU*/
 #define LIMIT_SONAR_VAR
 #define SONAR_MAX_VAR		0.5
+#define DSB                 0.21     //Distancia do eijo B ao sonar em metros
 
 /*Define o filtro a utilizar para o sonar*/
 #define SONAR_FILTER_1_ORDER_10HZ

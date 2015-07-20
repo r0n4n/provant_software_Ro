@@ -134,7 +134,8 @@ void module_in_run()
 
   	while(1)
 	{
-    oInputData.heartBeat=heartBeat+=1;
+
+  	oInputData.heartBeat=heartBeat+=1;
     /* Verifica init*/
     if (iterations > INIT_ITERATIONS)
     		oInputData.init = 0; //Sai da fase de inicializacao
@@ -189,7 +190,7 @@ void module_in_run()
 	oInputData.attitude_reference.refyaw   = attitude_yaw_initial;// + REF_YAW_MAX*channel_YAW/100;
 
 	/*Como o canal YAW da valores -100 ou 100 */
-//	if (oInputData.receiverOutput.joystick[3]<0)
+//	if (oInputData.receiverOutput.joystick[3]<0)/
 //		oInputData.flightmode=0;
 //	else{
 //		oInputData.flightmode=1;
@@ -200,13 +201,13 @@ void module_in_run()
 //	/*Referencia de altitude*/
 //	//Se o canal 3 esta ligado ele muda a referencia de altura se nao esta ligado fica na referencia pasada
 //	// Trothel varia de -100 a 100 -> adiciono 100 para ficar 0-200 e divido para 200 para ficar 0->1
-	if (oInputData.receiverOutput.joystick[3]){
-		oInputData.position_refrence.refz=((float)(oInputData.receiverOutput.joystick[0]+100)/200)*1;
-		last_reference_z = oInputData.position_refrence.refz;
+	if (oInputData.receiverOutput.joystick[3]<0){
+		oInputData.flightmode=0;
 	}
-	else
-		oInputData.position_refrence.refz = last_reference_z;
-
+	else{
+		oInputData.flightmode=1;
+		oInputData.position_refrence.refz=((float)oInputData.receiverOutput.joystick[0]/200)*1.5;
+	}
 	/*Como o canal B da valores 1 ou 100 */
 	if (oInputData.receiverOutput.bButton>50)
 		oInputData.enableintegration = true;
@@ -220,7 +221,7 @@ void module_in_run()
 
 	#ifdef LIMIT_SONAR_VAR
 		if ( ( (oInputData.position_refrence.refz-SONAR_MAX_VAR)<sonar_raw && (oInputData.position_refrence.refz+SONAR_MAX_VAR)>sonar_raw ) || oInputData.init){
-			sonar_corrected = (sonar_raw)*cos(oInputData.attitude.roll)*cos(oInputData.attitude.pitch);//the altitude must be in meters
+			sonar_corrected = (sonar_raw+DSB)*cos(oInputData.attitude.roll)*cos(oInputData.attitude.pitch);//the altitude must be in meters
 		}
 	#else
 		sonar_corrected = (sonar_raw)*cos(oInputData.attitude.roll)*cos(oInputData.attitude.pitch);;

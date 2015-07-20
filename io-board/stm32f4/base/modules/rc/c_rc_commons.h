@@ -106,13 +106,13 @@
 #ifdef ATTITUDE_REF_CONTINOUS
 //	#define REF_ROLL_BIAS		0.0 //radians
 //	#define REF_ROLL_BIAS		-0.0087 //radians
-	#define REF_ROLL_BIAS		-0.0087 //radians
-	#define REF_ROLL_MAX		0.25 //radians
+	#define REF_ROLL_BIAS		0.0175//-0.0087 //radians
+	#define REF_ROLL_MAX		0.15 //radians
 //	#define REF_PITCH_MAX		0.2 //radians
-    #define REF_PITCH_MAX		0.4 //radians
+    #define REF_PITCH_MAX		0.20 //radians
 //	#define REF_PITCH_BIAS		0.148 //radians //funciona no chowdhurry
 //	#define REF_PITCH_BIAS		-0.0576
-	#define REF_PITCH_BIAS		-0.1169
+	#define REF_PITCH_BIAS		 -0.0349//-0.1169
 	#define REF_YAW_MAX			0.0 //radians
 	#define REF_Z_MAX			0.5 //meters
 	#define REF_Z_INCREMENT     0.05 //meters
