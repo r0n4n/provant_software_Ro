@@ -26,7 +26,7 @@
 
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
-#define MODULE_PERIOD	    12//ms
+#define MODULE_PERIOD	    100//ms
 //#define USART_BAUDRATE     460800
 #define USART_BAUDRATE     115200
 
@@ -44,7 +44,7 @@ int32_t msg_size;// = sizeof(pv_msg_esc);
 //pv_msg_controlOutput iControlOutputData;
 //GPIOPin debugPin;
 /* Private function prototypes -----------------------------------------------*/
-uint16_t one_time_sending();
+uint16_t send_queue();
 /* Private functions ---------------------------------------------------------*/
 void send_data(uint8_t size);
 void serialize_servo_msg(pv_msg_servo msg);
@@ -123,29 +123,13 @@ void module_serial_run()
 #if TESTE_FINITO
 		uint16_t queue_size = uxQueueMessagesWaiting(pv_interface_serial.iServoOutput);
 		if (queue_size>=QUEUE_SIZE)
-			xKill = one_time_sending();
+			xKill = send_queue();
 		else
 			xStatus = 0; //juntar a parte inferior
 #endif
-		/*if (xStatus!=a pdPASS)
-		{
-
-
-			BUFFER[0]=0xFF;
-			BUFFER[1]=0xFF;
-			BUFFER[2]=5;
-			BUFFER[3]=3;
-			BUFFER[4]=14;
-			BUFFER[5]=15;
-			BUFFER[6]=checksum(BUFFER);
-			send_data(BUFFER[2]+2);// tamanha dos dados mais cabeçalho
-		}*/
-		//iServoOutput.angularSpeed=10.0;
-		//iServoOutput.heartBeat=53;
-		//iServoOutput.sampleTime=12;
 
 		if (xStatus) {
-			one_time_sending();
+			send_queue();
 		}
 
 #if TESTE_FINITO
@@ -164,7 +148,7 @@ void module_serial_run()
 	vTaskDelete(NULL);
 }
 
-uint16_t one_time_sending()
+uint16_t send_queue()
 {
 	uint16_t xStatus = 0, i, queue_size = 1;
 	while (uxQueueMessagesWaiting(pv_interface_serial.iServoOutput)>0)

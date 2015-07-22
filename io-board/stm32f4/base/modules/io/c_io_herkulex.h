@@ -137,9 +137,9 @@
 uint8_t  c_io_herkulex_read(char mem, char servo_id, char reg_addr, unsigned char data_length);
 uint8_t c_io_herkulex_write(char mem, char servo_id, char reg_addr, unsigned char datalength, char *data);
 pv_ijog_herkulex c_io_herkulex_create_ijog(uint8_t servo_id, int16_t data, uint8_t stop, uint8_t mode, uint8_t led, uint8_t ptime);
-pv_sjog_herkulex c_io_herkulex_create_sjog(uint8_t servo_id, int16_t data, uint8_t stop, uint8_t mode, uint8_t led);
+pv_sjog_herkulex c_io_herkulex_create_sjog(uint8_t servo_id, int16_t data, uint8_t stop, uint8_t mode, uint8_t led, uint8_t no_action);
 void c_io_herkulex_sjog(pv_sjog_herkulex sjog[], uint8_t num_servos, uint8_t ptime);
-void c_io_herkulex_ijog(pv_ijog_herkulex ijog[], uint8_t num_servos, uint8_t ptime);
+void c_io_herkulex_ijog(pv_ijog_herkulex ijog[], uint8_t num_servos);
 //void c_io_herkulex_sjog(char size, char servo_id, int16_t data, char stop, char mode, char led, char ptime);
 uint8_t c_io_herkulex_stat(uint8_t servo_id);
 void c_io_herkulex_rollback();//not implemented yet
@@ -179,6 +179,9 @@ static inline void c_io_herkulex_set_goal_position_rad(uint8_t servo_id, float p
 uint8_t c_io_herkulex_get_status_error();
 uint8_t c_io_herkulex_get_status_detail();
 uint8_t c_io_herkulex_get_status();
+
+//auxiliary functions
+void c_io_herkulex_decode_error(char* dest, int8_t status_error, int8_t status_detail);
 
 #ifdef __cplusplus
 }

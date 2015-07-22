@@ -28,8 +28,14 @@
 #define MODULE_PERIOD	    12//ms
 #define USART_BAUDRATE     115200
 #define QUEUE_SIZE 500
+#define LOG_SIZE 50
+#define LOG_WIDTH 100
 
 /* Private macro -------------------------------------------------------------*/
+#define LOG(error,detail,i) ({ i = (uint8_t) i % LOG_SIZE; \
+		c_io_herkulex_decode_error(LOGBUF[i], error, detail); \
+		i++; })
+
 /* Private variables ---------------------------------------------------------*/
 portTickType lastWakeTime;
 portTickType wakeTime;
@@ -37,7 +43,8 @@ USART_TypeDef *USARTn = USART6;
 
 pv_msg_servo oServoMsg[2];
 
-char DATA[100];
+uint8_t DATA[100];
+uint8_t LOGBUF[LOG_SIZE][LOG_WIDTH];
 int32_t size;// = sizeof(pv_msg_esc);
 uint8_t servo1_id;
 uint8_t servo2_id;
@@ -50,7 +57,7 @@ float velocity_feedforward(float r);
 int16_t saturate(float x, const float max);
 int16_t get_stepped_pwm(int heartBeat, int16_t pwm);
 int check_outlier(int new,int sec);
-void pv_module_servo_initialize(uint8_t servo_id);
+void pv_module_servo_initialize(uint8_t servo_id, uint8_t mode);
 /* Private functions ---------------------------------------------------------*/
 float position_controller(float r, float y)
 {
@@ -159,8 +166,8 @@ void module_servo_init()
 	c_io_herkulex_init(USARTn,USART_BAUDRATE);
 	//c_common_utils_delayms(12);
 
-	pv_module_servo_initialize(servo1_id);
-	pv_module_servo_initialize(servo2_id);
+	pv_module_servo_initialize(servo1_id,ROTATION_MODE);
+	pv_module_servo_initialize(servo2_id,ROTATION_MODE);
 }
 
 /** \brief Função principal do módulo de data out.
@@ -177,9 +184,10 @@ void module_servo_run()
 	uint8_t data_received = 0;
 	uint8_t status = 0, status_error=0, status_detail=0;
 	//int st =0, el=0;
-	int16_t pwm = 0;
+	int16_t pwm = 200;
 	float new_vel=0, new_pos = 0;
 	//float sec_vel = 0, sec_pos = 0;
+	uint8_t l = 0;
 
 	float pos1 = 90;
 	float pos2 = -pos1;
@@ -198,32 +206,12 @@ void module_servo_run()
 		heartBeat++;
 
 		/**
-		 * Teste das escadas
-		 */
-		//pwm=get_stepped_pwm(heartBeat,pwm);
-		//c_io_herkulex_set_torque(servo1_id, pwm);
-
-		/**
-		 *  Teste do controle de posição interno do servo.
-		 */
-		/*
-		if (heartBeat%50 == 0)
-		{
-			ref_pos+=5;
-			c_io_herkulex_set_goal_position(servo1_id,ref_pos);
-		}*/
-
-
-		//resposta ao pulso unitario pwm=1 antes do loop
-		//c_io_herkulex_set_torque(servo1_id,pwm);
-		//pwm=0;
-
-		/**
 		 * Leitura de dados
 		 */
 #if !SERVO_IN_TEST
+
 		if (c_io_herkulex_read_data(servo1_id)) {
-			/* Aquisição de dados do servo 1 */
+			// Aquisição de dados do servo 1
 			oServoMsg[0].heartBeat=heartBeat;
 			new_vel = c_io_herkulex_get_velocity(servo1_id);
 			oServoMsg[0].angularSpeed = new_vel;
@@ -232,6 +220,26 @@ void module_servo_run()
 			//oServoMsg.status=1;
 			oServoMsg[0].servo_id=servo1_id;
 
+			status_error = c_io_herkulex_get_status_error();
+			status_detail = c_io_herkulex_get_status_detail();
+
+			if (status_error) {
+				LOG(status_error,status_detail,l);
+				c_io_herkulex_clear(servo1_id);
+			}
+		} else {
+			data_received = 0;
+			// clear servo 1 struct
+			oServoMsg[0].angularSpeed=0;
+			oServoMsg[0].position=0;
+			oServoMsg[0].heartBeat=heartBeat;
+			oServoMsg[0].pwm=0;
+			//oServoMsg[0].status=0;
+			oServoMsg[0].servo_id=servo1_id;
+		}
+
+
+		if (c_io_herkulex_read_data(servo2_id)) {
 			/* Aquisição de dados do servo 1 */
 			oServoMsg[1].heartBeat=heartBeat;
 			oServoMsg[1].angularSpeed = c_io_herkulex_get_velocity(servo2_id);
@@ -242,18 +250,13 @@ void module_servo_run()
 			data_received=1;
 			status_error = c_io_herkulex_get_status_error();
 			status_detail = c_io_herkulex_get_status_detail();
-			if (status_error)
-				c_io_herkulex_clear(servo1_id);
+
+			if (status_error) {
+				LOG(status_error,status_detail,l);
+				c_io_herkulex_clear(servo2_id);
+			}
 		} else {
 			data_received = 0;
-			/* clear servo 1 struct */
-			oServoMsg[0].angularSpeed=0;
-			oServoMsg[0].position=0;
-			oServoMsg[0].heartBeat=heartBeat;
-			oServoMsg[0].pwm=0;
-			//oServoMsg[0].status=0;
-			oServoMsg[0].servo_id=servo1_id;
-
 			/* clear servo 1 struct */
 			oServoMsg[1].angularSpeed=0;
 			oServoMsg[1].position=0;
@@ -293,17 +296,34 @@ void module_servo_run()
 		/**
 		 * Aplicação de entradas nos servos
 		 */
-		pwm=200;
-		c_io_herkulex_set_torque(servo1_id, pwm);
-		//c_io_herkulex_set_torque(servo2_id, pwm);
+		//pwm=200;
 
-		/*if ((heartBeat%200)==0) {
-			pos1*=-1;
+		if ((heartBeat%200)==0) {
+			//pos1*=-1;
 			//pos2*=-1;
-			c_io_herkulex_set_goal_position2(servo1_id, pos1, servo2_id, pos1);
-		}*/
+			//c_io_herkulex_set_goal_position2(servo1_id, pos1, servo2_id, pos1);
+			//c_io_herkulex_set_goal_position(servo1_id, pos1);
+			//c_io_herkulex_set_goal_position(servo2_id, pos2);
+
+			if (pwm < 600)
+				pwm = 600;
+			else
+				pwm = 300;
+		}
+		//c_io_herkulex_set_torque2(servo1_id, pwm,servo2_id,-pwm);
+		c_io_herkulex_set_torque(servo1_id, pwm);
+		c_io_herkulex_set_torque(servo2_id, pwm);
 
 #if !SERVO_IN_TEST
+		/*
+		c_io_herkulex_stat(servo2_id);
+		status_detail = c_io_herkulex_get_status_detail();
+		status_error = c_io_herkulex_get_status_error();
+		if (status_error) {
+			LOG(status_error, status_detail, l);
+			c_io_herkulex_clear(servo2_id);
+		}*/
+
 		/**
 		 * Envio dos dados para o modulo de comunicação
 		 * Verificação da integridade dos pacotes recebidos
@@ -338,6 +358,15 @@ void module_servo_run()
 				c_io_herkulex_clear(servo1_id);
 			}
 			lost_data_counter++;
+
+			c_io_herkulex_stat(servo2_id);
+			status_error=c_io_herkulex_get_status_error();
+			status_detail=c_io_herkulex_get_status_detail();
+			if (status_error!=0 || status_detail!= 0)
+			{
+				c_io_herkulex_clear(servo2_id);
+			}
+			lost_data_counter++;
 		}
 
 #if TESTE_FINITO
@@ -361,12 +390,14 @@ void module_servo_run()
 		}
 #endif
 	}
-	c_io_herkulex_set_torque(servo1_id, 500);
+	c_io_herkulex_set_torque(servo1_id, 0);
 	c_io_herkulex_set_torque_control(servo1_id,TORQUE_BREAK);//set torque free
+	c_io_herkulex_set_torque(servo2_id, 0);
+	c_io_herkulex_set_torque_control(servo2_id,TORQUE_BREAK);//set torque free
 	vTaskDelete(NULL);
 }
 
-void pv_module_servo_initialize(uint8_t servo_id)
+void pv_module_servo_initialize(uint8_t servo_id, uint8_t mode)
 {
 	c_io_herkulex_clear(servo_id);
 	c_io_herkulex_reboot(servo_id);
@@ -385,7 +416,7 @@ void pv_module_servo_initialize(uint8_t servo_id)
 	c_io_herkulex_write(RAM,servo_id,REG_MAX_ACC_TIME,1,DATA);
 
 	DATA[0]=0;
-	c_io_herkulex_write(RAM,servo1_id,REG_PWM_OFFSET,1,DATA);
+	c_io_herkulex_write(RAM,servo_id,REG_PWM_OFFSET,1,DATA);
 
 	//min pwm = 0
 	DATA[0]=0;
@@ -397,9 +428,9 @@ void pv_module_servo_initialize(uint8_t servo_id)
 	c_io_herkulex_write(RAM,servo_id,REG_MAX_PWM,2,DATA);
 
 	//0x7FFE max. pwm
-	DATA[1]=0x03;//little endian
-	DATA[0]=0xFF;//maximo em 1023
-	c_io_herkulex_write(RAM,servo_id,REG_MAX_PWM,2,DATA);
+	//DATA[1]=0x03;//little endian
+	//DATA[0]=0xFF;//maximo em 1023
+	//c_io_herkulex_write(RAM,servo_id,REG_MAX_PWM,2,DATA);
 
 	/** set overload pwm register, if overload_pwm>1023, overload is never
 	 * activated this is good for data acquisition, but may not be the case for
@@ -407,7 +438,7 @@ void pv_module_servo_initialize(uint8_t servo_id)
 	 */
 	DATA[0]=0xFF;
 	DATA[1]=0x03;//little endian, 2048 sent
-	c_io_herkulex_write(RAM,servo_id,REG_OVERLOAD_PWM_THRESHOLD,1,DATA);
+	c_io_herkulex_write(RAM,servo_id,REG_OVERLOAD_PWM_THRESHOLD,2,DATA);
 
 	//configura Kp, ki,kd and 1st and 2nd feedforward gains
 	//uint8_t i, n=10;// n is the number of bytes to written
@@ -417,8 +448,10 @@ void pv_module_servo_initialize(uint8_t servo_id)
 	//c_io_herkulex_write(RAM,servo1_id,REG_KP,n,DATA);
 
 
-	c_io_herkulex_change_mode(servo_id,POSITION_MODE);
+	c_io_herkulex_change_mode(servo_id, mode);
 }
+
+
 
 
 /*
@@ -429,9 +462,6 @@ void serialize_esc_msg() {
 
 /**
   * @}
-  */
-
-/**
   * @}
   */
 
