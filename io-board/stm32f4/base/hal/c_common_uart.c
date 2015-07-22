@@ -304,7 +304,7 @@ void c_common_usart1_init(int baudrate)
 	NVIC_InitStructure.NVIC_IRQChannel = USART1_IRQn;		 // we want to configure the USART1 interrupts
 	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 1;// this sets the priority group of the USART1 interrupts
 	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 1;		 // this sets the subpriority inside the group
-	NVIC_InitStructure.NVIC_IRQChannelCmd = DISABLE;			 // the USART1 interrupts are globally enabled
+	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;			 // the USART1 interrupts are globally enabled
 	NVIC_Init(&NVIC_InitStructure);							 // the properties are passed to the NVIC_Init function which takes care of the low level stuff
 	
 	USART_Cmd(USART1, ENABLE); // enable USART1
@@ -447,7 +447,7 @@ void c_common_usart_flush(USART_TypeDef* USARTx)
   */
 void USART1_IRQHandler(void){
 	// check if the USART1 receive interrupt flag was set
-	if( USART_GetITStatus(USART2, USART_IT_RXNE) ){
+	if( USART_GetITStatus(USART1, USART_IT_RXNE) ){
 		usart1_available_flag = 1;
 		usart1_recv_buffer[usart1_rb_in] = USART_ReceiveData(USART1);
 		if(usart1_rb_in < RECV_BUFFER_SIZE-1) usart1_rb_in++;

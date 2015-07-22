@@ -31,8 +31,8 @@
 /* Private variables ---------------------------------------------------------*/
 portTickType lastWakeTime;
 char str[256];
-GPIOPin LED_builtin_io;
-//GPIOPin debugPin;
+GPIOPin LED4;
+
 float attitude_quaternion[4]={1,0,0,0};
 
 
@@ -53,7 +53,7 @@ pv_msg_input oInputData;
 void module_in_init() 
 {
 	/* Inicialização do hardware do módulo */
-	LED_builtin_io = c_common_gpio_init(GPIOD, GPIO_Pin_15, GPIO_Mode_OUT);
+	LED4 = c_common_gpio_init(GPIOD, GPIO_Pin_12, GPIO_Mode_OUT); //LED4
 
 	/* Inicialização da imu */
 	c_common_i2c_init(I2C1); 
@@ -135,16 +135,19 @@ void module_in_run()
   	while(1)
 	{
 
+  	/* Leitura do numero de ciclos atuais */
+  	lastWakeTime = xTaskGetTickCount();
+
   	oInputData.heartBeat=heartBeat+=1;
-    /* Verifica init*/
+
+  	/* Verifica init*/
     if (iterations > INIT_ITERATIONS)
     		oInputData.init = 0; //Sai da fase de inicializacao
 
     /* toggle pin for debug */
     //c_common_gpio_toggle(LED_builtin_io);
 
-    /* Leitura do numero de ciclos atuais */
-	lastWakeTime = xTaskGetTickCount();
+
 
 	/*----------------------Tratamento da IMU---------------------*/
     /* Pega e trata os valores da imu */
@@ -273,7 +276,7 @@ void module_in_run()
 		iterations++;
 
     /* toggle pin for debug */
-    //c_common_gpio_toggle(LED_builtin_io);
+    c_common_gpio_toggle(LED4);
 
     /* Realiza o trabalho de mutex */
 	if(pv_interface_in.oInputData != 0)

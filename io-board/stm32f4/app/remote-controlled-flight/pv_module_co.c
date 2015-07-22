@@ -32,8 +32,8 @@
 portTickType lastWakeTime;
 pv_msg_input iInputData;
 pv_msg_controlOutput oControlOutputData; 
-//GPIOPin debugPin;
-GPIOPin LED_builtin_io;
+GPIOPin LED5;
+
 /* Inboxes buffers */
 pv_type_actuation    iActuation;
 /* Outboxes buffers*/
@@ -52,9 +52,7 @@ unsigned char setPointESC_Forca(float forca);
   */
 void module_co_init() 
 {
-  LED_builtin_io = c_common_gpio_init(GPIOD, GPIO_Pin_15, GPIO_Mode_OUT);
-
-  /* Inicializar os escs*/
+   /* Inicializar os escs*/
   c_common_i2c_init(I2C3);
   c_io_blctrl_init_i2c(I2C3);
 
@@ -78,7 +76,7 @@ void module_co_init()
   c_rc_BS_control_init();
 
   /* Pin for debug */
-  //debugPin = c_common_gpio_init(GPIOE, GPIO_Pin_13, GPIO_Mode_OUT);
+  LED5 = c_common_gpio_init(GPIOD, GPIO_Pin_14, GPIO_Mode_OUT); //LD5
 
   pv_interface_co.iInputData          = xQueueCreate(1, sizeof(pv_msg_input));
   pv_interface_co.oControlOutputData  = xQueueCreate(1, sizeof(pv_msg_controlOutput));
@@ -181,7 +179,7 @@ void module_co_run()
     oControlOutputData.cicleTime                  = timeNow - lastWakeTime;
 
     /* toggle pin for debug */
-    //c_common_gpio_toggle(debugPin);
+    c_common_gpio_toggle(LED5);
 
     if(pv_interface_co.oControlOutputData != 0)
       xQueueOverwrite(pv_interface_co.oControlOutputData, &oControlOutputData);
