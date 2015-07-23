@@ -26,7 +26,7 @@
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
 #define MODULE_PERIOD	    12//ms
-#define USART_BAUDRATE     115200
+#define USART_BAUDRATE     666666
 #define QUEUE_SIZE 500
 #define LOG_SIZE 50
 #define LOG_WIDTH 100
@@ -166,6 +166,9 @@ void module_servo_init()
 	c_io_herkulex_init(USARTn,USART_BAUDRATE);
 	//c_common_utils_delayms(12);
 
+	//c_io_herkulex_set_baudrate(servo1_id,666666);
+	//c_io_herkulex_set_baudrate(servo2_id,666666);
+
 	pv_module_servo_initialize(servo1_id,ROTATION_MODE);
 	pv_module_servo_initialize(servo2_id,ROTATION_MODE);
 }
@@ -225,7 +228,7 @@ void module_servo_run()
 
 			if (status_error) {
 				LOG(status_error,status_detail,l);
-				c_io_herkulex_clear(servo1_id);
+				//c_io_herkulex_clear(servo1_id);
 			}
 		} else {
 			data_received = 0;
@@ -253,7 +256,7 @@ void module_servo_run()
 
 			if (status_error) {
 				LOG(status_error,status_detail,l);
-				c_io_herkulex_clear(servo2_id);
+				//c_io_herkulex_clear(servo2_id);
 			}
 		} else {
 			data_received = 0;

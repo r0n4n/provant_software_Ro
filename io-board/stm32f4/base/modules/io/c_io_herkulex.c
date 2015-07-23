@@ -417,8 +417,8 @@ void c_io_herkulex_init(USART_TypeDef *usartn, int baudrate)
 		c_common_usart6_init(baudrate);
 	}
 
-	torque_status[0]=0;
-	torque_status[1]=0;
+	//torque_status[0]=0;
+	//torque_status[1]=0;
 }
 
 void c_io_herkulex_config_ack_policy(char servo_id, char policy)
@@ -463,6 +463,37 @@ void c_io_herkulex_set_torque_control(uint8_t servo_id, uint8_t control)
 	DATA[0]=control;
 	torque_status[translate_servo_id(servo_id)] = control;
 	c_io_herkulex_write(RAM,servo_id,REG_TORQUE_CONTROL,1,DATA);
+}
+
+void c_io_herkulex_set_baudrate(uint8_t servo_id, int baudrate)
+{
+	uint8_t baud;
+	switch(baudrate) {
+	case 57600:
+		baudrate=0x22;
+		break;
+	case 115200:
+		baudrate=0x10;
+		break;
+	case 200000:
+		baudrate=0x09;
+		break;
+	case 250000:
+		baudrate=0x07;
+		break;
+	case 400000:
+		baudrate=0x04;
+		break;
+	case 500000:
+		baudrate=0x03;
+		break;
+	case 666666:
+		baudrate=0x02;
+		break;
+	}
+	DATA[0]=baudrate;
+	//torque_status[translate_servo_id(servo_id)] = control;
+	c_io_herkulex_write(EEP,servo_id,EEP_BAUD_RATE,1,DATA);
 }
 
 /** Control Interface
@@ -751,7 +782,8 @@ uint8_t serialize_sjog(pv_sjog_herkulex sjog[], uint8_t num_jogs, uint8_t ptime)
 	//if (num_jogs>1)
 		//BUFFER[3] = 0xFE;
 	//else
-	BUFFER[3] = sjog[0].ucID;
+		BUFFER[3] = sjog[0].ucID;
+	//BUFFER[3] = 0xFE;
 	BUFFER[4] = S_JOG;
 	BUFFER[7] = ptime;
 

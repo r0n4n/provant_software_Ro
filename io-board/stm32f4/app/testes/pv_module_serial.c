@@ -26,7 +26,7 @@
 
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
-#define MODULE_PERIOD	    100//ms
+#define MODULE_PERIOD	    12//ms
 //#define USART_BAUDRATE     460800
 #define USART_BAUDRATE     115200
 

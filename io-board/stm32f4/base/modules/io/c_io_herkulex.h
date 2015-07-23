@@ -153,6 +153,7 @@ void c_io_herkulex_config_led_policy(char servo_id, char policy);
 void c_io_herkulex_led_control(char servo_id, char led);
 void c_io_herkulex_clear(uint8_t servo_id);
 void c_io_herkulex_set_torque_control(uint8_t servo_id, uint8_t control);
+void c_io_herkulex_set_baudrate(uint8_t servo_id, int baudrate);
 
 
 /** Control Interface
