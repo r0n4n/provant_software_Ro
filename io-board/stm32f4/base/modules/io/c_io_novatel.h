@@ -1,53 +1,49 @@
 /**
   ******************************************************************************
-  * @file    app/remote-controlled-flight/pv_module_gps.h
+  * @file    modules/io/c_io_novatel.h
   * @author  Patrick Jose Pereira
   * @version V1.0.0
-  * @date    27-August-2014
-  * @brief   Implementação do módulo de leitura de dados do GPS.
-  ******************************************************************************/
+  * @date    22-julho-2015
+  * @brief   Implementação da leitura do GPS EOMSTAR.
+  *****************************************************************************/
 
 /* Define to prevent recursive inclusion -------------------------------------*/
-#ifndef PV_MODULE_GPS_H
-#define PV_MODULE_GPS_H
-
-#ifdef __cplusplus
- extern "C" {
-#endif
+#ifndef C_IO_NOVATEL_H
+#define C_IO_NOVATEL_H
 
 /* Includes ------------------------------------------------------------------*/
-
-/* FreeRTOS kernel includes */
-#include "FreeRTOS.h"
-#include "queue.h"
-#include "task.h"
+#include "stm32f4xx_conf.h"
 
  /* kernel includes */
 #include "c_common_gpio.h"
 #include "c_common_i2c.h"
 #include "c_common_uart.h"
 #include "c_common_utils.h"
- 	
-/* proVANT includes */
-#include "c_io_novatel.h"
 
-#include "pv_typedefs.h"
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
 
-struct pv_interface_gps
-{
-  xQueueHandle oGpsData;  
-} pv_interface_gps;
+#ifdef __cplusplus
+ extern "C" {
+#endif
 
+/* Definitions----------------------------------------------------------------*/
 /* Exported types ------------------------------------------------------------*/
 /* Exported constants --------------------------------------------------------*/
+#define OEMSTAR/* FreeRTOS kernel includes */
+#include "FreeRTOS.h"
+#include "queue.h"
+#include "task.h"
 /* Exported macro ------------------------------------------------------------*/
-
+/* Exported variables---------------------------------------------------------*/
 /* Exported functions ------------------------------------------------------- */
-void module_gps_init();
-void module_gps_run();
+void c_io_gps_init();
+void c_io_gps_read(float* xyz);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif
+#endif //C_IO_NOVATEL_H
+
