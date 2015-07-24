@@ -32,7 +32,7 @@
 
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
-#define RECV_BUFFER_SIZE	64
+#define RECV_BUFFER_SIZE	256
 
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
@@ -355,6 +355,19 @@ bool c_common_usart_available(USART_TypeDef* USARTx) {
 		return 0;
 }
 
+int c_common_usart_available2(USART_TypeDef* USARTx) {
+	if(USARTx == USART1)
+		return usart1_rb_out-usart1_rb_in;
+	else if(USARTx == USART2)
+		return usart2_rb_out-usart2_rb_in;
+	else if(USARTx == USART3)
+		return usart3_rb_out-usart3_rb_in;
+	else if(USARTx == USART6)
+		return usart6_rb_out-usart6_rb_in;
+	else
+		return 0;
+}
+
 /** \brief Retorna o caracter recebido e não-lido mais recente do Ring-Buffer.
  *
  * 	@param USARTx USART a verificar.
@@ -394,7 +407,7 @@ unsigned char c_common_usart_read(USART_TypeDef* USARTx) {
 
 
 /** \brief Limpa o Ring-Buffer.
- *
+ *from PyQt4.Qwt5.anynumpy import *
  * 	@param USARTx USART a verificar.
  * 	@return None
  */

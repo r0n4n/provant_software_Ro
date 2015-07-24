@@ -28,6 +28,8 @@
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
 portTickType lastWakeTime;
+pv_msg_gps oGpsData;
+pv_msg_controlOutput oControlOutputData; 
 /* Private function prototypes -----------------------------------------------*/
 /* Private functions ---------------------------------------------------------*/
 /* Exported functions definitions --------------------------------------------*/
@@ -40,6 +42,9 @@ portTickType lastWakeTime;
   */
 void module_gps_init() 
 {
+  c_io_gps_init();
+
+  pv_interface_gps.oGpsData          = xQueueCreate(1, sizeof(pv_msg_gps));
 }
 
 /** \brief Função principal do módulo de GPS.
@@ -49,9 +54,19 @@ void module_gps_init()
   */
 void module_gps_run()
 {
+  float xyz[3];
+  oGpsData.heartBeat=0;
   while(1)
   {
     lastWakeTime = xTaskGetTickCount();
+    c_io_gps_read(xyz);
+    oGpsData.heartBeat++;
+    oGpsData.gpsOutput.lat=xyz[0]+1;
+    oGpsData.gpsOutput.lon=xyz[1]+1;
+
+    if(pv_interface_gps.oGpsData != 0)
+      xQueueOverwrite(pv_interface_gps.oGpsData, &oGpsData);
+
     vTaskDelayUntil( &lastWakeTime, (MODULE_PERIOD / portTICK_RATE_MS));
   }
 }
