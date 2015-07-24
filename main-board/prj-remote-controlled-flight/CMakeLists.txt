@@ -48,11 +48,13 @@ file(MAKE_DIRECTORY ${PROJECT_DOC_DIR})
 add_subdirectory("${PROJECT_SUBSYS_DIR}/subsys_ContinuousControl")
 add_subdirectory("${PROJECT_SUBSYS_DIR}/subsys_CommLowLevel")
 
+
+
+
 # Set the source files
 set(SRCS
         ${PROJECT_SOURCE_DIR}/main.cpp
-
-        ${PROJECT_COMMON_DIR}/inc/AbstractMessageInterface.h
+	${PROJECT_COMMON_DIR}/inc/AbstractMessageInterface.h
         ${PROJECT_COMMON_DIR}/inc/AbstractModuleManager.h
         ${PROJECT_COMMON_DIR}/inc/debug.h
 )
@@ -77,10 +79,13 @@ set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_RELEASE} -Wall
 set(CMAKE_INSTALL_PREFIX    "${CMAKE_CURRENT_BINARY_DIR}/dist")
 
 # specify the cross compiler
-set(CMAKE_C_COMPILER	/usr/bin/arm-linux-gnueabi-gcc)
-set(CMAKE_CXX_COMPILER	/usr/bin/arm-linux-gnueabi-g++)
+#set(CMAKE_C_COMPILER	/usr/bin/arm-linux-gnueabi-gcc)
+#set(CMAKE_CXX_COMPILER	/usr/bin/arm-linux-gnueabi-g++)
+set(CMAKE_C_COMPILER	arm-linux-gnueabi-gcc-4.7)
+set(CMAKE_CXX_COMPILER	arm-linux-gnueabi-g++-4.7)
 
-#set( CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -pg" )
+set( CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -march=armv7-a -mtune=cortex-a8 -mfloat-abi=softfp -mfpu=neon" )
+set( CMAKE_C_FLAGS  "${CMAKE_C_FLAGS} -march=armv7-a -mtune=cortex-a8 -mfloat-abi=softfp -mfpu=neon" )
 #set( CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} -pg" )
 
 # FINDING PACKAGES -----------------------------------------------------------
@@ -91,8 +96,8 @@ ADD_DEFINITIONS(-DBOOST_LOG_DYN_LINK) #linkar a biblioteca de Logging dinamicame
 #set(Boost_INCLUDE_DIRS "/home/martin/lib/boost_1_54_0/install/include")
 #set(Boost_LIBRARIES    "/usr/local/Cellar/boost/1.55.0_1/lib")
 #set(Boost_INCLUDE_DIRS "/usr/local/Cellar/boost/1.55.0_1/include")
-set(Boost_INCLUDE_DIRS  "/home/fernando/lib/boost_1_56_0/spirit/include")
-set(Boost_LIBRARIES   	"/home/fernando/lib/boost_1_56_0/stage/lib")
+set(Boost_INCLUDE_DIRS  "/home/richard/lib/boost_1_58_0/spirit/include")
+set(Boost_LIBRARIES   	"/home/richard/lib/boost_1_58_0/stage/lib")
 
 
 # DEBUG MESSAGES -------------------------------------------------------------
@@ -101,8 +106,8 @@ set(Boost_LIBRARIES   	"/home/fernando/lib/boost_1_56_0/stage/lib")
 # message(status "** Boost Dirs:      ${Boost_LIBRARY_DIRS}")
 #set(Boost_INCLUDE_DIRS    	  "/home/fernando/lib/boost_1_55_0/spirit/include")
 #set(Boost_LIBRARIES   		  "/home/fernando/lib/boost_1_55_0/stage/lib")
-set(Boost_INCLUDE_DIRS    	  "/home/fernando/lib/boost_1_56_0/spirit/include")
-set(Boost_LIBRARIES   		  "/home/fernando/lib/boost_1_56_0/stage/lib")
+set(Boost_INCLUDE_DIRS    	  "/home/richard/lib/boost_1_58_0/spirit/include")
+set(Boost_LIBRARIES   		  "/home/richard/lib/boost_1_58_0/stage/lib")
 
 
 # BUILDING IT -----------------------------------------------------------------
@@ -112,6 +117,7 @@ include_directories(
         ${Boost_INCLUDE_DIRS}
         "${PROJECT_COMMON_DIR}/inc"
         "${PROJECT_SUBSYS_DIR}/common/inc"
+	"${PROJECT_SUBSYS_DIR}/common"
 	# Include all `ext` directories in each subsystem
         #"${PROJECT_SUBSYS_DIR}/subsys_DataProcessing/inc"
         "${PROJECT_SUBSYS_DIR}/subsys_ContinuousControl/inc"
@@ -140,6 +146,8 @@ target_link_libraries(${PROJECT_NAME}
                         boost_thread
                         boost_log
                         boost_log_setup
+			
+			
                      )
 
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BUILD_DIR})
