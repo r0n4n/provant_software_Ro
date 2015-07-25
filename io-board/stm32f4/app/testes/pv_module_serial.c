@@ -26,9 +26,9 @@
 
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
-#define MODULE_PERIOD	    12//ms
+#define MODULE_PERIOD	    100//ms
 //#define USART_BAUDRATE     460800
-#define USART_BAUDRATE     115200
+#define USART_BAUDRATE     500000
 
 
 
@@ -38,8 +38,10 @@ portTickType lastWakeTime;
 USART_TypeDef *USARTx = USART2;
 //extern xQueueHandle iEscQueueData;
 pv_msg_servo iServoOutput;
+pv_msg_servo servo_out_buffer[20];
 uint8_t BUFFER[100];
 int32_t msg_size;// = sizeof(pv_msg_esc);
+uint8_t size;
 //pv_msg_input iInputData;
 //pv_msg_controlOutput iControlOutputData;
 //GPIOPin debugPin;
@@ -83,6 +85,7 @@ void module_serial_init()
 
 	/* Pin for debug */
 	//debugPin = c_common_gpio_init(GPIOE, GPIO_Pin_13, GPIO_Mode_OUT);
+	size = 0;
 }
 
 void stub() {
@@ -154,19 +157,27 @@ uint16_t send_queue()
 	while (uxQueueMessagesWaiting(pv_interface_serial.iServoOutput)>0)
 	{
 		xStatus = xQueueReceive(pv_interface_serial.iServoOutput,&iServoOutput,1/portTICK_RATE_MS);
-		if (xStatus) {
-			serialize_servo_msg(iServoOutput);
-			send_data(BUFFER[2]+2);
-		}
+		if (xStatus)
+			add_servo_to_buffer(iServoOutput);
 	}
+	prepare_buffer();
+	send_data(BUFFER[2]+2);
+	clear_buffer();
 	return 0;
 }
 
 
+void add_servo_to_buffer(pv_msg_servo servo_data)
+{
+	int msg_size = sizeof(pv_msg_servo);
+	memcpy((BUFFER + size + 3),&servo_data,msg_size);
+	size+=msg_size;
+}
 
-
-
-
+void clear_buffer(void)
+{
+	size = 0;
+}
 
 uint8_t cksum1(uint8_t buffer[]) {
   uint8_t i, chksum=0;
@@ -199,6 +210,15 @@ void send_data(uint8_t size)
 {
 	for (int i = 0; i < size ; ++i)
 		c_common_usart_putchar(USARTx,BUFFER[i]);
+}
+
+void prepare_buffer(void)
+{
+	BUFFER[0] = 0xFF;
+	BUFFER[1] = 0xFF;
+	BUFFER[2] = size + 3;
+	BUFFER[size + 3] = cksum1(BUFFER);
+	BUFFER[size + 4] = cksum2(BUFFER[size + 3]);
 }
 
 /* IRQ handlers ------------------------------------------------------------- */

@@ -59,7 +59,6 @@ void c_common_utils_floatToString(float num, char * outbuf, char decplaces);
 
 /* Header-defined wrapper functions ----------------------------------------- */
 
-
 #ifdef __cplusplus
 }
 #endif

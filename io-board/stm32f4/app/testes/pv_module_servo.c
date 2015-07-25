@@ -28,12 +28,12 @@
 #define MODULE_PERIOD	    12//ms
 #define USART_BAUDRATE     666666
 #define QUEUE_SIZE 500
-#define LOG_SIZE 50
+#define LOG_SIZE 20
 #define LOG_WIDTH 100
 
 /* Private macro -------------------------------------------------------------*/
 #define LOG(error,detail,i) ({ i = (uint8_t) i % LOG_SIZE; \
-		c_io_herkulex_decode_error(LOGBUF[i], error, detail); \
+		c_io_herkulex_decodeError(LOGBUF[i], error, detail); \
 		i++; })
 
 /* Private variables ---------------------------------------------------------*/
@@ -147,6 +147,9 @@ int check_outlier(int new, int sec)
 	return ((sec>=0 && (new>=sec*limite)) ||
 			(sec<0 && (new<=sec*limite)));
 }
+
+
+
 /* Exported functions definitions --------------------------------------------*/
 
 /** \brief Inicializacao do módulo de data out.
@@ -162,15 +165,12 @@ void module_servo_init()
 
 	servo1_id=253;
 	servo2_id=252;
-	/* Inicia a usart */
-	c_io_herkulex_init(USARTn,USART_BAUDRATE);
-	//c_common_utils_delayms(12);
 
+	c_io_herkulex_init(USARTn,USART_BAUDRATE);
 	//c_io_herkulex_set_baudrate(servo1_id,666666);
 	//c_io_herkulex_set_baudrate(servo2_id,666666);
-
-	pv_module_servo_initialize(servo1_id,ROTATION_MODE);
-	pv_module_servo_initialize(servo2_id,ROTATION_MODE);
+	c_io_herkulex_config(servo1_id);
+	c_io_herkulex_config(servo2_id);
 }
 
 /** \brief Função principal do módulo de data out.
@@ -213,18 +213,18 @@ void module_servo_run()
 		 */
 #if !SERVO_IN_TEST
 
-		if (c_io_herkulex_read_data(servo1_id)) {
+		if (c_io_herkulex_readData(servo1_id)) {
 			// Aquisição de dados do servo 1
 			oServoMsg[0].heartBeat=heartBeat;
-			new_vel = c_io_herkulex_get_velocity(servo1_id);
+			new_vel = c_io_herkulex_getVelocity(servo1_id);
 			oServoMsg[0].angularSpeed = new_vel;
-			new_pos = c_io_herkulex_get_position(servo1_id);
+			new_pos = c_io_herkulex_getPosition(servo1_id);
 			oServoMsg[0].position = new_pos;
 			//oServoMsg.status=1;
 			oServoMsg[0].servo_id=servo1_id;
 
-			status_error = c_io_herkulex_get_status_error();
-			status_detail = c_io_herkulex_get_status_detail();
+			status_error = c_io_herkulex_getStatusError();
+			status_detail = c_io_herkulex_getStatusDetail();
 
 			if (status_error) {
 				LOG(status_error,status_detail,l);
@@ -242,17 +242,17 @@ void module_servo_run()
 		}
 
 
-		if (c_io_herkulex_read_data(servo2_id)) {
+		if (c_io_herkulex_readData(servo2_id)) {
 			/* Aquisição de dados do servo 1 */
 			oServoMsg[1].heartBeat=heartBeat;
-			oServoMsg[1].angularSpeed = c_io_herkulex_get_velocity(servo2_id);
-			oServoMsg[1].position = c_io_herkulex_get_position(servo2_id);
+			oServoMsg[1].angularSpeed = c_io_herkulex_getVelocity(servo2_id);
+			oServoMsg[1].position = c_io_herkulex_getPosition(servo2_id);
 			//oServoMsg.status=1;
 			oServoMsg[1].servo_id=servo2_id;
 			data_counter++;
 			data_received=1;
-			status_error = c_io_herkulex_get_status_error();
-			status_detail = c_io_herkulex_get_status_detail();
+			status_error = c_io_herkulex_getStatusError();
+			status_detail = c_io_herkulex_getStatusDetail();
 
 			if (status_error) {
 				LOG(status_error,status_detail,l);
@@ -314,8 +314,8 @@ void module_servo_run()
 				pwm = 300;
 		}
 		//c_io_herkulex_set_torque2(servo1_id, pwm,servo2_id,-pwm);
-		c_io_herkulex_set_torque(servo1_id, pwm);
-		c_io_herkulex_set_torque(servo2_id, pwm);
+		c_io_herkulex_setTorque(servo1_id, pwm);
+		c_io_herkulex_setTorque(servo2_id, pwm);
 
 #if !SERVO_IN_TEST
 		/*
@@ -331,7 +331,7 @@ void module_servo_run()
 		 * Envio dos dados para o modulo de comunicação
 		 * Verificação da integridade dos pacotes recebidos
 		 */
-		status = c_io_herkulex_get_status();//indica erros de comunicação
+		status = c_io_herkulex_getStatus();//indica erros de comunicação
 
 		if (status) {
 			xStatus = xQueueSend(pv_interface_servo.oServoOutput, &oServoMsg[0],
@@ -353,18 +353,18 @@ void module_servo_run()
 				queue_data_counter++;
 		} else
 		{
-			c_io_herkulex_stat(servo1_id);
-			status_error=c_io_herkulex_get_status_error();
-			status_detail=c_io_herkulex_get_status_detail();
+			c_io_herkulex_readStatus(servo1_id);
+			status_error=c_io_herkulex_getStatusError();
+			status_detail=c_io_herkulex_getStatusDetail();
 			if (status_error!=0 || status_detail!= 0)
 			{
 				c_io_herkulex_clear(servo1_id);
 			}
 			lost_data_counter++;
 
-			c_io_herkulex_stat(servo2_id);
-			status_error=c_io_herkulex_get_status_error();
-			status_detail=c_io_herkulex_get_status_detail();
+			c_io_herkulex_readStatus(servo2_id);
+			status_error=c_io_herkulex_getStatusError();
+			status_detail=c_io_herkulex_getStatusDetail();
 			if (status_error!=0 || status_detail!= 0)
 			{
 				c_io_herkulex_clear(servo2_id);
@@ -393,65 +393,11 @@ void module_servo_run()
 		}
 #endif
 	}
-	c_io_herkulex_set_torque(servo1_id, 0);
-	c_io_herkulex_set_torque_control(servo1_id,TORQUE_BREAK);//set torque free
-	c_io_herkulex_set_torque(servo2_id, 0);
-	c_io_herkulex_set_torque_control(servo2_id,TORQUE_BREAK);//set torque free
+	c_io_herkulex_setTorque(servo1_id, 0);
+	c_io_herkulex_setTorqueControl(servo1_id,TORQUE_BREAK);//set torque free
+	c_io_herkulex_setTorque(servo2_id, 0);
+	c_io_herkulex_setTorqueControl(servo2_id,TORQUE_BREAK);//set torque free
 	vTaskDelete(NULL);
-}
-
-void pv_module_servo_initialize(uint8_t servo_id, uint8_t mode)
-{
-	c_io_herkulex_clear(servo_id);
-	c_io_herkulex_reboot(servo_id);
-	c_common_utils_delayms(1000);
-
-	DATA[0]=1;
-	//only reply to read commands
-	c_io_herkulex_config_ack_policy(servo_id,1);
-
-	//Acceleration Ratio = 0
-	DATA[0]=0;
-	c_io_herkulex_write(RAM,servo_id,REG_ACC_RATIO,1,DATA);
-
-	//set no acceleration time
-	DATA[0]=0;
-	c_io_herkulex_write(RAM,servo_id,REG_MAX_ACC_TIME,1,DATA);
-
-	DATA[0]=0;
-	c_io_herkulex_write(RAM,servo_id,REG_PWM_OFFSET,1,DATA);
-
-	//min pwm = 0
-	DATA[0]=0;
-	c_io_herkulex_write(RAM,servo_id,REG_MIN_PWM,1,DATA);
-
-	//max pwm >1023 -> no max pwm
-	DATA[1]=0x03;//little endian 0x03FF sent
-	DATA[0]=0xFF;
-	c_io_herkulex_write(RAM,servo_id,REG_MAX_PWM,2,DATA);
-
-	//0x7FFE max. pwm
-	//DATA[1]=0x03;//little endian
-	//DATA[0]=0xFF;//maximo em 1023
-	//c_io_herkulex_write(RAM,servo_id,REG_MAX_PWM,2,DATA);
-
-	/** set overload pwm register, if overload_pwm>1023, overload is never
-	 * activated this is good for data acquisition, but may not be the case for
-	 * the tilt-rotor actualy flying.
-	 */
-	DATA[0]=0xFF;
-	DATA[1]=0x03;//little endian, 2048 sent
-	c_io_herkulex_write(RAM,servo_id,REG_OVERLOAD_PWM_THRESHOLD,2,DATA);
-
-	//configura Kp, ki,kd and 1st and 2nd feedforward gains
-	//uint8_t i, n=10;// n is the number of bytes to written
-	//for(i=0;i<n;i++) {
-	//	DATA[i]=0;
-	//}
-	//c_io_herkulex_write(RAM,servo1_id,REG_KP,n,DATA);
-
-
-	c_io_herkulex_change_mode(servo_id, mode);
 }
 
 
