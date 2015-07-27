@@ -20,6 +20,8 @@
 
 //Common Father
 #include "AbstractModuleManager.h"
+#include "Eigen/Dense"
+#include "MathNeon.h"
 
 //Interface
 #include "ContinuousControlInterface.h"

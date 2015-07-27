@@ -22,8 +22,21 @@
 #include "queue.h"
 #include "task.h"
 
+ /* kernel includes */
+#include "c_common_gpio.h"
+#include "c_common_i2c.h"
+#include "c_common_uart.h"
+#include "c_common_utils.h"
+ 	
 /* proVANT includes */
+#include "c_io_novatel.h"
+
 #include "pv_typedefs.h"
+
+struct pv_interface_gps
+{
+  xQueueHandle oGpsData;  
+} pv_interface_gps;
 
 /* Exported types ------------------------------------------------------------*/
 /* Exported constants --------------------------------------------------------*/

@@ -56,7 +56,6 @@ set(SRCS
 
 )
 
-
 # CREATING CONFIG HEADER FILE WITH SOME BUILD PARAMS ------------------------
 #configure_file (
 #  "${PROJECT_CONFIG_DIR}/buildParams.h.in"
@@ -73,20 +72,22 @@ set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_RELEASE} -Wall
 set(CMAKE_INSTALL_PREFIX "${CMAKE_CURRENT_BINARY_DIR}/dist")
 
 # specify the cross compiler
-set(CMAKE_C_COMPILER	/usr/bin/arm-linux-gnueabi-gcc)
-set(CMAKE_CXX_COMPILER	/usr/bin/arm-linux-gnueabi-g++)
+#set(CMAKE_C_COMPILER	/usr/bin/arm-linux-gnueabi-gcc)
+#set(CMAKE_CXX_COMPILER	/usr/bin/arm-linux-gnueabi-g++)
+set(CMAKE_C_COMPILER	arm-linux-gnueabi-gcc-4.7)
+set(CMAKE_CXX_COMPILER	arm-linux-gnueabi-g++-4.7)
 
 #set( CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -pg" )
 #set( CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} -pg" )
+set( CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -march=armv7-a -mtune=cortex-a8 -mfloat-abi=softfp -mfpu=neon" )
+set( CMAKE_C_FLAGS  "${CMAKE_C_FLAGS} -march=armv7-a -mtune=cortex-a8 -mfloat-abi=softfp -mfpu=neon" )
 
 # FINDING PACKAGES -----------------------------------------------------------
 find_package(PkgConfig REQUIRED)
 
 ADD_DEFINITIONS(-DBOOST_LOG_DYN_LINK) #linkar a biblioteca de Logging dinamicamente
-#set(Boost_INCLUDE_DIRS    	  "/home/fernando/lib/boost_1_55_0/spirit/include")
-#set(Boost_LIBRARIES   		  "/home/fernando/lib/boost_1_55_0/stage/lib")
-set(Boost_INCLUDE_DIRS  "/home/fernando/lib/boost_1_56_0/spirit/include")
-set(Boost_LIBRARIES   	"/home/fernando/lib/boost_1_56_0/stage/lib")
+set(Boost_INCLUDE_DIRS  "/home/richard/lib/boost_1_58_0/spirit/include")
+set(Boost_LIBRARIES   	"/home/richard/lib/boost_1_58_0/stage/lib")
 
 # DEBUG MESSAGES -------------------------------------------------------------
 # message(status "** Boost Include: ${Boost_INCLUDE_DIR}")
@@ -103,18 +104,22 @@ include_directories(
 
 	${PROJECT_COMMON_DIR}/inc	
 	${PROJECT_COMMON_DIR_SUBSYS}/inc
-
-        ${Boost_INCLUDE_DIRS}
+	${PROJECT_COMMON_DIR_SUBSYS}
+	${PROJECT_COMMON_DIR_SUBSYS}/MathNeon/inc
+	
+    ${Boost_INCLUDE_DIRS}
 )
 
 link_directories(
         ${Boost_LIBRARIES}
 )
 
-add_executable(${PROJECT_NAME} ${MAIN_FILE} ${HDRS} ${SRCS})
 add_library("${PROJECT_NAME}_${LIB_POSTFIX}" ${HDRS} ${SRCS})
 
+add_executable(${PROJECT_NAME} ${MAIN_FILE} ${HDRS} ${SRCS})
 set_target_properties(${PROJECT_NAME} PROPERTIES DEBUG_POSTFIX _d)
+
+
 
 target_link_libraries(${PROJECT_NAME}
                         pthread
@@ -122,7 +127,7 @@ target_link_libraries(${PROJECT_NAME}
                         boost_thread
                         boost_log
                         boost_log_setup
-                     )
+)
 
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BUILD_DIR})
 set(LIBRARY_OUTPUT_PATH ${PROJECT_BUILD_DIR})

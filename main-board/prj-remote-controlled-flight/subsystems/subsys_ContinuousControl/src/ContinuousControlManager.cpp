@@ -23,6 +23,7 @@
 #include <stdlib.h>
 #include <string>
 
+using namespace Eigen;
 using namespace std;
 
 ContinuousControlManager::ContinuousControlManager(std::string name) :
@@ -60,6 +61,7 @@ void ContinuousControlManager::Init()
 void ContinuousControlManager::Run()
 {
     Init();
+    Math_Neon* math=new Math_Neon();
     // Algumas variaveis... 
     std::string msg("Hello!");
     proVant::atitude atitude, atd;
@@ -71,12 +73,22 @@ void ContinuousControlManager::Run()
     atitude.dotYaw = 0;
     int i = 0, n;
     char *buffer;   
-
-    // Loop principal!
+    // Matrix class
+    MatrixXd m = MatrixXd::Random(3,3);
+    VectorXd v(3);
+    //Math Neon
+    float a;
+        // Loop principal!
     while(1) {
 	if(interface->pop(atd, &interface->q_atitude_in)){        
 		DEBUG(LEVEL_INFO, "Recive message from ") << name_;
 		printf("%f\n", atd.roll);
+		m = (m + MatrixXd::Constant(3,3,1.2)) * 50;
+		cout << "m =" << endl << m << endl;
+		v << 1, 2, 3;
+		cout << "m * v =" << endl << m * v << endl;
+		a=math->cosf_neon(M_PI);
+		cout << "Cos(a)" << endl << a << endl;
 	}
         //i++;
 	//Send and recive uart

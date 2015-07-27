@@ -16,10 +16,16 @@
 
 #include "c_common_i2c.h"
 #include "c_common_utils.h"
+#include "c_common_gpio.h"
 
 #define ARM_MATH_CM4
 #include "arm_math.h"
 #include <math.h>
+
+/* FreeRTOS kernel includes */
+#include "FreeRTOS.h"
+#include "queue.h"
+#include "task.h"
 
 #ifdef __cplusplus
  extern "C" {
@@ -39,41 +45,66 @@
 #define PV_IMU_Y           1
 #define PV_IMU_Z           2
 
-/* Dados do Giroscopio encontrados experimentalmente pelo metodo da variancia de allan */
-#define POL_GYRO_X		   	-0.051135
-#define POL_GYRO_Y		   	-0.014749
-#define POL_GYRO_Z			0.0095847
-#define VAR_POL_GYRO_X		0.00000000056929960
-#define VAR_POL_GYRO_Y		0.00000000099609672
-#define VAR_POL_GYRO_Z		0.0000000000083024651
-#define VAR_GYRO_X			0.000000020733120
-#define VAR_GYRO_Y			0.000000019290432
-#define VAR_GYRO_Z			0.000000115015940
 
- /* Dados do Acelerometro encontrados experimentalmente pelo metodo da variancia de allan */
-#define VAR_ACCL_X			0.00000355775044
-#define VAR_ACCL_Y			0.00000414651769
-#define VAR_ACCL_Z			0.00001150159396
+#define ACC_FILTER_2OD_5HZ
+#define MAG_FILTER_2OD_5HZ
 
- /* Dados do Magnetometro encontrados experimentalmente pelo metodo da variancia de allan */
-#define VAR_MAGN_X			0.2951857561 // ou  0.0763637956
-#define VAR_MAGN_Y			0.1793861316 // ou  0.0522899689
-#define VAR_MAGN_Z			4.40454169   // ou  1.0497846681
+#define OFFSET_GYRO_X		   	-0.054287654320988
+#define OFFSET_GYRO_Y		   	-0.017202469135802
+#define OFFSET_GYRO_Z			0.008808641975309
 
-#define G				   	9.81 //Ver se nao esta definindo denovo
+// Accelerometer
+// "accel x,y,z (min/max) = X_MIN/X_MAX Y_MIN/Y_MAX Z_MIN/Z_MAX *1000"
+#define ACCEL_X_MIN ((float) -0.996)
+#define ACCEL_X_MAX ((float) 1.097)
+#define ACCEL_Y_MIN ((float) -1.031)
+#define ACCEL_Y_MAX ((float) 1.070)
+#define ACCEL_Z_MIN ((float) -1.115)
+#define ACCEL_Z_MAX ((float) 0.914)
+
+//Magnetometer parameters for calibration
+//see:http://diydrones.com/profiles/blogs/advanced-hard-and-soft-iron-magnetometer-calibration-for-dummies?id=705844%3ABlogPost%3A1676387&page=2#comments
+#define M11 1.807
+#define M12 -0.055
+#define M13 0.052
+#define M21 0.214
+#define M22 1.926
+#define M23 0.003
+#define M31 0.02
+#define M32 -0.048
+#define M33 2.071
+
+#define Bx -106.511
+#define By -150.561
+#define Bz -417.946
+
+// Sensor calibration scale and offset values
+// #define ACCEL_SENSIBILITY 256
+#define ACCEL_X_OFFSET ((ACCEL_X_MIN + ACCEL_X_MAX) / 2.0f)
+#define ACCEL_Y_OFFSET ((ACCEL_Y_MIN + ACCEL_Y_MAX) / 2.0f)
+#define ACCEL_Z_OFFSET ((ACCEL_Z_MIN + ACCEL_Z_MAX) / 2.0f)
+#define ACCEL_X_SCALE (1 / (ACCEL_X_MAX - ACCEL_X_OFFSET))
+#define ACCEL_Y_SCALE (1 / (ACCEL_Y_MAX - ACCEL_Y_OFFSET))
+#define ACCEL_Z_SCALE (1 / (ACCEL_Z_MAX - ACCEL_Z_OFFSET))
+
+// define to use the calibration data. If not defined then the raw values of the sensors are used
+#define CALIBRATE
 
 /* Exported macro ------------------------------------------------------------*/
 #define C_IO_IMU_USE_ITG_ADXL_HMC
 //#define C_IO_IMU_USE_MPU6050_HMC5883
 
 /* Exported functions ------------------------------------------------------- */
-void c_io_imu_init(I2C_TypeDef* I2Cx);
-void c_io_imu_getRaw(float  * accRaw, float * gyrRaw, float * magRaw);
-void c_io_imu_getComplimentaryRPY(float * rpy);
-void c_io_imu_ComplimentaryRPY(float * rpy,float acce_raw[3],float gyro_raw[3],float magn_raw[3]);
-void c_io_imu_getKalmanFilterRPY(float * rpy, float * acce_raw, float * gyro_raw, float * magn_raw);
-void c_io_imu_initKalmanFilter();
-void c_io_imu_calibrate();
+ void c_io_imu_init(I2C_TypeDef* I2Cx);
+ void c_io_imu_getRaw(float  * accRaw, float * gyrRaw, float * magRaw, long * sample_time__gyro_us);
+ void c_io_imu_getComplimentaryRPY(float * acce_raw, float * gyro_raw, float * magn_raw, float sample_time, float * rpy);
+ void c_io_imu_getKalmanFilterRPY(float * rpy, float * acce_raw, float * gyro_raw, float * magn_raw);
+ void c_io_imu_initKalmanFilter();
+ void c_io_imu_calibrate();
+ void c_io_imu_Quaternion2Euler(float * q, float * rpy);
+ void c_io_imu_Quaternion2EulerMadgwick(float * q, float * rpy);
+ void c_io_imu_EulerMatrix(float * rpy, float * velAngular);
+ float abs2(float num);
 
 #ifdef __cplusplus
 }
