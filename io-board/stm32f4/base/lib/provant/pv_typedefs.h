@@ -69,18 +69,6 @@ typedef struct
   unsigned int  sampleTime;
 } pv_type_escOutput;
 
-
-/** \brief Tipo do ESC com informações. Iuro*/
-typedef struct
-{
-	char  ID;
-	float angularSpeed;
-	float current;
-	float voltage;
-	unsigned int heartBeat;
-	unsigned int  sampleTime;
-} pv_msg_esc;
-
 /** \brief Dados do servo*/
 typedef struct 
 {
@@ -91,8 +79,6 @@ typedef struct
   float rpm;
   unsigned int  sampleTime;
 } pv_type_servoOutput;
-
-
 
 /** \brief Estrutura para orientação do VANT.*/
 typedef struct
@@ -222,30 +208,15 @@ typedef struct
   unsigned int heartBeat;
 } pv_msg_sm;
 
-/** \brief Estruturas de pacotes de envio de comandos dos servos Herkulex DRS0201 */
-typedef struct {
-	int16_t iJogData : 15;
-	uint8_t uiReserved1 : 1;
-	uint8_t uiStop : 1;
-	uint8_t uiMode : 1; //1 : Speed Control
-	uint8_t uiLed : 3; //Green, Blue, Red
-	uint8_t uiJogInvalid : 1;
-	uint8_t uiReserved2 : 2;
-	uint8_t ucID : 8;
-	uint8_t	ucJogTime_ms;
-} pv_ijog_herkulex;
-
-typedef struct {
-	int16_t iJogData : 15;
-	uint8_t uiReserved1 : 1;
-	uint8_t uiStop : 1;
-	uint8_t uiMode : 1; //1 : Speed Control
-	uint8_t uiLed : 3; //Green, Blue, Red
-	uint8_t uiJogInvalid : 1;
-	uint8_t uiReserved2 : 2;
-	uint8_t ucID : 8;
-} pv_sjog_herkulex;
-
+/** \brief Tipo do Servo com informações. */
+typedef struct
+{
+	uint8_t servo_id;
+	uint32_t heartBeat;
+	int16_t  pwm;
+	float angularSpeed;
+	float position;
+} pv_msg_servo;
 
 /* Exported constants --------------------------------------------------------*/
 /* Exported macro ------------------------------------------------------------*/

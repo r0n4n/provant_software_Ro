@@ -250,8 +250,6 @@ int  c_io_blctrl_updateBuffer(uint8_t ID)
   return 1;
 }
 
-
-
 /* IRQ handlers ------------------------------------------------------------- */
 
 /**

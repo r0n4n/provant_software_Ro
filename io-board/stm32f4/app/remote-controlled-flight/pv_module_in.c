@@ -50,7 +50,7 @@ pv_msg_input oInputData;
   * @param  None
   * @retval None
   */
-void module_in_init()
+void module_in_init() 
 {
 	/* Inicialização do hardware do módulo */
 	LED4 = c_common_gpio_init(GPIOD, GPIO_Pin_12, GPIO_Mode_OUT); //LED4
@@ -81,7 +81,7 @@ void module_in_init()
   * Loop que amostra sensores como necessário.
   *
   */
-void module_in_run()
+void module_in_run() 
 {
 	unsigned int heartBeat=0;
 	/////////////////
