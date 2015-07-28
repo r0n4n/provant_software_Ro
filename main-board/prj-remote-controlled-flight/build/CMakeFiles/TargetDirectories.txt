@@ -1,5 +1,0 @@
-/home/richard/workspace/provant-software/main-board/prj-remote-controlled-flight/build/CMakeFiles/provant_main_v1.dir
-/home/richard/workspace/provant-software/main-board/prj-remote-controlled-flight/build/subsystems/subsys_CommLowLevel/CMakeFiles/subsys_CommLowLevel.dir
-/home/richard/workspace/provant-software/main-board/prj-remote-controlled-flight/build/subsystems/subsys_CommLowLevel/CMakeFiles/subsys_CommLowLevel_bundle.dir
-/home/richard/workspace/provant-software/main-board/prj-remote-controlled-flight/build/subsystems/subsys_ContinuousControl/CMakeFiles/subsys_ContinuousControl.dir
-/home/richard/workspace/provant-software/main-board/prj-remote-controlled-flight/build/subsystems/subsys_ContinuousControl/CMakeFiles/subsys_ContinuousControl_bundle.dir
