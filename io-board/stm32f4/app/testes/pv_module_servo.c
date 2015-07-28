@@ -25,7 +25,7 @@
 
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
-#define MODULE_PERIOD	    12//ms
+#define MODULE_PERIOD	    10//ms
 #define USART_BAUDRATE     666666
 #define QUEUE_SIZE 500
 #define LOG_SIZE 20
@@ -57,7 +57,7 @@ float velocity_feedforward(float r);
 int16_t saturate(float x, const float max);
 int16_t get_stepped_pwm(int heartBeat, int16_t pwm);
 int check_outlier(int new,int sec);
-void pv_module_servo_initialize(uint8_t servo_id, uint8_t mode);
+
 /* Private functions ---------------------------------------------------------*/
 float position_controller(float r, float y)
 {
@@ -313,9 +313,9 @@ void module_servo_run()
 			else
 				pwm = 300;
 		}
-		//c_io_herkulex_set_torque2(servo1_id, pwm,servo2_id,-pwm);
-		c_io_herkulex_setTorque(servo1_id, pwm);
-		c_io_herkulex_setTorque(servo2_id, pwm);
+		c_io_herkulex_setTorque2Servos(servo1_id, pwm,servo2_id,-pwm);
+		//c_io_herkulex_setTorque(servo1_id, pwm);
+		//c_io_herkulex_setTorque(servo2_id, pwm);
 
 #if !SERVO_IN_TEST
 		/*
