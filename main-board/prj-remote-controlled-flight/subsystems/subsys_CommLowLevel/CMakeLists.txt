@@ -107,13 +107,13 @@ include_directories(
 	${PROJECT_COMMON_DIR}/inc	
 	${PROJECT_COMMON_DIR_SUBSYS}/inc	
         ${PROJECT_COMMON_DIR_SUBSYS}
-	${PROJECT_COMMON_DIR_SUBSYS}/MathNeon/inc
-
+	
         ${Boost_INCLUDE_DIRS}
 )
 
 link_directories(
         ${Boost_LIBRARIES}
+	
 	
 )
 

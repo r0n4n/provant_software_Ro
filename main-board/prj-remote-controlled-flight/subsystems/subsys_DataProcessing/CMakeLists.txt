@@ -97,14 +97,14 @@ include_directories(
 
 	${PROJECT_COMMON_DIR}/inc	
 	${PROJECT_COMMON_DIR_SUBSYS}
-	${PROJECT_COMMON_DIR_SUBSYS}/MathNeon/inc
+
 
         ${Boost_INCLUDE_DIRS}
 )
 
 link_directories(
         ${Boost_LIBRARIES}
-	${PROJECT_COMMON_DIR_SUBSYS}/MathNeon/src
+	
 )
 
 add_executable(${PROJECT_NAME} ${MAIN_FILE} ${HDRS} ${SRCS})

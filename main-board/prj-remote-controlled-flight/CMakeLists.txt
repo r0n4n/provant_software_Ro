@@ -118,6 +118,7 @@ include_directories(
         "${PROJECT_COMMON_DIR}/inc"
         "${PROJECT_SUBSYS_DIR}/common/inc"
 	"${PROJECT_SUBSYS_DIR}/common"
+	
 	# Include all `ext` directories in each subsystem
         #"${PROJECT_SUBSYS_DIR}/subsys_DataProcessing/inc"
         "${PROJECT_SUBSYS_DIR}/subsys_ContinuousControl/inc"
@@ -129,6 +130,7 @@ link_directories(
         #"${PROJECT_SUBSYS_DIR}/subsys_DataProcessing/build"
         "${PROJECT_SUBSYS_DIR}/subsys_ContinuousControl/build"
         "${PROJECT_SUBSYS_DIR}/subsys_CommLowLevel/build"
+	
 )
 
 add_executable(${PROJECT_NAME} ${HDRS} ${SRCS})
@@ -148,7 +150,7 @@ target_link_libraries(${PROJECT_NAME}
                         boost_log_setup
 			
 			
-                     )
+ )
 
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BUILD_DIR})
 

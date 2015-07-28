@@ -24,6 +24,7 @@
 #include <string>
 
 using namespace Eigen;
+using namespace loadmodel;
 using namespace std;
 
 ContinuousControlManager::ContinuousControlManager(std::string name) :
@@ -32,7 +33,7 @@ ContinuousControlManager::ContinuousControlManager(std::string name) :
     ms_sample_time(500),
     name_(name)
 {
-
+	MPC::MpcControler * mpc=new MPC::MpcControler();
 }
 
 ContinuousControlManager::~ContinuousControlManager()
@@ -61,7 +62,6 @@ void ContinuousControlManager::Init()
 void ContinuousControlManager::Run()
 {
     Init();
-    Math_Neon* math=new Math_Neon();
     // Algumas variaveis... 
     std::string msg("Hello!");
     proVant::atitude atitude, atd;
@@ -74,21 +74,19 @@ void ContinuousControlManager::Run()
     int i = 0, n;
     char *buffer;   
     // Matrix class
-    MatrixXd m = MatrixXd::Random(3,3);
-    VectorXd v(3);
-    //Math Neon
-    float a;
-        // Loop principal!
+    MatrixXf A(20,20);
+    MatrixXf B(20,4);
+    MatrixXf SumRho(20,20);
+    MatrixXf SumLambda(4,4);
+    Vector4f ur;
+    cout<<"init"<<endl;
+
+    // Loop principal!
     while(1) {
 	if(interface->pop(atd, &interface->q_atitude_in)){        
 		DEBUG(LEVEL_INFO, "Recive message from ") << name_;
 		printf("%f\n", atd.roll);
-		m = (m + MatrixXd::Constant(3,3,1.2)) * 50;
-		cout << "m =" << endl << m << endl;
-		v << 1, 2, 3;
-		cout << "m * v =" << endl << m * v << endl;
-		a=math->cosf_neon(M_PI);
-		cout << "Cos(a)" << endl << a << endl;
+
 	}
         //i++;
 	//Send and recive uart

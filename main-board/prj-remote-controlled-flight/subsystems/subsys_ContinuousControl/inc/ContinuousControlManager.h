@@ -21,7 +21,8 @@
 //Common Father
 #include "AbstractModuleManager.h"
 #include "Eigen/Dense"
-#include "MathNeon.h"
+#include "MpcControler.h"
+#include "math.h"
 
 //Interface
 #include "ContinuousControlInterface.h"

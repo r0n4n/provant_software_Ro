@@ -49,11 +49,10 @@ set(SRCS
         ${PROJECT_SOURCE_DIR}/ContinuousControlManager.cpp
         #${PROJECT_SOURCE_DIR}/SubModule1.cpp
         #${PROJECT_SOURCE_DIR}/SubModule2.cpp
-
+	${PROJECT_SOURCE_DIR}/LoadTranportationModel.cpp
+	${PROJECT_SOURCE_DIR}/MpcControler.cpp
 	${PROJECT_COMMON_DIR}/src/AbstractMessageInterface.cpp
 	${PROJECT_COMMON_DIR}/src/AbstractModuleManager.cpp
-
-
 )
 
 # CREATING CONFIG HEADER FILE WITH SOME BUILD PARAMS ------------------------
@@ -105,13 +104,14 @@ include_directories(
 	${PROJECT_COMMON_DIR}/inc	
 	${PROJECT_COMMON_DIR_SUBSYS}/inc
 	${PROJECT_COMMON_DIR_SUBSYS}
-	${PROJECT_COMMON_DIR_SUBSYS}/MathNeon/inc
 	
-    ${Boost_INCLUDE_DIRS}
+	
+    	${Boost_INCLUDE_DIRS}
 )
 
 link_directories(
         ${Boost_LIBRARIES}
+	
 )
 
 add_library("${PROJECT_NAME}_${LIB_POSTFIX}" ${HDRS} ${SRCS})
@@ -127,6 +127,7 @@ target_link_libraries(${PROJECT_NAME}
                         boost_thread
                         boost_log
                         boost_log_setup
+			
 )
 
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BUILD_DIR})
