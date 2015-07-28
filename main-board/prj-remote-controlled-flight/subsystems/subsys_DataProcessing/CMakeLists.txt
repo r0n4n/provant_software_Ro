@@ -51,6 +51,7 @@ set(SRCS
 
 	${PROJECT_COMMON_DIR}/src/AbstractMessageInterface.cpp
 	${PROJECT_COMMON_DIR}/src/AbstractModuleManager.cpp
+	${PROJECT_COMMON_DIR_SUBSYS}/MathNeon/src
 )
 
 
@@ -71,13 +72,15 @@ set(CMAKE_INSTALL_PREFIX "${CMAKE_CURRENT_BINARY_DIR}/dist")
 
 #set( CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -pg" )
 #set( CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} -pg" )
+set( CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -march=armv7-a -mtune=cortex-a8 -mfloat-abi=softfp -mfpu=neon" )
+set( CMAKE_C_FLAGS  "${CMAKE_C_FLAGS} -march=armv7-a -mtune=cortex-a8 -mfloat-abi=softfp -mfpu=neon " )
 
 # FINDING PACKAGES -----------------------------------------------------------
 find_package(PkgConfig REQUIRED)
 
 ADD_DEFINITIONS(-DBOOST_LOG_DYN_LINK) #linkar a biblioteca de Logging dinamicamente
-set(Boost_INCLUDE_DIRS    	  "/home/fernando/lib/boost_1_55_0/spirit/include")
-set(Boost_LIBRARIES   		  "/home/fernando/lib/boost_1_55_0/stage/lib")
+set(Boost_INCLUDE_DIRS    	  "/home/richard/lib/boost_1_58_0/spirit/include")
+set(Boost_LIBRARIES   		  "/home/richard/lib/boost_1_58_0/stage/lib")
 
 # DEBUG MESSAGES -------------------------------------------------------------
 # message(status "** Boost Include: ${Boost_INCLUDE_DIR}")
@@ -93,12 +96,15 @@ include_directories(
         ${PROJECT_CONFIG_DIR}
 
 	${PROJECT_COMMON_DIR}/inc	
+	${PROJECT_COMMON_DIR_SUBSYS}
+	${PROJECT_COMMON_DIR_SUBSYS}/MathNeon/inc
 
         ${Boost_INCLUDE_DIRS}
 )
 
 link_directories(
         ${Boost_LIBRARIES}
+	${PROJECT_COMMON_DIR_SUBSYS}/MathNeon/src
 )
 
 add_executable(${PROJECT_NAME} ${MAIN_FILE} ${HDRS} ${SRCS})
@@ -112,6 +118,7 @@ target_link_libraries(${PROJECT_NAME}
                         boost_thread-mt
                         boost_log
                         boost_log_setup
+			
                      )
 
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BUILD_DIR})

@@ -54,9 +54,8 @@
 DataProcessingManager *   module1;
 DataProcessingInterface * dummyIface;
 
-void testThread() {
+void testThread(){
     std::string msg("Test message!");
-
     while(true) {
         dummyIface->push(msg, dummyIface->q_out_);
         boost::this_thread::sleep(boost::posix_time::milliseconds(1000));
@@ -64,8 +63,7 @@ void testThread() {
 }
 
 
-int main()
-{
+int main(){
     // Create module
     module1 = new DataProcessingManager("Module1:Manager");
 
@@ -87,6 +85,5 @@ int main()
     th1.join();
     th2.join();
     return 0;
-
 }
 

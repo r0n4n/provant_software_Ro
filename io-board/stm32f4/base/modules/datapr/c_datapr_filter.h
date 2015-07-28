@@ -1,35 +1,39 @@
 /**
   ******************************************************************************
-  * @file    modules/rc/c_rc_control.h
-  * @author  Martin Vincent Bloedorn
+  * @file    modules/datapr/c_datapr_filter.c
+  * @author  Rodrigo Donadel
   * @version V1.0.0
-  * @date    30-November-2013
-  * @brief   Controle de estabilizacao para vôo com usando controle remoto manual.
+  * @date    06-August-2014
+  * @brief   Filtros discretos, a principio para a filtragem de sinais dos sensores.
   *****************************************************************************/
 
 /* Define to prevent recursive inclusion -------------------------------------*/
-#ifndef C_RC_CONTROL_H
-#define C_RC_CONTROL_H
+#ifndef C_DATAPR_FILTER_H
+#define C_DATAPR_FILTER_H
 
-#define ARM_MATH_CM4
-#include "arm_math.h"
+/* Includes ------------------------------------------------------------------*/
+#include "stm32f4xx_conf.h"
+#include <math.h>
+#include "c_rc_commons.h"
 
-#include "pv_typedefs.h"
 
 #ifdef __cplusplus
  extern "C" {
 #endif
 
-/* Includes ------------------------------------------------------------------*/
-
 /* Exported types ------------------------------------------------------------*/
 /* Exported constants --------------------------------------------------------*/
 /* Exported macro ------------------------------------------------------------*/
 
+
 /* Exported functions ------------------------------------------------------- */
-void c_rc_control_init();
+
+ // Integrate the accelerometer data two times to obtain the estimated height
+ float c_datapr_filter_estimate_height_acc(float *raw_acc, float *attitude);
+ void reset_height_estimation(float new_initial_height, float new_initial_velocity_z);
+
 #ifdef __cplusplus
 }
 #endif
 
-#endif //C_RC_CONTROL_H
+#endif //C_IO_IMU_H

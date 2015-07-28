@@ -37,6 +37,7 @@ struct pv_interface_do
 {
   xQueueHandle iInputData;  
   xQueueHandle iControlOutputData;
+  xQueueHandle iGpsData;  
 } pv_interface_do;
 /* Exported constants --------------------------------------------------------*/
 /* Exported macro ------------------------------------------------------------*/

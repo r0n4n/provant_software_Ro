@@ -44,15 +44,13 @@
 #include "pv_module_do.h"
 #include "pv_module_gps.h"
 #include "pv_module_sm.h"
-#include "pv_module_esc.h"
-#include "pv_module_serial.h"
-#include "pv_module_servo.h"
 
 /* Common Components, FOR TESTING */
 #include "c_common_gpio.h"
 #include "c_io_blctrl.h"
 #include "c_io_sonar.h"
 #include "c_io_rx24f.h"
+#include "c_io_novatel.h"
 
 /** @addtogroup ProVANT_Modules
   * \brief Ponto de entrada do software geral do VANT.
@@ -61,6 +59,11 @@
   */
 
 /* Private typedef -----------------------------------------------------------*/
+//GPIOPin LED4 = c_common_gpio_init(GPIOD, GPIO_Pin_12, GPIO_Mode_OUT); //LD4
+//GPIOPin LED5 = c_common_gpio_init(GPIOD, GPIO_Pin_14, GPIO_Mode_OUT); //LD5
+//GPIOPin LED6 = c_common_gpio_init(GPIOD, GPIO_Pin_15, GPIO_Mode_OUT); //LD6
+//GPIOPin LED7 = c_common_gpio_init(GPIOA, GPIO_Pin_9, GPIO_Mode_OUT); //LD7
+//GPIOPin LED8 = c_common_gpio_init(GPIOD, GPIO_Pin_5, GPIO_Mode_OUT); //LD8
 
 /* Private define ------------------------------------------------------------*/
 /* Private macro -------------------------------------------------------------*/
@@ -98,12 +101,13 @@ void blink_led_task(void *pvParameters)
     LED_builtin2 = c_common_gpio_init(GPIOB, GPIO_Pin_1, GPIO_Mode_OUT);
     c_common_gpio_toggle(LED_builtin2);
   #endif
-    while(1) {
-    	c_common_gpio_toggle(LED_builtin);
+    while(1)
+    {
+      c_common_gpio_toggle(LED_builtin);
       #ifdef STM32F4_DISCOVERY
         c_common_gpio_toggle(LED_builtin2);
       #endif
-      vTaskDelay(500/portTICK_RATE_MS);
+      vTaskDelay(100/portTICK_RATE_MS);
     }
 }
 
@@ -113,7 +117,7 @@ void module_co_task(void *pvParameters)
 	module_co_run();
 }
 
-// Task input 
+// Task input input
 void module_in_task(void *pvParameters)
 {
 	module_in_run();
@@ -137,34 +141,6 @@ void module_sm_task(void *pvParameters)
   module_sm_run();
 }
 
-void arduino_i2c_task() {
-	char buffer[20];//create a temporary buffer with size of IMU_MSG struct
-	uint8_t device = 5;
-	uint8_t address = 0;
-	char byteToWrite = 'P';
-	portTickType lastWakeTime;/* Leitura do numero de ciclos atuais */
-	//lastWakeTime = xTaskGetTickCount();
-
-	//send a byte to arduino
-	while(1) {
-		lastWakeTime = xTaskGetTickCount();
-		c_common_i2c_writeByte(I2C1,device,address, byteToWrite);
-		vTaskDelayUntil( &lastWakeTime, (100 / portTICK_RATE_MS));//periodo de 100 ms
-	}
-}
-
-void module_esc_task() {
-	module_esc_run();
-}
-
-void module_serial_task() {
-	module_serial_run();
-}
-
-void module_servo_task() {
-	module_servo_run();
-}
-
 /* Main ----------------------------------------------------------------------*/
 int main(void)
 {
@@ -176,33 +152,28 @@ int main(void)
 	vTraceConsoleMessage("Starting application...");
 	if (! uiTraceStart() )
 		vTraceConsoleMessage("Could not start recorder!");
-	//c_common_i2c_init(I2C1);
-	/* Init modules */
-	//module_in_init();
-	//module_co_init();
-	//module_do_init();
-	//module_esc_init();
-	//module_serial_init();
-	module_servo_init();
 
-	/* Connect modules: interface1.o* = interface2.i* */
-	//pv_interface_do.iInputData  = pv_interface_in.oInputData;
-	//pv_interface_co.iInputData  = pv_interface_in.oInputData;
-	//pv_interface_do.iControlOutputData  = pv_interface_co.oControlOutputData;
-	iEscQueueData = oEscQueueData;
+	/* Init modules */
+	module_in_init();
+	module_co_init();
+  module_do_init();
+  module_gps_init();
+
+    /* Connect modules: interface1.o* = interface2.i* */
+    pv_interface_do.iGpsData    = pv_interface_gps.oGpsData;
+    pv_interface_do.iInputData  = pv_interface_in.oInputData;
+    pv_interface_co.iInputData  = pv_interface_in.oInputData;
+    pv_interface_do.iControlOutputData  = pv_interface_co.oControlOutputData;
+
 	/* create tasks
 	 * Prioridades - quanto maior o valor, maior a prioridade
 	 * */
-	xTaskCreate(blink_led_task, (signed char *)"Blink led", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+1, NULL);
-	//xTaskCreate(arduino_i2c_task, (signed char *)"Arduino", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+2, NULL);
-	//xTaskCreate(module_esc_task, (signed char *)"ESC", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+3, NULL);
-	//xTaskCreate(module_serial_task, (signed char *)"Serial", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+2, NULL);
-	xTaskCreate(module_servo_task, (signed char *)"Servo", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+2, NULL);
-	//xTaskCreate(module_do_task, (signed char *)"Data out", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+1, NULL);
-	//xTaskCreate(module_in_task, (signed char *)"Data input", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+3, NULL);
-	//xTaskCreate(module_co_task, (signed char *)"Control + output", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+3, NULL);
-	//xTaskCreate(module_gps_task, (signed char *)"Gps", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+2, NULL);
-	//xTaskCreate(module_sm_task, (signed char *)"State machine", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+1, NULL);
+    xTaskCreate(blink_led_task, (signed char *)"Blink led", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+1, NULL);
+    xTaskCreate(module_do_task, (signed char *)"Data out", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+2, NULL);
+    //xTaskCreate(module_in_task, (signed char *)"Data input", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+3, NULL);
+    //xTaskCreate(module_co_task, (signed char *)"Control + output", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+4, NULL);
+    //xTaskCreate(module_gps_task, (signed char *)"Gps", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+2, NULL);
+    //xTaskCreate(module_sm_task, (signed char *)"State machine", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+1, NULL);
 
 	//xTaskCreate(sonar_task, (signed char *)"Sonar task", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+1, NULL);
 

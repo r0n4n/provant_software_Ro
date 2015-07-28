@@ -15,7 +15,7 @@
   */
 
 /** @addtogroup Module_IO_Component_Sonar
-  *	\brief Componente para a leitura do sonar XL-MaxSonar-EZ MB1200.
+  * \brief Componente para a leitura do sonar XL-MaxSonar-EZ MB1200.
   *
   * @{
   */
@@ -28,8 +28,9 @@
 #ifdef STM32F4_H407
   #define SONAR_USART     USART6
 #else
-  #define SONAR_USART     USART3
+  #define SONAR_USART     USART6
 #endif
+float c_io_last_sonar=0;
 /* Private function prototypes -----------------------------------------------*/
 /* Private functions ---------------------------------------------------------*/
 /* Exported functions definitions --------------------------------------------*/
@@ -82,12 +83,12 @@ void adc_configure()
 
     /* Enable ADCx, DMA and GPIO clocks ****************************************/ 
     RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOC, ENABLE);  
-    RCC_APB2PeriphClockCmd(RCC_APB2Periph_ADC1, ENABLE);
+    RCC_APB2PeriphClockCmd(RCC_APB2Periph_ADC3, ENABLE);
     
     /* Configure ADC3 Channel7 pin as analog input ******************************/
-    GPIO_InitStructure.GPIO_Pin =  GPIO_Pin_1;
+    GPIO_InitStructure.GPIO_Pin =  GPIO_Pin_3;
     GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AN;
-    GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL ;
+    GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
     GPIO_Init(GPIOC, &GPIO_InitStructure);
 
     /* ADC Common Init **********************************************************/
@@ -105,13 +106,13 @@ void adc_configure()
     ADC_InitStructure.ADC_ExternalTrigConv = ADC_ExternalTrigConv_T1_CC1;
     ADC_InitStructure.ADC_DataAlign = ADC_DataAlign_Right;
     ADC_InitStructure.ADC_NbrOfConversion = 1;
-    ADC_Init(ADC1, &ADC_InitStructure);
+    ADC_Init(ADC3, &ADC_InitStructure);
 
     /* ADC3 regular channel7 configuration *************************************/
-    ADC_RegularChannelConfig(ADC1, ADC_Channel_11, 1, ADC_SampleTime_3Cycles);
+    ADC_RegularChannelConfig(ADC3, ADC_Channel_13, 1, ADC_SampleTime_3Cycles);
 
     /* Enable ADC3 */
-    ADC_Cmd(ADC1, ENABLE);
+    ADC_Cmd(ADC3, ENABLE);
   #endif
 }
 
@@ -122,9 +123,9 @@ int adc_convert()
     while(!ADC_GetFlagStatus(ADC3, ADC_FLAG_EOC));//Processing the conversion
     return ADC_GetConversionValue(ADC3); //Return the converted data
   #else
-    ADC_SoftwareStartConv(ADC1);//Start the conversion
-    while(!ADC_GetFlagStatus(ADC1, ADC_FLAG_EOC));//Processing the conversion
-    return ADC_GetConversionValue(ADC1); //Return the converted data
+    ADC_SoftwareStartConv(ADC3);//Start the conversion
+    while(!ADC_GetFlagStatus(ADC3, ADC_FLAG_EOC));//Processing the conversion
+    return ADC_GetConversionValue(ADC3); //Return the converted data
   #endif
 }
 
@@ -139,7 +140,7 @@ void c_io_sonar_init()
     #ifdef STM32F4_H407
       c_common_usart6_init(9600); //change this command if SONAR_USART change
     #else
-      c_common_usart3_init(9600); //change this command if SONAR_USART change
+      c_common_usart6_init(115200); //change this command if SONAR_USART change
     #endif
   #else
     adc_configure();
@@ -153,13 +154,26 @@ void c_io_sonar_init()
 
 float  c_io_sonar_read()
 {
+  char dist[3]={0,0,0};
   #if SERIAL_SONAR
-    char dist[3];
-    while(c_common_usart_read(SONAR_USART)!='R'){}
-    dist[0]=c_common_usart_read(SONAR_USART);
-    dist[1]=c_common_usart_read(SONAR_USART);
-    dist[2]=c_common_usart_read(SONAR_USART);
-    return (float)atoi(dist);
+    #ifdef MB1200
+      
+      while(c_common_usart_read(SONAR_USART)!='R'){}
+      dist[0]=c_common_usart_read(SONAR_USART);
+      dist[1]=c_common_usart_read(SONAR_USART);
+      dist[2]=c_common_usart_read(SONAR_USART);
+      return (float)atoi(dist);
+    #endif
+    #ifdef HCRS04
+      if(c_common_usart_available(SONAR_USART))
+      {
+        while(c_common_usart_read(SONAR_USART)!='R'){}
+        for(;dist[0]==0;)
+          dist[0]=c_common_usart_read(SONAR_USART);
+        c_io_last_sonar=(float)dist[0];
+      }
+      return c_io_last_sonar;
+    #endif
   #else
     return (float)adc_convert();
   #endif

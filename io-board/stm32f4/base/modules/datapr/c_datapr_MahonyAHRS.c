@@ -20,8 +20,10 @@
   */
 
 /** @addtogroup Datapr_MahonyAHRS
-  *	\brief DOCUMENTAR
+  *	\brief DImplementacão do algoritmo encontrado no artigo "Nonlinear Complementary FIlters on the Special Orthogonal Group",
+  *	de Robert Mahony. Adaptado da implementacão feita por Madgwick, encontrado em http://www.x-io.co.uk/open-source-imu-and-ahrs-algorithms/.
   *
+  * Este site também aborda este filtro: http://www.olliw.eu/2013/imu-data-fusing/
   *
   * @{
   */
@@ -32,9 +34,9 @@
 
 /* Private define ------------------------------------------------------------*/
 
-#define sampleFreq	100.0f			// sample frequency in Hz
-#define twoKpDef	(2.0f * 3.0f)	// 2 * proportional gain
-#define twoKiDef	(2.0f * 0.2f)	// 2 * integral gain
+#define sampleFreq	200.0f			// sample frequency in Hz
+#define twoKpDef	(2.0f * 7.0f)	// 2 * proportional gain
+#define twoKiDef	(2.0f * 0.0f)	// 2 * integral gain
 
 /* Private variables ---------------------------------------------------------*/
 
@@ -51,23 +53,24 @@ float invSqrt(float x);
 
 /** \brief AHRS algorithm update
  *
- * DOCUMENTAR
+ * Implementacao em quaternions do filtro complementar não linear encontrado no artigo "Nonlinear Complementary FIlters on the Special Orthogonal Group",
+ *	de Robert Mahony.
  *
- * @param q
- * @param velAngular_corrigida
- * @param gx
- * @param gy
- * @param gz
- * @param ax
- * @param ay
- * @param az
- * @param mx
- * @param my
- * @param mz
+ * @param q orientacao atual estimada pelo filtro, em quaternions
+ * @param velAngular_corrigida leitura do giroscopio corrigida pelo bias estimado pelo filtro
+ * @param gx medida giroscopio eixo X
+ * @param gy medida giroscopio eixo Y
+ * @param gz medida giroscopio eixo Z
+ * @param ax medida acelerometro eixo X
+ * @param ay medida acelerometro eixo Y
+ * @param az medida acelerometro eixo Z
+ * @param mx medida magnetometro eixo X
+ * @param my medida magnetometro eixo Y
+ * @param mz medida magnetometro eixo Z
  */
 
-void c_datapr_MahonyAHRSupdate(float * q, float * velAngular_corrigida, float gx, float gy, float gz, float ax, float ay, float az,
-								float mx, float my, float mz) {
+void c_datapr_MahonyAHRSupdate(float * q, float gx, float gy, float gz, float ax, float ay, float az,
+								float mx, float my, float mz,long sample_time_gyro_us) {
 	float recipNorm;
     float q0q0, q0q1, q0q2, q0q3, q1q1, q1q2, q1q3, q2q2, q2q3, q3q3;  
 	float hx, hy, bx, bz;
@@ -75,10 +78,14 @@ void c_datapr_MahonyAHRSupdate(float * q, float * velAngular_corrigida, float gx
 	float halfex, halfey, halfez;
 	float qa, qb, qc;
 	float q0, q1, q2, q3;
+	float sample_time_gyro;
+
+	//Transform the sample time in us to s
+	sample_time_gyro = (float)(sample_time_gyro_us)/1000000;
 
 	// Use IMU algorithm if magnetometer measurement invalid (avoids NaN in magnetometer normalisation)
 	if((mx == 0.0f) && (my == 0.0f) && (mz == 0.0f)) {
-		c_datapr_MahonyAHRSupdateIMU(q, velAngular_corrigida, gx, gy, gz, ax, ay, az);
+		c_datapr_MahonyAHRSupdateIMU(q, gx, gy, gz, ax, ay, az);
 		return;
 	}
 
@@ -132,9 +139,9 @@ void c_datapr_MahonyAHRSupdate(float * q, float * velAngular_corrigida, float gx
 
 		// Compute and apply integral feedback if enabled
 		if(twoKi > 0.0f) {
-			integralFBx += twoKi * halfex * (1.0f / sampleFreq);	// integral error scaled by Ki
-			integralFBy += twoKi * halfey * (1.0f / sampleFreq);
-			integralFBz += twoKi * halfez * (1.0f / sampleFreq);
+			integralFBx += twoKi * halfex * sample_time_gyro;;	// integral error scaled by Ki
+			integralFBy += twoKi * halfey * sample_time_gyro;
+			integralFBz += twoKi * halfez * sample_time_gyro;
 			gx += integralFBx;	// apply integral feedback
 			gy += integralFBy;
 			gz += integralFBz;
@@ -145,11 +152,6 @@ void c_datapr_MahonyAHRSupdate(float * q, float * velAngular_corrigida, float gx
 			integralFBz = 0.0f;
 		}
 
-		// Giros menos o bias, saida da funcao da velocidade angular corrigida
-		velAngular_corrigida[0] = gx;
-		velAngular_corrigida[1] = gy;
-		velAngular_corrigida[2] = gz;
-
 		// Apply proportional feedback
 		gx += twoKp * halfex;
 		gy += twoKp * halfey;
@@ -157,9 +159,9 @@ void c_datapr_MahonyAHRSupdate(float * q, float * velAngular_corrigida, float gx
 	}
 	
 	// Integrate rate of change of quaternion
-	gx *= (0.5f * (1.0f / sampleFreq));		// pre-multiply common factors
-	gy *= (0.5f * (1.0f / sampleFreq));
-	gz *= (0.5f * (1.0f / sampleFreq));
+	gx *= (0.5f * sample_time_gyro);		// pre-multiply common factors
+	gy *= (0.5f * sample_time_gyro);
+	gz *= (0.5f * sample_time_gyro);
 	qa = q0;
 	qb = q1;
 	qc = q2;
@@ -170,10 +172,7 @@ void c_datapr_MahonyAHRSupdate(float * q, float * velAngular_corrigida, float gx
 	
 	// Normalise quaternion
 	recipNorm = invSqrt(q0 * q0 + q1 * q1 + q2 * q2 + q3 * q3);
-//	q0 *= recipNorm;
-//	q1 *= recipNorm;
-//	q2 *= recipNorm;
-//	q3 *= recipNorm;
+
 	q[0] = q0 * recipNorm;
 	q[1] = q1 * recipNorm;
 	q[2] = q2 * recipNorm;
@@ -183,20 +182,22 @@ void c_datapr_MahonyAHRSupdate(float * q, float * velAngular_corrigida, float gx
 
 
 /** \brief IMU algorithm update
+ * Implementacao em quaternions do filtro complementar não linear encontrado no artigo "Nonlinear Complementary FIlters on the Special Orthogonal Group",
+ *	de Robert Mahony. Este algoritmo NAO USA MAGNETOMETRO.
  *
- * DOCUMENTAR
+ *	Este metodo é usado internamente e é chamado quando a leitura dos magnetometros são todas iguais a zero.
  *
- * @param q
- * @param velAngular_corrigida
- * @param gx
- * @param gy
- * @param gz
- * @param ax
- * @param ay
- * @param az
+ * @param q orientacao atual estimada pelo filtro, em quaternions
+ * @param velAngular_corrigida leitura do giroscopio corrigida pelo bias estimado pelo filtro
+ * @param gx medida giroscopio eixo X
+ * @param gy medida giroscopio eixo Y
+ * @param gz medida giroscopio eixo Z
+ * @param ax medida acelerometro eixo X
+ * @param ay medida acelerometro eixo Y
+ * @param az medida acelerometro eixo Z
  */
 
-void c_datapr_MahonyAHRSupdateIMU(float * q, float * velAngular_corrigida, float gx, float gy, float gz, float ax, float ay, float az) {
+void c_datapr_MahonyAHRSupdateIMU(float * q, float gx, float gy, float gz, float ax, float ay, float az) {
 	float recipNorm;
 	float halfvx, halfvy, halfvz;
 	float halfex, halfey, halfez;
@@ -239,11 +240,6 @@ void c_datapr_MahonyAHRSupdateIMU(float * q, float * velAngular_corrigida, float
 			integralFBz = 0.0f;
 		}
 
-		// Giros menos o bias, saida da funcao da velocidade angular corrigida
-		velAngular_corrigida[0] = gx;
-		velAngular_corrigida[1] = gy;
-		velAngular_corrigida[2] = gz;
-
 		// Apply proportional feedback
 		gx += twoKp * halfex;
 		gy += twoKp * halfey;
@@ -251,6 +247,7 @@ void c_datapr_MahonyAHRSupdateIMU(float * q, float * velAngular_corrigida, float
 	}
 	
 	// Integrate rate of change of quaternion
+	//The other funtion have sampleTime like a parameter this not have.
 	gx *= (0.5f * (1.0f / sampleFreq));		// pre-multiply common factors
 	gy *= (0.5f * (1.0f / sampleFreq));
 	gz *= (0.5f * (1.0f / sampleFreq));
@@ -264,10 +261,7 @@ void c_datapr_MahonyAHRSupdateIMU(float * q, float * velAngular_corrigida, float
 	
 	// Normalise quaternion
 	recipNorm = invSqrt(q0 * q0 + q1 * q1 + q2 * q2 + q3 * q3);
-//	q0 *= recipNorm;
-//	q1 *= recipNorm;
-//	q2 *= recipNorm;
-//	q3 *= recipNorm;
+
 	q[0] = q0 * recipNorm;
 	q[1] = q1 * recipNorm;
 	q[2] = q2 * recipNorm;
@@ -275,10 +269,15 @@ void c_datapr_MahonyAHRSupdateIMU(float * q, float * velAngular_corrigida, float
 }
 
 /** \brief Fast inverse square-root
- *	See: http://en.wikipedia.org/wiki/Fast_inverse_square_root
- * DOCUMENTAR
  *
- * @param X
+ *	Para uso interno. Aclamada e mistica funcão utilizada no Quake III Arena.
+ *	Realiza o equivalente a operacão 1/sqrt(x), porém de forma mais rápida e gloriosa.
+ *	Se voce for geek de verdade então ganhará o dia lendo o link:
+ *
+ *	http://en.wikipedia.org/wiki/Fast_inverse_square_root
+ *
+ *
+ * @param X 1/sqrt(x)
  */ 
 
 float invSqrt(float x) {
