@@ -23,6 +23,30 @@
 
 /* Includes ------------------------------------------------------------------*/
 /* Exported types ------------------------------------------------------------*/
+ /** \brief Estrutura de pacotes ijog dos servos Herkulex DRS0201 */
+ typedef struct {
+ 	int16_t iJogData : 15;
+ 	uint8_t uiReserved1 : 1;
+ 	uint8_t uiStop : 1;
+ 	uint8_t uiMode : 1; //1 : Speed Control
+ 	uint8_t uiLed : 3; //Green, Blue, Red
+ 	uint8_t uiJogInvalid : 1;
+ 	uint8_t uiReserved2 : 2;
+ 	uint8_t ucID : 8;
+ 	uint8_t	ucJogTime_ms;
+ } pv_ijog_herkulex;
+
+ /** \brief Estrutura de pacotes sjog dos servos Herkulex DRS0201 */
+ typedef struct {
+ 	int16_t iJogData : 15;
+ 	uint8_t uiReserved1 : 1;
+ 	uint8_t uiStop : 1;
+ 	uint8_t uiMode : 1; //1 : Speed Control
+ 	uint8_t uiLed : 3; //Green, Blue, Red
+ 	uint8_t uiJogInvalid : 1;
+ 	uint8_t uiReserved2 : 2;
+ 	uint8_t ucID : 8;
+ } pv_sjog_herkulex;
 /* Exported constants --------------------------------------------------------*/
 #define KV 0.325*PI/(0.0112*180)
 #define TIME_OUT 10
@@ -133,12 +157,15 @@
 /* Exported macro ------------------------------------------------------------*/
 #define rad2deg(rad) (((float)rad)*180.0/M_PI)
 #define deg2rad(deg) (((float)deg)*M_PI/180.0)
-/* Exported functions ------------------------------------------------------- */
 
+/* Exported functions ------------------------------------------------------- */
 /* Comandos diretos */
-uint8_t c_io_herkulex_read(char mem, char servo_id, char reg_addr, unsigned char data_length);
-uint8_t c_io_herkulex_write(char mem, char servo_id, char reg_addr, unsigned char datalength, char *data);
-void c_io_herkulex_sendSjog(pv_sjog_herkulex sjog[], uint8_t num_servos, uint8_t ptime);
+ uint8_t c_io_herkulex_read(uint8_t mem, uint8_t servoId, uint8_t regAddr,
+		 uint8_t dataLength);
+uint8_t c_io_herkulex_write(uint8_t mem, uint8_t servoId, uint8_t regAddr,
+		uint8_t dataLength, uint8_t *data);
+void c_io_herkulex_sendSjog(pv_sjog_herkulex sjog[], uint8_t numServos,
+		uint8_t ptime);
 void c_io_herkulex_sendIjog(pv_ijog_herkulex ijog[], uint8_t num_servos);
 uint8_t c_io_herkulex_readStatus(uint8_t servo_id);
 void c_io_herkulex_reboot(uint8_t servo_id);
@@ -146,32 +173,39 @@ void c_io_herkulex_reboot(uint8_t servo_id);
 /* Configurações */
 void c_io_herkulex_init(USART_TypeDef *USART, int baudrate);
 void c_io_herkulex_config(uint8_t servoId);
-void c_io_herkulex_configAckPolicy(char servo_id, char policy);
-void c_io_herkulex_configLedPolicy(char servo_id, char policy);
-void c_io_herkulex_ledControl(char servo_id, char led);
-void c_io_herkulex_clear(uint8_t servo_id);
-void c_io_herkulex_setTorqueControl(uint8_t servo_id, uint8_t control);
-void c_io_herkulex_setBaudRate(uint8_t servo_id, int baudrate);
+void c_io_herkulex_configAckPolicy(uint8_t servoId, uint8_t policy);
+void c_io_herkulex_configLedPolicy(uint8_t servoId, uint8_t policy);
+void c_io_herkulex_ledControl(uint8_t servoId, uint8_t led);
+void c_io_herkulex_clear(uint8_t servoId);
+void c_io_herkulex_setTorqueControl(uint8_t servoId, uint8_t control);
+void c_io_herkulex_setBaudRate(uint8_t servoId, int baudrate);
 
 /** Interface de controle */
-int8_t c_io_herkulex_readPosition(uint8_t servo_id);
-int8_t c_io_herkulex_readVelocity(uint8_t servo_id);
-int8_t c_io_herkulex_readData(uint8_t servo_id);
-float c_io_herkulex_getPosition(uint8_t servo_id);
-float c_io_herkulex_getVelocity(uint8_t servo_id);
-void c_io_herkulex_setTorque(uint8_t servo_id, int16_t pwm);
-void c_io_herkulex_setTorque2Servos(uint8_t servo1_id, int16_t pwm1, uint8_t servo2_id, int16_t pwm2);
-void c_io_herkulex_setPosition(uint8_t servo_id, float position);
-static inline void c_io_herkulex_setPositionRad(uint8_t servo_id, float position);
-void c_io_herkulex_setPosition2Servos(uint8_t servo1_id, float pos1, uint8_t servo2_id, float pos2);
+int8_t c_io_herkulex_readPosition(uint8_t servoId);
+int8_t c_io_herkulex_readVelocity(uint8_t servoId);
+int8_t c_io_herkulex_readData(uint8_t servoId);
+float c_io_herkulex_getPosition(void);
+float c_io_herkulex_getVelocity(void);
+void c_io_herkulex_setTorque(uint8_t servoId, int16_t pwm);
+void c_io_herkulex_setTorque2Servos(uint8_t servoId1, int16_t pwm1,
+	uint8_t servoId2, int16_t pwm2);
+void c_io_herkulex_setPosition(uint8_t servoId, float position);
+void c_io_herkulex_setPosition2Servos(uint8_t servoId1, float pos1,
+		uint8_t servo2Id2, float pos2);
 
-/* Status */
+/** Status */
 uint8_t c_io_herkulex_getStatusError(void);
 uint8_t c_io_herkulex_getStatusDetail(void);
 uint8_t c_io_herkulex_getStatus(void);
 
-/* auxiliary functions */
-void c_io_herkulex_decodeError(char* dest, int8_t status_error, int8_t status_detail);
+/** auxiliary functions */
+void c_io_herkulex_decodeError(char* dest, int8_t status_error,
+		int8_t status_detail);
+pv_sjog_herkulex c_io_herkulex_createSjog(uint8_t servoId, int16_t data,
+		uint8_t stop, uint8_t mode, uint8_t led, uint8_t invalid);
+pv_ijog_herkulex c_io_herkulex_createIjog(uint8_t servoId, int16_t data,
+		uint8_t stop, uint8_t mode, uint8_t led, uint8_t ptime);
+
 
 #ifdef __cplusplus
 }

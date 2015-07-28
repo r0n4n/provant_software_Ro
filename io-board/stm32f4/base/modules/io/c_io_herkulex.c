@@ -62,23 +62,21 @@ uint8_t DATA[20];		// Buffer dados crus recebidos sem cabeçalho ou soma de veri
 
 /* Private function prototypes -----------------------------------------------*/
 void c_io_herkulex_clearBuffer(void);
-int16_t c_io_herkulex_getRawPosition(uint8_t data[]);
-int16_t c_io_herkulex_getRawVelocity(uint8_t data[]);
-float c_io_herkulex_raw2pos(int16_t rawData);
-float c_io_herkulex_raw2vel(int16_t raw_data);
-float c_io_herkulex_raw2pos2(uint8_t data[]);
-float c_io_herkulex_raw2vel2(uint8_t data[]);
-uint8_t c_io_herkulex_unpack();
-uint8_t c_io_herkulex_serializeRw(uint8_t size, uint8_t pid, uint8_t cmd, uint8_t dataAddr, uint8_t dataLength);
-void c_io_herkulex_serializeSjog(pv_sjog_herkulex sjog[], uint8_t numJogs, uint8_t ptime);
+float c_io_herkulex_raw2pos(uint8_t data[]);
+float c_io_herkulex_raw2vel(uint8_t data[]);
+uint8_t c_io_herkulex_unpack(void);
+uint8_t c_io_herkulex_serializeRw(uint8_t size, uint8_t pid, uint8_t cmd,
+		uint8_t dataAddr, uint8_t dataLength);
+
+void c_io_herkulex_serializeSjog(pv_sjog_herkulex sjog[], uint8_t numSjogs,
+		uint8_t ptime);
+
 void c_io_herkulex_serializeIjog(pv_ijog_herkulex ijog[], uint8_t numIjogs);
 void c_io_herkulex_send(void);
 uint8_t c_io_herkulex_receive(void);
 uint8_t c_io_herkulex_checksum1(uint8_t *buffer, uint8_t size);
 uint8_t c_io_herkulex_checksum2(uint8_t cksum1);
-int16_t c_io_herkulex_deg2raw(float position_deg);
-pv_ijog_herkulex c_io_herkulex_createIjog(uint8_t servoId, int16_t data, uint8_t stop, uint8_t mode, uint8_t led, uint8_t ptime);
-pv_sjog_herkulex c_io_herkulex_createSjog(uint8_t servoId, int16_t data, uint8_t stop, uint8_t mode, uint8_t led, uint8_t invalid);
+int16_t c_io_herkulex_deg2raw(float position);
 
 
 /* Private functions ---------------------------------------------------------*/
@@ -91,65 +89,23 @@ void c_io_herkulex_clearBuffer(void)
 		BUFFER[i] = 0;
 }
 
-
-/** \brief Pega os dois bytes da posição angular lida do buffer.
- * @param data buffer
- * @return valor dos 2 bytes em um inteiro de 16 bits.
- */
-int16_t c_io_herkulex_getRawPosition(uint8_t data[])
-{
-	return (int16_t)(((data[1] & 0x03) << 8) | data[0]);
-}
-
-/** \brief  Pega os dois bytes da velocidade angular lida do buffer.
- *
- * @param data buffer
- * @return a velocidade angular enviada pelo servo.
- */
-int16_t c_io_herkulex_getRawVelocity(uint8_t data[])
-{
-	return (int16_t)(((data[1] & 0xFF) << 8) | data[0]);
-}
-
-
-/** \brief Converte os dados enviados pelo servo para radianos.
- *
- *	@param rawData dados enviados pelo servo.
- *	@return retorna a posição em radianos.
- */
-float c_io_herkulex_raw2pos(int16_t rawData)
-{
-	return (((float)rawData) * 0.325 - 166.65) * M_PI / 180.0;
-}
-
 /** \brief Converte os dados enviados pelo servo para radianos.
  *
  *	@param data dados enviados pelo servo.
  *	@return retorna a posição em radianos.
  */
-float c_io_herkulex_raw2pos2(uint8_t data[])
+float c_io_herkulex_raw2pos(uint8_t data[])
 {
 	int8_t rawData = (int16_t)(((data[1] & 0x03) << 8) | data[0]);
 	return (((float)rawData) * 0.325 - 166.65) * M_PI / 180.0;
 }
 
-
-/** \brief Converte os dados enviados pelo servo para rad/s.
- *
- *	@param rawData dados enviados pelo servo.
- *	@return retorna a velocidade em rad/s.
- */
-float c_io_herkulex_raw2vel(int16_t raw_data)
-{
-	return ((float)raw_data) * 29.09 * M_PI / 180.0;
-}
-
 /** \brief Converte os dados enviados pelo servo para rad/s.
  *
  *	@param data dados enviados pelo servo.
  *	@return retorna a velocidade em rad/s.
  */
-float c_io_herkulex_raw2vel2(uint8_t data[])
+float c_io_herkulex_raw2vel(uint8_t data[])
 {
 	int16_t rawData = (int16_t)(((data[1] & 0xFF) << 8) | data[0]);
 	return ((float)rawData) * 29.09 * M_PI / 180.0;
@@ -160,7 +116,7 @@ float c_io_herkulex_raw2vel2(uint8_t data[])
  *
  * @return returna 1 se o pacote não foi corrompido, 0 se foi.
  */
-uint8_t c_io_herkulex_unpack()
+uint8_t c_io_herkulex_unpack(void)
 {
 	uint8_t new_cksum1, new_cksum2, dataAddr, dataLength;
 
@@ -203,7 +159,8 @@ uint8_t c_io_herkulex_unpack()
  * @param dataLength Número de bytes lidos ou escritos.
  * @return retorna 0 se o buffer for inconsistente. Caso contrário, 1.
  */
-uint8_t c_io_herkulex_serializeRw(uint8_t size, uint8_t pid, uint8_t cmd, uint8_t dataAddr, uint8_t dataLength)
+uint8_t c_io_herkulex_serializeRw(uint8_t size, uint8_t pid, uint8_t cmd,
+		uint8_t dataAddr, uint8_t dataLength)
 {
 	if (size <= 0)
 		return 0;
@@ -234,8 +191,6 @@ uint8_t c_io_herkulex_serializeRw(uint8_t size, uint8_t pid, uint8_t cmd, uint8_
 
 	BUFFER[5] = c_io_herkulex_checksum1(BUFFER, size);
 	BUFFER[6] = c_io_herkulex_checksum2(BUFFER[5]);
-	//csum1 = BUFFER[5];
-	//csum2 = BUFFER[6];
 
 	return 1;
 }
@@ -243,18 +198,19 @@ uint8_t c_io_herkulex_serializeRw(uint8_t size, uint8_t pid, uint8_t cmd, uint8_
 /** \brief Coloca no buffer pacotes sjog de comandos de torque/posição.
  *
  * @param sjog[] É um array de pv_sjog_herkulex, podendo conter um ou mais elementos.
- * @param numJogs Número de elementos em sjog[].
+ * @param numSjogs Número de elementos em sjog[].
  * @param ptime "Play time": tempo estipulado para o servo chegar a posição de destino.
  */
-void c_io_herkulex_serializeSjog(pv_sjog_herkulex sjog[], uint8_t numJogs, uint8_t ptime)
+void c_io_herkulex_serializeSjog(pv_sjog_herkulex sjog[], uint8_t numSjogs,
+		uint8_t ptime)
 {
 	int n = sizeof(pv_sjog_herkulex);
 
 	BUFFER[0] = HEADER;
 	BUFFER[1] = HEADER;
 	/* numero_sjogs*bytes_por_sjog+bytes_de_cabecalho */
-	BUFFER[2] = numJogs * n + 8;
-	if (numJogs>1)
+	BUFFER[2] = numSjogs * n + 8;
+	if (numSjogs>1)
 		BUFFER[3] = 0xFE;
 	else
 		BUFFER[3] = sjog[0].ucID;
@@ -262,10 +218,8 @@ void c_io_herkulex_serializeSjog(pv_sjog_herkulex sjog[], uint8_t numJogs, uint8
 	BUFFER[4] = S_JOG;
 	BUFFER[7] = ptime;
 
-	memcpy((BUFFER+8), (void *) sjog, n * numJogs);
+	memcpy((BUFFER+8), (void *) sjog, n * numSjogs);
 
-	//uint8_t csum1 = c_io_herkulex_checksum1(BUFFER, BUFFER[2]); /* por que usar csum??????? */
-	//uint8_t csum2 = c_io_herkulex_checksum2(csum1);
 	BUFFER[5] = c_io_herkulex_checksum1(BUFFER, BUFFER[2]);
 	BUFFER[6] = c_io_herkulex_checksum2(BUFFER[5]);
 }
@@ -316,15 +270,12 @@ uint8_t c_io_herkulex_receive(void)
 {
 	int i = 0;
 	uint8_t lastByte = 0, inByte = 0, ok = 0, size = 30;
-	unsigned long last_now = 0, now = 0, timeOut;
+	unsigned long now = 0, timeOut;
 
-	last_now = now;
 	now = c_common_utils_millis();
 	timeOut = 3 + now;
-	//TODO testar outro timeout
-	/* timeOut = 3; while (now - last_now <= timeOut && i < size) { */
-	while (now <= timeOut && i < size) {
-		while (!c_common_usart_available(usartx) && now <= timeOut)
+	while ((long)(now - timeOut) <= 0 && i < size) {
+		while (!c_common_usart_available(usartx) && (long)(now - timeOut) <= 0)
 			now = c_common_utils_millis();
 		lastByte = inByte;
 		inByte = c_common_usart_read(usartx);
@@ -382,96 +333,28 @@ uint8_t c_io_herkulex_checksum2(uint8_t checksum1)
  * @param position_deg Posição em graus.
  * @return Posição em inteiro de 16 bits.
  */
-int16_t c_io_herkulex_deg2raw(float position_deg)
+int16_t c_io_herkulex_deg2raw(float position)
 {
-	return ((int16_t)(position_deg / 0.325 + 0.5)) + 512; /* 0.5 -> round */
-}
-
-/** \brief Cria uma struct pv_ijog_herkulex.
- *
- * @param servoId ID do servo.
- * @param data PWM ou posição desejada. Até +/- 1023.
- * @param stop bit de parada do servo:
- * 					-1 para o servo;
- * 					-0 para outros comandos.
- * @param mode modo de operação:
- * 							-ROTATION_MODE: modo de rotação contínua;
- * 							-POSITION_MODE: modo de posição.
- * @param led Indica quais leds deveram estar acessos e apagados.
- * 				Usar as constantes LED_GREEN, LED_BLUE e LED_RED
- *
- * @param ptime Play time. É o tempo em que o servo deve chega a posição de destino.
- * @return A estrutura pv_ijog_herkulex com os parametros desejados.
- */
-pv_ijog_herkulex c_io_herkulex_createIjog(uint8_t servoId, int16_t data,
-		uint8_t stop, uint8_t mode, uint8_t led, uint8_t ptime)
-{
-	pv_ijog_herkulex ijog;
-
-	ijog.iJogData = data;
-	ijog.uiStop = stop;
-	ijog.uiMode = mode;
-	ijog.uiLed = led;
-	ijog.ucID = servoId;
-	ijog.uiReserved1 = 0;
-	ijog.uiJogInvalid = 0;
-	ijog.uiReserved2 = 0;
-	ijog.ucJogTime_ms = ptime;
-
-
-	return ijog;
+	return ((int16_t)(position / 0.325 + 0.5)) + 512; /* 0.5 -> round */
 }
 
 
-/** \brief Cria uma struct pv_sjog_herkulex.
- *
- * @param servoId ID do servo.
- * @param data PWM ou posição desejada. Até +/- 1023.
- * @param stop bit de parada do servo:
- * 					-1 para o servo;
- * 					-0 para outros comandos.
- * @param mode modo de operação:
- * 							-ROTATION_MODE: modo de rotação contínua;
- * 							-POSITION_MODE: modo de posição.
- * @param led Indica quais leds deveram estar acessos e apagados.
- * 				Usar as constantes LED_GREEN, LED_BLUE e LED_RED
- *
- * @param invalid Indica que o sjog é inválido.
- * @return A estrutura pv_sjog_herkulex com os parametros desejados.
- */
-pv_sjog_herkulex c_io_herkulex_createSjog(uint8_t servoId, int16_t data,
-		uint8_t stop, uint8_t mode, uint8_t led, uint8_t invalid)
-{
-	pv_sjog_herkulex sjog;
-
-	sjog.iJogData = data;
-	sjog.uiStop = stop;
-	sjog.uiMode = mode;
-	sjog.uiLed = led;
-	sjog.ucID = servoId;
-	sjog.uiReserved1 = 0;
-	sjog.uiJogInvalid = invalid;
-	sjog.uiReserved2 = 0;
-
-	return sjog;
-}
 
 
 
 /* Exported functions definitions --------------------------------------------*/
-
 /* Direct servo commands */
 /** \brief Lê o valor dado um endereço de memoria.
   * Retorna o valor em caso de sucesso.
   *
   * @param mem tipo de memória, ROM ou RAM
-  * @param  servo_id ID do servo.
-  * @param reg_addr Endereço do registrador do servo
-  * @param data_length Tamanho dos dados a serem escritos
+  * @param  servoId ID do servo.
+  * @param regAddr Endereço do registrador do servo
+  * @param dataLength Tamanho dos dados a serem escritos
   * @return ponteiro para os dados lidos.
   */
-uint8_t  c_io_herkulex_read(char mem, char servo_id, char reg_addr,
-	unsigned char datalength)
+uint8_t c_io_herkulex_read(uint8_t mem, uint8_t servoId, uint8_t regAddr,
+		uint8_t dataLength)
 {
 	uint8_t size = 9;
 	uint8_t cmd;
@@ -481,12 +364,12 @@ uint8_t  c_io_herkulex_read(char mem, char servo_id, char reg_addr,
 	else
 		cmd = RAM_READ;
 
-	c_io_herkulex_serializeRw(size, servo_id, cmd, reg_addr, datalength);
+	c_io_herkulex_serializeRw(size, servoId, cmd, regAddr, dataLength);
 	c_io_herkulex_send();
 	c_io_herkulex_clearBuffer();
 	status = c_io_herkulex_receive();
 	if (status) /* se for corrompido, faz status = 0 */
-		status = c_io_herkulex_unpack(BUFFER);
+		status = c_io_herkulex_unpack();
 
 	return status;
 }
@@ -495,17 +378,17 @@ uint8_t  c_io_herkulex_read(char mem, char servo_id, char reg_addr,
   * Retorna o valor em caso de sucesso.
   *
   * @param mem tipo de memória, ROM ou RAM
-  * @param  servoId ID do servo.
-  * @param reg_addr Endereço do registrador do servo
-  * @param data_length Tamanho dos dados a serem escritos
+  * @param servoId ID do servo.
+  * @param regAddr Endereço do registrador do servo
+  * @param dataLength Tamanho dos dados a serem escritos
   * @param data Ponteiro para os dados a serem escritos
-  * @return bool - 1 se dados foram enviados, 0 se não foram.
+  * @return Boleano - 1 se dados foram enviados, 0 se não foram.
   */
-uint8_t c_io_herkulex_write(char mem, char servoId, char reg_addr,
-	unsigned char datalength, char *data)
+uint8_t c_io_herkulex_write(uint8_t mem, uint8_t servoId, uint8_t regAddr,
+		uint8_t dataLength, uint8_t *data)
 {
 	uint8_t pid = servoId;
-	uint8_t size = 0x09 + datalength;
+	uint8_t size = 0x09 + dataLength;
 	uint8_t cmd;
 
 	if (mem == EEP)
@@ -514,8 +397,8 @@ uint8_t c_io_herkulex_write(char mem, char servoId, char reg_addr,
 		cmd = RAM_WRITE;
 
 	if (data != NULL) {
-		memcpy(DATA, data, datalength);
-		c_io_herkulex_serializeRw(size,servoId,cmd,reg_addr,datalength);
+		memcpy(DATA, data, dataLength);
+		c_io_herkulex_serializeRw(size,servoId,cmd,regAddr,dataLength);
 		c_io_herkulex_send();
 		return 1;
 	} else {
@@ -523,35 +406,35 @@ uint8_t c_io_herkulex_write(char mem, char servoId, char reg_addr,
 	}
 }
 
-
-
-/** \brief Envia um comando ijog.
- *
- * \details Um comando ijog pode ser enviado a vários servos ao mesmo tempo,
- * com 'play time' diferentes
- *
- * @param ijog[] Array de um ou mais pv_ijog_herkulex.
- * @param numIjog Número de estruturas ijog no array ijog[].
- */
-void c_io_herkulex_sendIjog(pv_ijog_herkulex ijog[], uint8_t numIjog)
-{
-	c_io_herkulex_serializeIjog(ijog, numIjog);
-	c_io_herkulex_send();
-}
-
 /** \brief Envia um comando sjog.
  *
  * \details Um comando sjog pode ser enviado a vários servos ao mesmo tempo,
  * usando 'play time' iguais.
  *
- * @param sjog
- * @param num_servos
- * @param ptime
+ * @param sjog Array de um ou mais pv_sjog_herkulex.
+ * @param numSjog Número de estruturas ijog no array sjog[].
+ * @param ptime Play time, é o tempo em que o servo deve executar o comando sjog.
  */
-void c_io_herkulex_sendSjog(pv_sjog_herkulex sjog[], uint8_t num_servos,
+void c_io_herkulex_sendSjog(pv_sjog_herkulex sjog[], uint8_t numSjog,
 	uint8_t ptime)
 {
-	c_io_herkulex_serializeSjog(sjog, num_servos, ptime);
+	c_io_herkulex_serializeSjog(sjog, numSjog, ptime);
+	c_io_herkulex_send();
+}
+
+/** \brief Envia um comando ijog.
+ *
+ * \details Um comando ijog pode ser enviado a vários servos ao mesmo tempo,
+ * com 'play time' diferentes.
+ *
+ * @param ijog[] Array de um ou mais pv_ijog_herkulex.
+ * @param numIjog Número de estruturas ijog no array ijog[].
+ *
+ * TODO Testar envio de pacotes ijog.
+ */
+void c_io_herkulex_sendIjog(pv_ijog_herkulex ijog[], uint8_t numIjog)
+{
+	c_io_herkulex_serializeIjog(ijog, numIjog);
 	c_io_herkulex_send();
 }
 
@@ -568,7 +451,6 @@ uint8_t c_io_herkulex_readStatus(uint8_t servoId)
 	return c_io_herkulex_receive();
 }
 
-
 /** \brief Reinicia o servo.
  *
  * @param servoId ID do servo.
@@ -578,9 +460,6 @@ void c_io_herkulex_reboot(uint8_t servoId)
 	c_io_herkulex_serializeRw(7,servoId,REBOOT,0,0);
 	c_io_herkulex_send();
 }
-
-
-
 
 /* Indirect commands */
 /** \brief Inicializa o usart para comunicacao serial entre servo e discovery
@@ -609,7 +488,7 @@ void c_io_herkulex_init(USART_TypeDef *usartn, int baudrate)
 void c_io_herkulex_config(uint8_t servoId)
 {
 	c_io_herkulex_clear(servoId);
-	//c_io_herkulex_reboot(servoId);
+	c_io_herkulex_reboot(servoId);
 	c_common_utils_delayms(500);
 
 	/* only reply to read commands */
@@ -664,7 +543,7 @@ void c_io_herkulex_config(uint8_t servoId)
  * 				-2: resposta a todos os comandos.
  * 	O comando stat sempre recebe resposta.
  */
-void c_io_herkulex_configAckPolicy(char servoId, char policy)
+void c_io_herkulex_configAckPolicy(uint8_t servoId, uint8_t policy)
 {
 	DATA[0] = policy;
 	c_io_herkulex_write(RAM, servoId, REG_ACK_POLICY, 1, DATA);
@@ -676,7 +555,7 @@ void c_io_herkulex_configAckPolicy(char servoId, char policy)
  * @param policy Se '1' os leds piscarão em vermelho quando houver um erro.
  * 				 Se '0', os leds não piscarão quando houver um erro no servo.
  */
-void c_io_herkulex_configLedPolicy(char servoId, char policy)
+void c_io_herkulex_configLedPolicy(uint8_t servoId, uint8_t policy)
 {
 	DATA[0] = policy;
 	c_io_herkulex_write(RAM, servoId, REG_ACK_POLICY, 1, DATA);
@@ -687,7 +566,7 @@ void c_io_herkulex_configLedPolicy(char servoId, char policy)
  * @param servoId ID do servo.
  * @param led Combinação OR de LED_GREEN, LED_BLUE e LED_RED.
  */
-void c_io_herkulex_ledControl(char servoId, char led)
+void c_io_herkulex_ledControl(uint8_t servoId, uint8_t led)
 {
 	DATA[0] = led;
 	c_io_herkulex_write(RAM, servoId, REG_LED_CONTROL, 1, DATA);
@@ -714,10 +593,10 @@ void c_io_herkulex_clear(uint8_t servoId)
  * 				  	-TORQUE_ON: Liga o torque. O torque deve ser ligado tanto
  * 				  		para os modos de rotação contínua e de posição.
  */
-void c_io_herkulex_setTorqueControl(uint8_t servo_id, uint8_t control)
+void c_io_herkulex_setTorqueControl(uint8_t servoId, uint8_t control)
 {
 	DATA[0] = control;
-	c_io_herkulex_write(RAM, servo_id, REG_TORQUE_CONTROL, 1, DATA);
+	c_io_herkulex_write(RAM, servoId, REG_TORQUE_CONTROL, 1, DATA);
 }
 
 /** \brief Configura o baudrate do servo.
@@ -762,7 +641,6 @@ void c_io_herkulex_setBaudRate(uint8_t servoId, int baudrate)
 }
 
 
-
 /** Interface de Controle */
 /** \brief Le a posição do servo.
  *
@@ -776,8 +654,8 @@ int8_t c_io_herkulex_readPosition(uint8_t servoId)
 	if (!c_io_herkulex_read(RAM, servoId, REG_ABSOLUTE_POS, 2))
 		return 0;
 
-	int16_t rawValue = c_io_herkulex_getRawPosition(DATA);
-	position = c_io_herkulex_raw2pos(rawValue);
+	position = c_io_herkulex_raw2pos(DATA);
+
 
 	return 1;
 }
@@ -787,7 +665,7 @@ int8_t c_io_herkulex_readPosition(uint8_t servoId)
  * \details Envia um comando de leitura da velocidade angular e espera a
  * 			resposta do servo.
  *
- * @param servo_id Id do servo.
+ * @param servoId Id do servo.
  * @return Booleano que indica se a leitura ocorreu com sucesso.
  */
 int8_t c_io_herkulex_readVelocity(uint8_t servoId)
@@ -795,7 +673,7 @@ int8_t c_io_herkulex_readVelocity(uint8_t servoId)
 	if (!c_io_herkulex_read(RAM, servoId, REG_DIFFERENTIAL_POS, 2))
 		return 0;
 
-	velocity = c_io_herkulex_raw2vel2(DATA);
+	velocity = c_io_herkulex_raw2vel(DATA);
 
 	return 1;
 }
@@ -805,29 +683,32 @@ int8_t c_io_herkulex_readVelocity(uint8_t servoId)
  * @param servoId Id do servo.
  * @return booleano que indica se a leitura ocorreu com sucesso.
  */
-int8_t c_io_herkulex_readData(uint8_t servo_id)
+int8_t c_io_herkulex_readData(uint8_t servoId)
 {
-	if (!c_io_herkulex_read(RAM, servo_id, REG_ABSOLUTE_POS, 4))
+	if (!c_io_herkulex_read(RAM, servoId, REG_ABSOLUTE_POS, 4))
 			return 0;
 
-	position = c_io_herkulex_raw2pos2(DATA);
-	velocity = c_io_herkulex_raw2vel2(DATA + 2);
+	position = c_io_herkulex_raw2pos(DATA);
+	velocity = c_io_herkulex_raw2vel(DATA + 2);
 
 	return 1;
 }
+
 /** \brief retorna a ultima posição lida por c_io_herkulex_read{Position,Data} */
-float c_io_herkulex_getPosition(uint8_t servo_id)
+float c_io_herkulex_getPosition(void)
 {
 	return position;
 }
 
 /** \brief retorna a ultima velocidade lida por c_io_herkulex_read{Velocity,Data} */
-float c_io_herkulex_getVelocity(uint8_t servo_id)
+float c_io_herkulex_getVelocity(void)
 {
 	return velocity;
 }
 
 /** \brief Envia um comando de torque.
+ *
+ *	\details Usa sjog.
  *
  * @param servoId
  * @param pwm Valor de PWM do torque entre -1023 e 1023
@@ -849,15 +730,17 @@ void c_io_herkulex_setTorque(uint8_t servoId, int16_t pwm)
 	c_io_herkulex_sendSjog(&sjog, 1, 0);
 }
 
-/** Envia 1 comando de torque a 2 servos.
+/** \brief Envia 1 pacote de comando de torque a 2 servos.
  *
- * @param servo1_id ID do servo 1.
+ * \details Usa sjog.
+ *
+ * @param servoId1 ID do servo 1.
  * @param pwm1 torque do servo 1, em PWM entre -1023 e 1023.
- * @param servo2_id ID do servo 2.
+ * @param servoId2 ID do servo 2.
  * @param pwm2 torque do servo 2, em PWM entre -1023 e 1023.
  */
-void c_io_herkulex_setTorque2Servos(uint8_t servo1_id, int16_t pwm1,
-	uint8_t servo2_id, int16_t pwm2)
+void c_io_herkulex_setTorque2Servos(uint8_t servoId1, int16_t pwm1,
+	uint8_t servoId2, int16_t pwm2)
 {
 	int8_t sign1 = 0, sign2 = 0;
 
@@ -878,11 +761,11 @@ void c_io_herkulex_setTorque2Servos(uint8_t servo1_id, int16_t pwm1,
 	pwm1 |= sign1 << 14;
 	pv_sjog_herkulex sjog[2];
 
-	sjog[0] = c_io_herkulex_createSjog(servo1_id, pwm1, 0, ROTATION_MODE,
+	sjog[0] = c_io_herkulex_createSjog(servoId1, pwm1, 0, ROTATION_MODE,
 		0, 0);
 
 	pwm2 |= sign2 << 14;
-	sjog[1] =  c_io_herkulex_createSjog(servo2_id, pwm2, 0, ROTATION_MODE,
+	sjog[1] =  c_io_herkulex_createSjog(servoId2, pwm2, 0, ROTATION_MODE,
 		0, 0);
 	c_io_herkulex_sendSjog(sjog, 2, 0);
 }
@@ -905,20 +788,22 @@ void c_io_herkulex_setPosition(uint8_t servoId, float position)
  * @param servoId ID do servo.
  * @param position posição de referência em radianos.
  */
-void c_io_herkulex_setPosition2Servos(uint8_t servo1_id, float pos1,
-		uint8_t servo2_id, float pos2)
+void c_io_herkulex_setPosition2Servos(uint8_t servoId1, float pos1,
+		uint8_t servo2Id2, float pos2)
 {
 	int16_t raw_pos1 = c_io_herkulex_deg2raw(rad2deg(pos1));
 	int16_t raw_pos2 = c_io_herkulex_deg2raw(rad2deg(pos2));
 	pv_sjog_herkulex sjog[2];
 
-	sjog[0] = c_io_herkulex_createSjog(servo1_id, raw_pos1, 0,
+	sjog[0] = c_io_herkulex_createSjog(servoId1, raw_pos1, 0,
 		POSITION_MODE, 0, 0);
-	sjog[1] = c_io_herkulex_createSjog(servo2_id, raw_pos2, 0,
+	sjog[1] = c_io_herkulex_createSjog(servo2Id2, raw_pos2, 0,
 		POSITION_MODE, 0, 0);
 	c_io_herkulex_sendSjog(sjog, 2, 0);
 }
 
+
+/** status */
 /** \brief Retorna o código do 'status error'. */
 uint8_t c_io_herkulex_getStatusError(void)
 {
@@ -937,6 +822,7 @@ uint8_t c_io_herkulex_getStatus(void)
 	return status;
 }
 
+
 /** Auxiliary functions */
 /** \brief Transforma o código de erro em string.
  *
@@ -944,7 +830,8 @@ uint8_t c_io_herkulex_getStatus(void)
  * @param status_error Código de erro.
  * @param status_detail Código de erro detalhado.
  */
-void c_io_herkulex_decodeError(char *dest, int8_t status_error, int8_t status_detail)
+void c_io_herkulex_decodeError(char *dest, int8_t status_error,
+		int8_t status_detail)
 {
 	int n;
 
@@ -981,6 +868,74 @@ void c_io_herkulex_decodeError(char *dest, int8_t status_error, int8_t status_de
 	n = strlen(dest);
 
 	dest[n - 2] = 0;
+}
+
+/** \brief Cria uma struct pv_sjog_herkulex.
+ *
+ * @param servoId ID do servo.
+ * @param data PWM ou posição desejada. Até +/- 1023.
+ * @param stop bit de parada do servo:
+ * 					-1 para o servo;
+ * 					-0 para outros comandos.
+ * @param mode modo de operação:
+ * 							-ROTATION_MODE: modo de rotação contínua;
+ * 							-POSITION_MODE: modo de posição.
+ * @param led Indica quais leds deveram estar acessos e apagados.
+ * 				Usar as constantes LED_GREEN, LED_BLUE e LED_RED
+ *
+ * @param invalid Indica que o sjog é inválido.
+ * @return A estrutura pv_sjog_herkulex com os parametros desejados.
+ */
+pv_sjog_herkulex c_io_herkulex_createSjog(uint8_t servoId, int16_t data,
+		uint8_t stop, uint8_t mode, uint8_t led, uint8_t invalid)
+{
+	pv_sjog_herkulex sjog;
+
+	sjog.iJogData = data;
+	sjog.uiStop = stop;
+	sjog.uiMode = mode;
+	sjog.uiLed = led;
+	sjog.ucID = servoId;
+	sjog.uiReserved1 = 0;
+	sjog.uiJogInvalid = invalid;
+	sjog.uiReserved2 = 0;
+
+	return sjog;
+}
+
+/** \brief Cria uma struct pv_ijog_herkulex.
+ *
+ * @param servoId ID do servo.
+ * @param data PWM ou posição desejada. Até +/- 1023.
+ * @param stop bit de parada do servo:
+ * 					-1 para o servo;
+ * 					-0 para outros comandos.
+ * @param mode modo de operação:
+ * 							-ROTATION_MODE: modo de rotação contínua;
+ * 							-POSITION_MODE: modo de posição.
+ * @param led Indica quais leds deveram estar acessos e apagados.
+ * 				Usar as constantes LED_GREEN, LED_BLUE e LED_RED
+ *
+ * @param ptime Play time. É o tempo em que o servo deve chega a posição de destino.
+ * @return A estrutura pv_ijog_herkulex com os parametros desejados.
+ */
+pv_ijog_herkulex c_io_herkulex_createIjog(uint8_t servoId, int16_t data,
+		uint8_t stop, uint8_t mode, uint8_t led, uint8_t ptime)
+{
+	pv_ijog_herkulex ijog;
+
+	ijog.iJogData = data;
+	ijog.uiStop = stop;
+	ijog.uiMode = mode;
+	ijog.uiLed = led;
+	ijog.ucID = servoId;
+	ijog.uiReserved1 = 0;
+	ijog.uiJogInvalid = 0;
+	ijog.uiReserved2 = 0;
+	ijog.ucJogTime_ms = ptime;
+
+
+	return ijog;
 }
 
 /* @}

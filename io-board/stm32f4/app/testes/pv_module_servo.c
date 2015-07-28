@@ -216,9 +216,9 @@ void module_servo_run()
 		if (c_io_herkulex_readData(servo1_id)) {
 			// Aquisição de dados do servo 1
 			oServoMsg[0].heartBeat=heartBeat;
-			new_vel = c_io_herkulex_getVelocity(servo1_id);
+			new_vel = c_io_herkulex_getVelocity();
 			oServoMsg[0].angularSpeed = new_vel;
-			new_pos = c_io_herkulex_getPosition(servo1_id);
+			new_pos = c_io_herkulex_getPosition();
 			oServoMsg[0].position = new_pos;
 			//oServoMsg.status=1;
 			oServoMsg[0].servo_id=servo1_id;
@@ -245,8 +245,8 @@ void module_servo_run()
 		if (c_io_herkulex_readData(servo2_id)) {
 			/* Aquisição de dados do servo 1 */
 			oServoMsg[1].heartBeat=heartBeat;
-			oServoMsg[1].angularSpeed = c_io_herkulex_getVelocity(servo2_id);
-			oServoMsg[1].position = c_io_herkulex_getPosition(servo2_id);
+			oServoMsg[1].angularSpeed = c_io_herkulex_getVelocity();
+			oServoMsg[1].position = c_io_herkulex_getPosition();
 			//oServoMsg.status=1;
 			oServoMsg[1].servo_id=servo2_id;
 			data_counter++;
