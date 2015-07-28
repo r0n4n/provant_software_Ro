@@ -119,8 +119,14 @@ void module_co_run()
 	/*No antigo codigo de rodrigo a validaçao do canal B esta mal feitra e sempre esta ligado o enableintegration
 	 * Neste codigo ja esta corregido mas deijo esse bit sempre ligado no contorle
 	 * */
+	#ifdef LQR_ATTITUDE_HEIGHT_CONTROL
+		iActuation = c_rc_LQR_AH_controller(iInputData.attitude,iInputData.attitude_reference,iInputData.position,iInputData.position_refrence,(float)(iInputData.receiverOutput.joystick[0])/200,iInputData.flightmode);
+	#elif defined BACKSTEPPING_ATTITUDE_HEIGHT_CONTROL
+		iActuation = c_rc_BS_AH_controller(iInputData.attitude,iInputData.attitude_reference,iInputData.position,iInputData.position_refrence,(float)(iInputData.receiverOutput.joystick[0])/200,iInputData.flightmode,iInputData.enableintegration);
+	#endif
+
 	//iActuation = c_rc_BS_AH_controller(iInputData.attitude,iInputData.attitude_reference,iInputData.position,iInputData.position_refrence,(float)iInputData.receiverOutput.joystick[0]/200,iInputData.flightmode,iInputData.enableintegration);
-	iActuation = c_rc_BS_AH_controller(iInputData.attitude,iInputData.attitude_reference,iInputData.position,iInputData.position_refrence,(float)(iInputData.receiverOutput.joystick[0])/200,iInputData.flightmode,iInputData.enableintegration);
+
 	// Ajusta o eixo de referencia do servo (montado ao contrario)
 	iActuation.servoLeft = -iActuation.servoLeft;
 

@@ -30,6 +30,7 @@
 
 /*Control includes*/
 #include "c_rc_BS_control.h"
+#include "c_rc_LQR_control.h"
 
 #include "pv_typedefs.h"
 

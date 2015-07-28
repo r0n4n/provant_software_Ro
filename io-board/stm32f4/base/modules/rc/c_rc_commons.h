@@ -11,8 +11,8 @@
 /* Exported macros ------------------------------------------------------------*/
 
 // Choose the controller
-//#define LQR_ATTITUDE_HEIGHT_CONTROL
-#define BACKSTEPPING_ATTITUDE_HEIGHT_CONTROL //Based on Chowdhurry's article
+#define LQR_ATTITUDE_HEIGHT_CONTROL
+//#define BACKSTEPPING_ATTITUDE_HEIGHT_CONTROL //Based on Chowdhurry's article
 //#define LQR_PATHTRACK_CONTROL  //To be implemented
 //#define HINF_PATHTRACK_CONTROL //To be implemented
 //#define HMIX_PATHTRACK_CONTROL //To be implemented
