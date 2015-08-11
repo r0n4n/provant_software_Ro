@@ -12,9 +12,7 @@
 #include <math.h>
 #include <stdint.h>
 #include <string.h>
-
-#include "../../../core/cmsis/inc/stm32f4xx.h"
-#include "../../hal/c_common_uart.h"
+#include "c_common_uart.h"
 
 /** @addtogroup Module_IO
   * @{
@@ -38,13 +36,6 @@
 /* Private variables ---------------------------------------------------------*/
 USART_TypeDef *usartx;
 /* variaveis para decodificação de pacotes */
-//uint8_t size;			//tamanho do pacote
-//uint8_t pid;			//servo ID ou 0xFE para enviar a todos os servos.
-//uint8_t cmd;			// Comando
-//uint8_t csum1;			//checksum1
-//uint8_t csum2;			//checksum2
-//uint8_t dataAddr;		// endereço do registrador
-//uint8_t dataLength;		//numero de bytes lidos
 uint8_t statusError;
 uint8_t statusDetail;
 float position;
