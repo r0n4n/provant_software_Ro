@@ -33,7 +33,7 @@ ContinuousControlManager::ContinuousControlManager(std::string name) :
     ms_sample_time(500),
     name_(name)
 {
-	MPC::MpcControler * mpc=new MPC::MpcControler();
+	mpc=new MPC::MpcControler();
 }
 
 ContinuousControlManager::~ContinuousControlManager()
@@ -74,11 +74,7 @@ void ContinuousControlManager::Run()
     int i = 0, n;
     char *buffer;   
     // Matrix class
-    MatrixXf A(20,20);
-    MatrixXf B(20,4);
-    MatrixXf SumRho(20,20);
-    MatrixXf SumLambda(4,4);
-    Vector4f ur;
+    VectorXf xs(20);
     cout<<"init"<<endl;
 
     // Loop principal!
@@ -86,6 +82,8 @@ void ContinuousControlManager::Run()
 	if(interface->pop(atd, &interface->q_atitude_in)){        
 		DEBUG(LEVEL_INFO, "Recive message from ") << name_;
 		printf("%f\n", atd.roll);
+		xs.setZero();
+		mpc->Controler(xs);
 
 	}
         //i++;

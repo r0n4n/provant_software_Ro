@@ -41,7 +41,7 @@ CommLowLevelManager::~CommLowLevelManager()
 
 void CommLowLevelManager::Init()
 {
-    PROVANT.init("/dev/ttyUSB0", 460800);
+    PROVANT.init("/dev/ttyO1", 460800);
     DEBUG(LEVEL_INFO, "Connected");
 
     // DEBUG(DEBUG_INFO, "Initializing: ") << __func__ ;

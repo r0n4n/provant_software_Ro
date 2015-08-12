@@ -15,6 +15,8 @@
 #include "LoadTranportationModel.h"
 #include "math.h"
 #include <iostream>
+#include <chrono>
+#include "qpOASES.hpp"
 /* Exported types ------------------------------------------------------------*/
 /* Exported constants --------------------------------------------------------*/
 /* Exported macro ------------------------------------------------------------*/
@@ -25,8 +27,12 @@ class MpcControler {
 public:
 	MpcControler();
 	virtual ~MpcControler();
+	Eigen::MatrixXf Controler(Eigen::MatrixXf states);
 /* Private functions ------------------------------------------------------- */
 private:
+	Eigen::MatrixXf TrajetoryReference(int k);
+	Eigen::MatrixXf AcelerationReference(int k);
+	Eigen::MatrixXf Pow(Eigen::MatrixXf matrix, int power);
 
 };
 

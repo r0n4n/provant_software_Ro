@@ -23,7 +23,6 @@
 
 // Boost
 #include <boost/thread/thread.hpp>
-
 class mainManager {
 public:
     mainManager() {}
@@ -38,7 +37,6 @@ int main(int argc, char ** argv) {
     ContinuousControlManager   ContinuousControl("ContinuousControl:Manager");  //AQUI
     CommLowLevelManager        CommLowLevel("CommLowLevel:Manager");  //AQUI
     //ModuleManager         GenericModule("GenericModule:Manager");
-
     //DataProcessing.interface->q_out_ = &GenericModule.interface->q_in;
     CommLowLevel.interface->q_atitude_out_ = &ContinuousControl.interface->q_atitude_in; //Aqui
 

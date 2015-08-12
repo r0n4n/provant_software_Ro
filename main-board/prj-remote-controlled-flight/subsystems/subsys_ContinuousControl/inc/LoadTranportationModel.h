@@ -23,12 +23,12 @@ class LoadTranportationModel {
 public:
 	LoadTranportationModel();
 	virtual ~LoadTranportationModel();
-	Eigen::MatrixXf MatrixA(float ddx, float ddy,float ddz);
-	Eigen::MatrixXf MatrixB();
+	Eigen::MatrixXf MatrixA(Eigen::MatrixXf as, float ts);
+	Eigen::MatrixXf MatrixB(float ts);
 	Eigen::MatrixXf MatrixC();
 	Eigen::MatrixXf MatrixSumRho();
 	Eigen::MatrixXf MatrixSumLambda();
-	Eigen::Vector4f RefrenceControl(float ddxr,float ddyr,float ddzr);
+	Eigen::MatrixXf RefrenceControl(Eigen::MatrixXf as);
 	Eigen::MatrixXf MatrixTerminalCost();
 /* Private functions ------------------------------------------------------- */
 private:

@@ -35,11 +35,16 @@ LoadTranportationModel::~LoadTranportationModel() {
 	// TODO Auto-generated destructor stub
 }
 
-Eigen::MatrixXf LoadTranportationModel::MatrixA(float ddxr, float ddyr,float ddzr){
+Eigen::MatrixXf LoadTranportationModel::MatrixA(Eigen::MatrixXf as, float ts){
 	/* Name spaces ------------------------------------------------------------------*/
 	using namespace Eigen;
 	MatrixXf A(20,20);
+	MatrixXf Az(20,20);
 	A.setZero();
+	float ddxr, ddyr, ddzr;
+	ddxr=as(0,0);
+	ddyr=as(1,0);
+	ddzr=as(2,0);
 	A(0,10)=1.0;
 	A(1,11)=1.0;
 	A(2,12)=1.0;
@@ -112,9 +117,10 @@ Eigen::MatrixXf LoadTranportationModel::MatrixA(float ddxr, float ddyr,float ddz
 	A(19,7)=7.2811*ddyr - 0.00043513*ddxr - 7.2853*ddzr - 71.468;
 	A(19,8)=0.000025935*ddxr + 0.28991*ddyr + 0.00025988*ddzr + 0.0025495;
 	A(19,9)=0.0097571*ddyr - 0.00028392*ddxr - 1.9113*ddzr - 18.75;
-	return A;
+	Az=MatrixXf::Identity(20,20)+A*ts;
+	return Az;
 }
-Eigen::MatrixXf LoadTranportationModel::MatrixB(){
+Eigen::MatrixXf LoadTranportationModel::MatrixB(float ts){
 	/* Name spaces ------------------------------------------------------------------*/
 	using namespace Eigen;
 	MatrixXf B(20,4);
@@ -159,7 +165,7 @@ Eigen::MatrixXf LoadTranportationModel::MatrixB(){
 	B(19,1)=1.19738E-04;
 	B(19,2)=1.41771E-01;
 	B(19,3)=1.41753E-01;
-	return B;
+	return B*ts;
 }
 Eigen::MatrixXf LoadTranportationModel::MatrixC(){
 	/* Name spaces ------------------------------------------------------------------*/
@@ -181,15 +187,19 @@ Eigen::MatrixXf LoadTranportationModel::MatrixSumLambda(){
 	Lambda<<2.19609E-08,2.17214E-08,2.50000E-07,2.50000E-07;
 	return Lambda.asDiagonal();
 }
-Eigen::Vector4f LoadTranportationModel::RefrenceControl(float ddxr,float ddyr,float ddzr){
+Eigen::MatrixXf LoadTranportationModel::RefrenceControl(Eigen::MatrixXf as){
 	using namespace Eigen;
-	Vector4f ur;
+	float ddxr, ddyr, ddzr;
+	ddxr=as(0,0);
+	ddyr=as(1,0);
+	ddzr=as(2,0);
+	MatrixXf ur(4,1);
 	float fR=8251.95 + 0.200079*ddxr + 836.746*ddyr + 841.177*ddzr;
 	float fL=8214.86 + 0.0500026*ddxr - 837.057*ddyr + 837.396*ddzr;
 	float tauR=0;
 	float tauL=0;
 	ur<<fR,fL,tauR,tauL;
-	return ur.transpose();
+	return ur;
 
 }
 Eigen::MatrixXf LoadTranportationModel::MatrixTerminalCost(){

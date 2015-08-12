@@ -59,7 +59,7 @@ private:
 
     // Tempo de amostragem para loop principal
     int ms_sample_time;
-
+    MPC::MpcControler * mpc;
     // Nome do modulo
     std::string name_;
 

@@ -75,21 +75,24 @@ set(CMAKE_INSTALL_PREFIX "${CMAKE_CURRENT_BINARY_DIR}/dist")
 # specify the cross compiler
 #set(CMAKE_C_COMPILER	/usr/bin/arm-linux-gnueabi-gcc)
 #set(CMAKE_CXX_COMPILER	/usr/bin/arm-linux-gnueabi-g++)
-set(CMAKE_C_COMPILER	arm-linux-gnueabi-gcc-4.7 )
-set(CMAKE_CXX_COMPILER	arm-linux-gnueabi-g++-4.7)
+set(CMAKE_C_COMPILER	arm-linux-gnueabihf-gcc-4.8)
+set(CMAKE_CXX_COMPILER	arm-linux-gnueabihf-g++-4.8)
 
 
 #set( CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -pg" )
 #set( CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} -pg" )
-set( CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -march=armv7-a -mtune=cortex-a8 -mfloat-abi=softfp -mfpu=neon" )
-set( CMAKE_C_FLAGS  "${CMAKE_C_FLAGS} -march=armv7-a -mtune=cortex-a8 -mfloat-abi=softfp -mfpu=neon" )
+set( CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -std=c++11 -march=armv7-a -mtune=cortex-a8 -mfloat-abi=hard -mfpu=neon -ffast-math -O3" )
+set( CMAKE_C_FLAGS  "${CMAKE_C_FLAGS} -std=c++11 -march=armv7-a -mtune=cortex-a8 -mfloat-abi=hard -mfpu=neon -ffast-math -O3" )
 
 # FINDING PACKAGES -----------------------------------------------------------
 find_package(PkgConfig REQUIRED)
 
 ADD_DEFINITIONS(-DBOOST_LOG_DYN_LINK) #linkar a biblioteca de Logging dinamicamente
-set(Boost_INCLUDE_DIRS    	  "/home/richard/lib/boost_1_58_0/spirit/include")
-set(Boost_LIBRARIES   		  "/home/richard/lib/boost_1_58_0/stage/lib")
+#set(Boost_INCLUDE_DIRS  "/home/richard/lib/boost_1_58_0/spirit/include")
+#set(Boost_LIBRARIES   	"/home/richard/lib/boost_1_58_0/stage/lib")
+set(Boost_INCLUDE_DIRS  "/home/richard/boost_lib_hf/include")
+set(Boost_LIBRARIES   	"/home/richard/boost_lib_hf/lib")
+
 
 # DEBUG MESSAGES -------------------------------------------------------------
 # message(status "** Boost Include: ${Boost_INCLUDE_DIR}")
@@ -103,17 +106,16 @@ include_directories(
         ${PROJECT_INCLUDE_DIR}
         #${PROJECT_EXT_INCLUDE}
         ${PROJECT_CONFIG_DIR}
-
 	${PROJECT_COMMON_DIR}/inc	
 	${PROJECT_COMMON_DIR_SUBSYS}/inc	
         ${PROJECT_COMMON_DIR_SUBSYS}
-	
+	${PROJECT_COMMON_DIR_SUBSYS}/qpOases/include
         ${Boost_INCLUDE_DIRS}
 )
 
 link_directories(
         ${Boost_LIBRARIES}
-	
+	${PROJECT_COMMON_DIR_SUBSYS}/qpOases/bin
 	
 )
 
@@ -128,7 +130,7 @@ target_link_libraries(${PROJECT_NAME}
                         boost_thread
                         boost_log
                         boost_log_setup
-			
+			qpOASES
 )
 
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BUILD_DIR})
