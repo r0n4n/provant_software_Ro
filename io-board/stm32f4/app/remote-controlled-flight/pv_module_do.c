@@ -23,7 +23,7 @@
 
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
-#define MODULE_PERIOD	    6//ms
+#define MODULE_PERIOD	    10//ms
 #define USART_BAUDRATE     460800
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
@@ -86,14 +86,14 @@ void module_do_run()
 		c_common_datapr_multwii_attitude(iInputData.attitude.roll*RAD_TO_DEG*10,iInputData.attitude.pitch*RAD_TO_DEG*10,iInputData.attitude.yaw*RAD_TO_DEG*10);
     //c_common_datapr_multwii_attitude(iGpsData.heartBeat,iGpsData.gpsOutput.lat,iGpsData.gpsOutput.lon);
 		//c_common_datapr_multwii2_rcNormalize(channel);
-		c_common_datapr_multwii_altitude(iInputData.position.z*100,iInputData.position_refrence.refz*100);
+		c_common_datapr_multwii_altitude(iInputData.position.z,iInputData.position_refrence.refz*100);
 		//c_common_datapr_multwii_debug(iInputData.flightmode,iInputData.enableintegration,0,0);
 		c_common_datapr_multwii_sendstack(USART2);
 
-        //data1[0]=iControlOutputData.actuation.servoLeft*RAD_TO_DEG;
-        //data1[1]=iControlOutputData.actuation.servoRight*RAD_TO_DEG;
-        data1[0]=iGpsData.gpsOutput.lat;
-        data1[1]=iGpsData.gpsOutput.lon;
+        data1[0]=iControlOutputData.actuation.servoLeft*RAD_TO_DEG;
+        data1[1]=iControlOutputData.actuation.servoRight*RAD_TO_DEG;
+        //data1[0]=iGpsData.gpsOutput.lat;
+        //data1[1]=iGpsData.gpsOutput.lon;
         data2[0]=iControlOutputData.actuation.escLeftSpeed;
         data2[1]=iControlOutputData.actuation.escRightSpeed;
         data3[0]=iInputData.attitude_reference.refroll*RAD_TO_DEG;

@@ -25,7 +25,7 @@
 
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
-#define MODULE_PERIOD	   3//ms
+#define MODULE_PERIOD	   10//ms
 
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
@@ -56,8 +56,8 @@ void module_in_init()
 	LED4 = c_common_gpio_init(GPIOD, GPIO_Pin_12, GPIO_Mode_OUT); //LED4
 
 	/* Inicialização da imu */
-	c_common_i2c_init(I2C1); 
-	c_io_imu_init(I2C1); 
+	//c_common_i2c_init(I2C1);
+	//c_io_imu_init(I2C1);
 	/* Inicializador do sonar */
 	c_io_sonar_init();
 
@@ -151,7 +151,7 @@ void module_in_run()
 
 	/*----------------------Tratamento da IMU---------------------*/
     /* Pega e trata os valores da imu */
-	c_io_imu_getRaw(oInputData.imuOutput.accRaw, oInputData.imuOutput.gyrRaw, oInputData.imuOutput.magRaw,sample_time_gyro_us);
+	//c_io_imu_getRaw(oInputData.imuOutput.accRaw, oInputData.imuOutput.gyrRaw, oInputData.imuOutput.magRaw,sample_time_gyro_us);
 	c_datapr_MahonyAHRSupdate(attitude_quaternion,oInputData.imuOutput.gyrRaw[0],oInputData.imuOutput.gyrRaw[1],oInputData.imuOutput.gyrRaw[2],oInputData.imuOutput.accRaw[0],oInputData.imuOutput.accRaw[1],oInputData.imuOutput.accRaw[2],oInputData.imuOutput.magRaw[0],oInputData.imuOutput.magRaw[1],oInputData.imuOutput.magRaw[2],sample_time_gyro_us[0]);
 	c_io_imu_Quaternion2Euler(attitude_quaternion, rpy);
 	c_io_imu_EulerMatrix(rpy,oInputData.imuOutput.gyrRaw);
@@ -258,7 +258,8 @@ void module_in_run()
 
 	//Filtered measurements
 	//oInputData.position.z = sonar_filtered;
-	oInputData.position.z=sonar_filtered;
+	//oInputData.position.z=sonar_filtered;
+	oInputData.position.z=sonar_raw_real;
 	oInputData.position.dotZ = dotZ_filtered;
 
 	/*----------------------Seguranças-------------------------------------*/

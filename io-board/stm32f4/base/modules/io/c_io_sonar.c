@@ -24,7 +24,8 @@
 /* Private define ------------------------------------------------------------*/
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
-#define SONAR_BAUDRATE  9600
+int test;
+#define SONAR_BAUDRATE  115200
 #ifdef STM32F4_H407
   #define SONAR_USART     USART6
 #else
@@ -138,9 +139,10 @@ void c_io_sonar_init()
 {
   #if SERIAL_SONAR
     #ifdef STM32F4_H407
-      c_common_usart6_init(9600); //change this command if SONAR_USART change
+      c_common_usart6_init(SONAR_BAUDRATE); //change this command if SONAR_USART change
+      test=0;
     #else
-      c_common_usart6_init(115200); //change this command if SONAR_USART change
+      c_common_usart6_init(SONAR_BAUDRATE); //change this command if SONAR_USART change
     #endif
   #else
     adc_configure();
@@ -167,10 +169,13 @@ float  c_io_sonar_read()
     #ifdef HCRS04
       if(c_common_usart_available(SONAR_USART))
       {
-        while(c_common_usart_read(SONAR_USART)!='R'){}
+    	while(c_common_usart_read(SONAR_USART)!='R'){}
         for(;dist[0]==0;)
           dist[0]=c_common_usart_read(SONAR_USART);
-        c_io_last_sonar=(float)dist[0];
+        if(dist[0]=='R')
+        	c_io_last_sonar=c_io_last_sonar;
+        else
+        	c_io_last_sonar=(float)dist[0];
       }
       return c_io_last_sonar;
     #endif
