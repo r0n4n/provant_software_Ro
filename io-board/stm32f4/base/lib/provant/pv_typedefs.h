@@ -208,6 +208,16 @@ typedef struct
   unsigned int heartBeat;
 } pv_msg_sm;
 
+/** \brief Tipo do Servo com informações. */
+typedef struct
+{
+	uint8_t servo_id;
+	uint32_t heartBeat;
+	int16_t  pwm;
+	float angularSpeed;
+	float position;
+} pv_msg_servo;
+
 /* Exported constants --------------------------------------------------------*/
 /* Exported macro ------------------------------------------------------------*/
 /* Exported functions ------------------------------------------------------- */

@@ -299,7 +299,7 @@ void c_common_usart1_init(int baudrate)
 	USART_InitStructure.USART_Mode = USART_Mode_Tx | USART_Mode_Rx;
 	USART_Init(USART1, &USART_InitStructure);
 	
-	USART_ITConfig(USART1, USART_IT_RXNE, DISABLE); // enable the USART1 receive interrupt
+	USART_ITConfig(USART1, USART_IT_RXNE, ENABLE); // enable the USART1 receive interrupt
 
 	NVIC_InitStructure.NVIC_IRQChannel = USART1_IRQn;		 // we want to configure the USART1 interrupts
 	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 1;// this sets the priority group of the USART1 interrupts

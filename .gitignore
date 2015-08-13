@@ -13,3 +13,7 @@
 # Ignore eclipse project files
 .cproject
 .project
+
+\#.*\#
+io-board/stm32f4/.settings/
+io-board/stm32f4/app/testes/
