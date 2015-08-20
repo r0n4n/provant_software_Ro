@@ -5236,8 +5236,9 @@ real_t QProblem::getRelativeHomotopyLength(	const real_t* const g_new, const rea
 	int nC = getNC( );
 	real_t len = QProblemB::getRelativeHomotopyLength( g_new,lb_new,ub_new );
 	real_t d, s;
-	
-	fprintf( stdFile, "len in homotopyLength = %.3e\n",len );
+//agregue esto
+	if (options.printLevel!=PL_NONE)
+		fprintf( stdFile, "len in homotopyLength = %.3e\n",len );
 
 	/* lower constraint bounds */
 	if ( lbA_new != 0 )
@@ -5250,7 +5251,8 @@ real_t QProblem::getRelativeHomotopyLength(	const real_t* const g_new, const rea
 			if (d > len) len = d;
 		}
 	}
-	fprintf( stdFile, "len in homotopyLength = %.3e\n",len );
+	if (options.printLevel!=PL_NONE)
+		fprintf( stdFile, "len in homotopyLength = %.3e\n",len );
 
 	/* upper constraint bounds */
 	if ( ubA_new != 0 )
@@ -5263,7 +5265,8 @@ real_t QProblem::getRelativeHomotopyLength(	const real_t* const g_new, const rea
 			if (d > len) len = d;
 		}
 	}
-	fprintf( stdFile, "len in homotopyLength = %.3e\n",len );
+	if (options.printLevel!=PL_NONE)
+		fprintf( stdFile, "len in homotopyLength = %.3e\n",len );
 
 	return len;
 }

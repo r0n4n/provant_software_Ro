@@ -65,7 +65,7 @@ int proVantProtocol::updateData(){
 		if(byte == 'M'){
 			UARTX.readByte(&byte);
 			if(byte == '>'){
-				cout << "Inicio da mensagem!" << endl;
+				//cout << "Inicio da mensagem!" << endl;
 				UARTX.readByte(&byte);
 				buffer[0] = byte;
 				tam = (uint8_t) byte;
@@ -115,8 +115,8 @@ void proVantProtocol::decodeMessage(uint8_t tam, uint8_t msg){
 				//printf("Attitude message with %d bytes \n", tam);
 				vantData.setRoll(((int16_t)deserialize16(2))/10); //angx	INT 16	Range [-1800;1800] (unit: 1/10 degree)
 				vantData.setPitch(((int16_t)deserialize16(4))/10); //angy	INT 16	Range [-900;900] (unit: 1/10 degree)
-				vantData.setYaw(((int16_t)deserialize16(6))/10); //heading	INT 16	Range [-180;180]
-				//printf("Roll %f \nPitch %f \nYaw %f\n", vantData.getRoll(), vantData.getPitch(), vantData.getYaw());
+				vantData.setYaw(((int16_t)deserialize16(6))); //heading	INT 16	Range [-180;180]
+				printf("Roll %f \nPitch %f \nYaw %f\n", vantData.getRoll(), vantData.getPitch(), vantData.getYaw());
 			break;
 			case MSP_ANALOG:
 				//printf("Analog message with %d bytes \n", tam);
@@ -130,7 +130,7 @@ void proVantProtocol::decodeMessage(uint8_t tam, uint8_t msg){
 				//printf("Altitude message with %d bytes \n", tam);
 				vantData.setEstAlt((int32_t)deserialize32(2));	//EstAlt	INT 32	cm
 				vantData.setVario((int16_t)deserialize16(6));	//vario	INT 16	cm/s
-				//printf("EstAlt %d\nVario %d\n", vantData.getEstAlt(), vantData.getVario());
+				printf("EstAlt %d\nVario %d\n", vantData.getEstAlt(), vantData.getVario());
 			break;
 			case MSP_STATUS:
 				//printf("Status message with %d bytes \n", tam);
@@ -305,7 +305,7 @@ bool proVantProtocol::confirmCheckSum(uint8_t tam){
 	}
 	UARTX.readByte(&auxChar);
 	//printf("%u, %d, %u, %d\n", checksum, checksum, auxChar, auxChar);
-	return (checksum && auxChar);
+	return (checksum == auxChar);
 }
 
 uint16_t proVantProtocol::deserialize16(int posInit){

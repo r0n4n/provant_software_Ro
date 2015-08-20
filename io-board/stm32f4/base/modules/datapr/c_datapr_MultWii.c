@@ -338,7 +338,46 @@ void c_common_datapr_multwii_sendstack(USART_TypeDef* USARTx)
     c_common_usart_putchar(USARTx,multwii_msg[i]);
   get_raw_String(); // limpa a pilha;
 }
+/*
+int c_common_datapr_multwii_receivestack(USART_TypeDef* USARTx){
+	unsigned char byte;
+	uint8_t tam, msg;
 
+	//UARTX.readByte(&byte);
+	byte=c_common_usart_read(USARTx);
+	while(byte != '$' && c_common_usart_available2(USARTx) > 0){
+		byte=c_common_usart_read(USARTx);
+	}
+	if(c_common_usart_available2(USARTx) == 0){
+		return -1;
+	}
+	else{
+		byte=c_common_usart_read(USARTx);
+		if(byte == 'M'){
+			byte=c_common_usart_read(USARTx);
+			if(byte == '>'){
+				//cout << "Inicio da mensagem!" << endl;
+				byte=c_common_usart_read(USARTx);
+				multwii_recmsg[0] = byte;
+				tam = (uint8_t) byte;
+				byte=c_common_usart_read(USARTx);
+				multwii_recmsg[1] = byte;
+				msg = (uint8_t) byte;
+				decodeMessage(tam, msg);
+				if(c_common_usart_available2(USARTx) > 0)
+					c_common_datapr_multwii_receivestack(USARTx);
+			}
+			else{
+				return -1;
+			}
+		}
+		else{
+			return -1;
+		}
+	return 0;
+	}
+}
+*/
 /**
   * @}
   */

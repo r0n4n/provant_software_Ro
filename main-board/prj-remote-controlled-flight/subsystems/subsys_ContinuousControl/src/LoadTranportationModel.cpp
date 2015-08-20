@@ -609,5 +609,29 @@ Eigen::MatrixXf LoadTranportationModel::MatrixTerminalCost(){
 	P(19,19)=3.14052E+01;
 	return P;
 }
+Eigen::VectorXf LoadTranportationModel::OutputMaxVector(){
+	using namespace Eigen;
+	VectorXf ymax(20,1);
+	ymax<< 0.6,0.6,6,0.5,0.5,0.5,0.5,0.5,0.5,0.5,20,20,20,20,20,20,20,20,20,20;
+	return ymax;
+}
+Eigen::VectorXf LoadTranportationModel::OutputMinVector(){
+	using namespace Eigen;
+	VectorXf ymin(20,1);
+	ymin<< -0.6,-0.6,0,-0.5,-0.5,-0.5,-0.5,-0.5,-0.5,-0.5,-20,-20,-20,-20,-20,-20,-20,-20,-20,-20;
+	return ymin;
+}
+Eigen::VectorXf LoadTranportationModel::ControlMaxVector(){
+	using namespace Eigen;
+	VectorXf umax(4,1);
+	umax<< 15000,15000,2000,2000;
+	return umax;
+}
+Eigen::VectorXf LoadTranportationModel::ControlMinVector(){
+	using namespace Eigen;
+	VectorXf umin(4,1);
+	umin<< 0,0,-2000,-2000;
+	return umin;
+}
 /* Private functions ---------------------------------------------------------*/
 } /* namespace loadmodel */

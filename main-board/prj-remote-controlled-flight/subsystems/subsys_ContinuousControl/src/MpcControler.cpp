@@ -41,10 +41,32 @@ MatrixXf DeltaU(4*1,1);
 MatrixXf xr(20,1);
 MatrixXf as(4,1);
 MatrixXf ur(4,1);
+MatrixXf Ymax(20*5,1);
+MatrixXf Ymin(20*5,1);
 //quadprog
-MatrixXd a(4,1);
-VectorXd b(1,1);
-VectorXd c(4);
+QProblem qp(4,104);
+Options options;
+MatrixXf H;
+MatrixXf ft;
+VectorXf umax;
+VectorXf umin;
+MatrixXf Im(4*1,4*1);
+MatrixXf dYmax;
+MatrixXf dYmin;
+MatrixXf dUmax(4*1,1);
+MatrixXf dUmin(4*1,1);
+MatrixXf Yr(20*5,1);
+MatrixXf Ar(4*1,104);
+MatrixXf lbr(104,1);
+MatrixXf ubr(104,1);
+real_t Hq[4*4];
+real_t ftq[1*4];
+real_t Arq[104*4];
+real_t ubrq[104*1];
+real_t lbrq[104*1];
+real_t xOpt[4];
+
+int nWSR;
 //std::chrono::steady_clock::time_point last;
 namespace MPC {
 /* Exported functions definitions --------------------------------------------*/
@@ -81,8 +103,20 @@ MpcControler::MpcControler() {
 	for(int i=0;i<p*M;i+=p){
 		Wu.block(i,i,p,p)=SumLambda;
 	}
+	/*----------- Contraints---------------*/
+	Im.setIdentity();
+	umax=Model->ControlMaxVector();
+	umin=Model->ControlMinVector();
+	VectorXf ymax=Model->OutputMaxVector();
+	VectorXf ymin=Model->OutputMinVector();
+	for (int i=0;i<N*q;i+=q){
+	    Ymax.block(i,0,q,1)=ymax;
+	    Ymin.block(i,0,q,1)=ymin;
+	}
 	/*Matrix Bz calculation*/
 	Bz=Model->MatrixB(ts);
+	options.printLevel=PL_NONE;
+	qp.setOptions( options );
 //	last=std::chrono::steady_clock::now();
 }
 
@@ -91,9 +125,7 @@ MpcControler::~MpcControler() {
 }
 
 Eigen::MatrixXf MpcControler::Controler(Eigen::MatrixXf states){
-	QProblem qp( 4,0 );
-	Options options;
-	qp.setOptions( options );
+	k=0;
 	auto start = std::chrono::steady_clock::now();
 	//Vector of states
 	xs<<0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1;
@@ -132,37 +164,51 @@ Eigen::MatrixXf MpcControler::Controler(Eigen::MatrixXf states){
 		Q.block(i,0,q,s)=Pow(Az,Naux);
 	}
 
-	DeltaU=((G.transpose()*Wy*G)+Wu).inverse()*(G.transpose()*Wy*(R-Q*deltaxs)+Wu*Ur);
-	//std::cout << "DeltaU" << DeltaU << std::endl;
+	//DeltaU=((G.transpose()*Wy*G)+Wu).inverse()*(G.transpose()*Wy*(R-Q*deltaxs)+Wu*Ur);
+	H=(2*((G.transpose()*Wy*G)+Wu));
+	//H=(H*H.transpose())/2;
+	ft=(2*((Q*deltaxs-R).transpose()*Wy*G-Ur.transpose()*Wu));
+	/*----------- Contraints---------------*/
+	for(int i=0, Maux=1;i<M*p;i+=p, Maux++){
+		dUmax.block(i,0,p,1)=umax-Model->RefrenceControl(AcelerationReference(k+Maux-1));
+		dUmin.block(i,0,p,1)=Model->RefrenceControl(AcelerationReference(k+Maux-1))-umin;
+	}
+	for (int i=0, Naux=1;i<N*q;i+=q, Naux++){
+		Yr.block(i,0,q,1)=TrajetoryReference(k+Naux).block(0,0,q,1);
+	}
+	dYmax=Ymax-(Q*deltaxs)-Yr;
+	dYmin=(Q*deltaxs)+Yr-Ymin;
+	Ar.block(0,0,4*1,4*1)=Im;
+	Ar.block(0,4,4*1,20*5)=G.transpose();
 
-	MatrixXf H=(2*((G.transpose()*Wy*G)+Wu));//.cast<double>();
-	H=(H*H.transpose())/2;
-	std::cout<<"H="<<H<<std::endl;
-	MatrixXf ft=(2*((Q*deltaxs-R).transpose()*Wy*G-Ur.transpose()*Wu));//.cast<double>();
-	real_t Hq[4*4];
-	real_t ftq[1*4];
+	lbr.block(0,0,4*1,1)=-dUmin;
+	lbr.block(4,0,20*5,1)=-dYmin;
+	ubr.block(0,0,4*1,1)=dUmax;
+	ubr.block(4,0,20*5,1)=dYmax;
+
+	/*---------------------------------*/
 	std::copy(H.data(),H.data()+H.size(),Hq);
 	std::copy(ft.data(),ft.data()+ft.size(),ftq);
-	/* Solve QP problem. */
-	int nWSR = 5000;
-	real_t cpu=3;
-	qp.init( Hq,ftq,0,0,0,0,0, nWSR,&cpu);
+	std::copy(Ar.data(),Ar.data()+Ar.size(),Arq);
+	std::copy(lbr.data(),lbr.data()+lbr.size(),lbrq);
+	std::copy(ubr.data(),ubr.data()+ubr.size(),ubrq);
+	//	/* Solve QP problem. */
 
-	real_t xOpt[4];
-	real_t yOpt[4+1];
-	qp.getPrimalSolution( xOpt );
-	qp.getDualSolution( yOpt );
+//	real_t cpu=3;
+	nWSR = 20;
+	qp.init(Hq,ftq,Arq,0,0,lbrq,ubrq,nWSR);
+	qp.getPrimalSolution(xOpt);
+
 
 	auto end = std::chrono::steady_clock::now();
 	auto elapsed = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
-	std::cout << "It took me " << (float)(elapsed.count()/1000) << " microseconds." << std::endl;
+	std::cout << "It took me " << (float)(elapsed.count()/1000) << " miliseconds." << std::endl;
 	std::cout<<"xOpt=";
 	for(int i=0;i<4;i++){
 		std::cout<<xOpt[i]<<" ";
 	}
 	std::cout<<std::endl;
-	if (k<=5)
-		k++;
+	qp.reset();
 	return ur;
 }
 /* Private functions ------------------------------------------------------- */

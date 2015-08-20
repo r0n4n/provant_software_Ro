@@ -41,6 +41,7 @@ public:
     // Inboxes
     //MsgQueue<std::string>  q_in;
     MsgQueue<proVant::atitude> q_atitude_in;
+    MsgQueue<proVant::altitude> q_altitude_in;
 
     // Outboxes (ponteiros para inboxes alheios)
     //MsgQueue<std::string>* q_out_;

@@ -559,12 +559,12 @@ int16_t vant::getAcc(int pos){
 proVant::atitude vant::getAtitude(){
 	proVant::atitude atd;
 
-	atd.roll = getRoll();
-	atd.pitch = getPitch();
-	atd.yaw = getYaw();
-	atd.dotRoll = getDotRoll();
-	atd.dotPitch = getDotPitch();
-	atd.dotYaw = getDotYaw();
+	atd.roll = this->getRoll();
+	atd.pitch = this->getPitch();
+	atd.yaw = this->getYaw();
+	atd.dotRoll = this->getDotRoll();
+	atd.dotPitch = this->getDotPitch();
+	atd.dotYaw = this->getDotYaw();
 
 	return atd;
 }

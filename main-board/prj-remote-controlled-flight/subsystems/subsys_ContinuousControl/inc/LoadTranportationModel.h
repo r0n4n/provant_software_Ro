@@ -30,6 +30,10 @@ public:
 	Eigen::MatrixXf MatrixSumLambda();
 	Eigen::MatrixXf RefrenceControl(Eigen::MatrixXf as);
 	Eigen::MatrixXf MatrixTerminalCost();
+	Eigen::VectorXf OutputMaxVector();
+	Eigen::VectorXf OutputMinVector();
+	Eigen::VectorXf ControlMaxVector();
+	Eigen::VectorXf ControlMinVector();
 /* Private functions ------------------------------------------------------- */
 private:
 

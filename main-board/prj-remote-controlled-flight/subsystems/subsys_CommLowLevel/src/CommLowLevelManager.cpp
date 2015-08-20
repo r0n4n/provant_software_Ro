@@ -63,6 +63,7 @@ void CommLowLevelManager::Run()
     // Algumas variaveis... 
     std::string msg("Hello!");
     proVant::atitude atitude, atd;
+    proVant::altitude altitude;
     atitude.roll = 0;
     atitude.pitch = 0;
     atitude.yaw = 0;
@@ -83,10 +84,14 @@ void CommLowLevelManager::Run()
 	PROVANT.updateData();
         //DEBUG(LEVEL_INFO, "Data updated ");
 	atitude = PROVANT.getVantData().getAtitude();
+	cout<<"roll="<<atitude.roll<<",pitch="<<atitude.pitch<<",yaw="<<atitude.yaw<<endl;
+	cout<<"roll="<<PROVANT.getVantData().getRoll()<<",pitch="<<PROVANT.getVantData().getPitch()<<",yaw="<<PROVANT.getVantData().getYaw()<<endl;
+	altitude.estAlt= PROVANT.getVantData().getEstAlt();
+	altitude.vario= PROVANT.getVantData().getVario();
 	//atitude.roll = i;
         //DEBUG(LEVEL_INFO, "Sending message from ") << name_;
         interface->push(atitude, interface->q_atitude_out_);
-
+        interface->push(altitude, interface->q_altitude_out_);
         boost::this_thread::sleep(boost::posix_time::milliseconds(ms_sample_time));
     }
 }

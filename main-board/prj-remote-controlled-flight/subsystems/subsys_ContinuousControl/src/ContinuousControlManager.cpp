@@ -64,7 +64,8 @@ void ContinuousControlManager::Run()
     Init();
     // Algumas variaveis... 
     std::string msg("Hello!");
-    proVant::atitude atitude, atd;
+    proVant::atitude atitude;
+    proVant::altitude altitude;
     atitude.roll = 0;
     atitude.pitch = 0;
     atitude.yaw = 0;
@@ -79,14 +80,18 @@ void ContinuousControlManager::Run()
 
     // Loop principal!
     while(1) {
-	if(interface->pop(atd, &interface->q_atitude_in)){        
-		DEBUG(LEVEL_INFO, "Recive message from ") << name_;
-		printf("%f\n", atd.roll);
-		xs.setZero();
-		mpc->Controler(xs);
-
-	}
-        //i++;
+    	if(interface->pop(atitude, &interface->q_atitude_in)){
+    		DEBUG(LEVEL_INFO, "Recive message from ") << name_;
+    		printf("roll=%f, pitch=%f, yaw=%f\n", atitude.roll, atitude.roll, atitude.pitch);
+    		printf("reference=%d, altura=%d\n", altitude.estAlt, altitude.vario);
+    	}
+    	if(interface->pop(altitude, &interface->q_altitude_in)){
+    		DEBUG(LEVEL_INFO, "Recive message from ") << name_;
+    		printf("reference=%d, altura=%d\n", altitude.estAlt, altitude.vario);
+    	}
+    	xs.setZero();
+    	//mpc->Controler(xs);
+	//i++;
 	//Send and recive uart
 	//PROVANT.updateData();
         //DEBUG(LEVEL_INFO, "Data updated ");
