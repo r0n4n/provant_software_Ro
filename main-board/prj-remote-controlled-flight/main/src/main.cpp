@@ -39,6 +39,7 @@ int main(int argc, char ** argv) {
     //ModuleManager         GenericModule("GenericModule:Manager");
     //DataProcessing.interface->q_out_ = &GenericModule.interface->q_in;
     CommLowLevel.interface->q_atitude_out_ = &ContinuousControl.interface->q_atitude_in; //Aqui
+    CommLowLevel.interface->q_altitude_out_ = &ContinuousControl.interface->q_altitude_in; //Aqui
 
     boost::thread th1( boost::bind( &CommLowLevelManager::Run, CommLowLevel) ); //AQUI
     boost::thread th2( boost::bind( &ContinuousControlManager::Run, ContinuousControl) ); //AQUI

@@ -82,15 +82,14 @@ void ContinuousControlManager::Run()
     while(1) {
     	if(interface->pop(atitude, &interface->q_atitude_in)){
     		DEBUG(LEVEL_INFO, "Recive message from ") << name_;
-    		printf("roll=%f, pitch=%f, yaw=%f\n", atitude.roll, atitude.roll, atitude.pitch);
-    		printf("reference=%d, altura=%d\n", altitude.estAlt, altitude.vario);
+    		printf("roll=%f, pitch=%f, yaw=%f\n", atitude.roll, atitude.pitch, atitude.yaw);
     	}
     	if(interface->pop(altitude, &interface->q_altitude_in)){
     		DEBUG(LEVEL_INFO, "Recive message from ") << name_;
     		printf("reference=%d, altura=%d\n", altitude.estAlt, altitude.vario);
     	}
     	xs.setZero();
-    	//mpc->Controler(xs);
+    	mpc->Controler(xs);
 	//i++;
 	//Send and recive uart
 	//PROVANT.updateData();

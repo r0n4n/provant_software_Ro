@@ -76,6 +76,8 @@ typedef struct
   float angularSpeed;
   float angle;
   float torque;
+  uint8_t status_error;
+  uint8_t status_detai;
   float rpm;
   unsigned int  sampleTime;
 } pv_type_servoOutput;
@@ -87,26 +89,12 @@ typedef struct
   float dotRoll, dotPitch, dotYaw;
 } pv_type_datapr_attitude;
 
-/** \brief Estrutura para refrencia da orientação do VANT.*/
-typedef struct
-{
-  float refroll, refpitch, refyaw;
-  float refdotRoll, refdotPitch, refdotYaw;
-} pv_type_datapr_attitude_refrence;
-
 /** \brief Estrutura para posição do VANT.*/
 typedef struct
 {
   float x, y, z;
   float dotX, dotY, dotZ;
 } pv_type_datapr_position;
-
-/** \brief Estrutura para referencia da posição do VANT.*/
-typedef struct
-{
-  float refx, refy, refz;
-  float refdotX, refdotY, refdotZ;
-} pv_type_datapr_position_reference;
 
 /** \brief Estrutura para dados de atuação.*/
 typedef struct
@@ -171,11 +159,12 @@ typedef struct
   pv_type_receiverOutput receiverOutput;
   pv_type_sonarOutput    sonarOutput;
   pv_type_escOutput      escOutput;
-  pv_type_servoOutput    servoOutput;
+  pv_type_servoOutput    servoLeft;
+  pv_type_servoOutput    servoRight;
   pv_type_datapr_attitude attitude;
   pv_type_datapr_position position;
-  pv_type_datapr_attitude_refrence  attitude_reference;
-  pv_type_datapr_position_reference position_refrence;
+  pv_type_datapr_attitude attitude_reference;
+  pv_type_datapr_position position_refrence;
   unsigned int cicleTime;
   unsigned int heartBeat;
   bool init;

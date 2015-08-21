@@ -116,7 +116,7 @@ void proVantProtocol::decodeMessage(uint8_t tam, uint8_t msg){
 				vantData.setRoll(((int16_t)deserialize16(2))/10); //angx	INT 16	Range [-1800;1800] (unit: 1/10 degree)
 				vantData.setPitch(((int16_t)deserialize16(4))/10); //angy	INT 16	Range [-900;900] (unit: 1/10 degree)
 				vantData.setYaw(((int16_t)deserialize16(6))); //heading	INT 16	Range [-180;180]
-				printf("Roll %f \nPitch %f \nYaw %f\n", vantData.getRoll(), vantData.getPitch(), vantData.getYaw());
+				//printf("Roll %f \nPitch %f \nYaw %f\n", vantData.getRoll(), vantData.getPitch(), vantData.getYaw());
 			break;
 			case MSP_ANALOG:
 				//printf("Analog message with %d bytes \n", tam);
@@ -130,7 +130,7 @@ void proVantProtocol::decodeMessage(uint8_t tam, uint8_t msg){
 				//printf("Altitude message with %d bytes \n", tam);
 				vantData.setEstAlt((int32_t)deserialize32(2));	//EstAlt	INT 32	cm
 				vantData.setVario((int16_t)deserialize16(6));	//vario	INT 16	cm/s
-				printf("EstAlt %d\nVario %d\n", vantData.getEstAlt(), vantData.getVario());
+				//printf("EstAlt %d\nVario %d\n", vantData.getEstAlt(), vantData.getVario());
 			break;
 			case MSP_STATUS:
 				//printf("Status message with %d bytes \n", tam);
