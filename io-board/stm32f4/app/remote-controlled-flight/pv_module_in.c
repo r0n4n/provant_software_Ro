@@ -45,7 +45,7 @@ float attitude_quaternion[4]={1,0,0,0};
 pv_msg_input oInputData;
 
 /* Private function prototypes -----------------------------------------------*/
-void servo_init(uint8_t ID);
+
 /* Private functions ---------------------------------------------------------*/
 /* Exported functions definitions --------------------------------------------*/
 
@@ -86,10 +86,14 @@ void module_in_init()
 	/* Inicia a usart */
 	c_io_herkulex_init(USARTn,USART_BAUDRATE);
 	//c_common_utils_delayms(12);
-	servo_init(oInputData.servoRight.ID);
+	c_io_herkulex_config(oInputData.servoRight.ID);
 	c_common_utils_delayms(12);
-	//servo_init(oInputData.servoLeft.ID);
+	c_io_herkulex_config(oInputData.servoLeft.ID);
 
+	//c_io_herkulex_setTorqueControl(oInputData.servoRight.ID, TORQUE_FREE);
+	c_io_herkulex_setPosition(oInputData.servoRight.ID,0);
+	c_common_utils_delayms(12);
+	c_io_herkulex_setPosition(oInputData.servoLeft.ID,0);
 	/* Pin for debug */
 	//debugPin = c_common_gpio_init(GPIOE, GPIO_Pin_13, GPIO_Mode_OUT);
 
@@ -117,6 +121,7 @@ void module_in_run()
   	float sonar_raw=0.0f, sonar_raw_real=0.0f, sonar_raw_filter=0.0f, sonar_corrected_debug=0.0f, sonar_corrected=0.0f, sonar_filtered=0.0f, dotZ=0.0f, dotZ_filtered=0.0f;
    	int n_valid_samples=0;
   	long sample_time_gyro_us[1] ={0};
+  	int16_t torq;
   	////////////////
 
   	/*Dados usados no sonar*/
@@ -203,7 +208,7 @@ void module_in_run()
 
     /*----------------------Tratamento da Referencia---------------------*/
     /* Realiza a leitura dos canais do radio-controle */
-	oInputData.receiverOutput.joystick[0]=c_rc_receiver_getChannel(C_RC_CHANNEL_THROTTLE)+100;
+	oInputData.receiverOutput.joystick[0]=c_rc_receiver_getChannel(C_RC_CHANNEL_THROTTLE);//+100;
 	oInputData.receiverOutput.joystick[1]=c_rc_receiver_getChannel(C_RC_CHANNEL_PITCH);
 	oInputData.receiverOutput.joystick[2]=c_rc_receiver_getChannel(C_RC_CHANNEL_ROLL);
 	oInputData.receiverOutput.joystick[3]=c_rc_receiver_getChannel(C_RC_CHANNEL_YAW);
@@ -235,7 +240,7 @@ void module_in_run()
 	}
 	else{
 		oInputData.flightmode=1;
-		oInputData.position_refrence.z=((float)oInputData.receiverOutput.joystick[0]/200)*1.5;
+		oInputData.position_refrence.z=((float)(oInputData.receiverOutput.joystick[0]+100)/200)*1.5;
 	}
 	/*Como o canal B da valores 1 ou 100 */
 	if (oInputData.receiverOutput.bButton>50)
@@ -301,16 +306,31 @@ void module_in_run()
 			if (oInputData.servoRight.status_error)
 	    			c_io_herkulex_clear(oInputData.servoRight.ID);
 		}
-	}
 
-//	    if (c_io_herkulex_readData(oInputData.servoRight.ID )){
-//	    	oInputData.servoRight.angularSpeed = c_io_herkulex_getVelocity();
-//	    	oInputData.servoRight.angle        = c_io_herkulex_getPosition();
-//	    	oInputData.servoRight.status_error = c_io_herkulex_getStatusError();
-//	    	oInputData.servoRight.status_detai = c_io_herkulex_getStatusDetail();
-//	    	if (oInputData.servoRight.status_error)
-//	    		c_io_herkulex_clear(oInputData.servoRight.ID);
-//	    }
+	    if (c_io_herkulex_readData(oInputData.servoLeft.ID )){
+	    	oInputData.servoLeft.angularSpeed = c_io_herkulex_getVelocity();
+	    	oInputData.servoLeft.angle        = c_io_herkulex_getPosition();
+	    	oInputData.servoLeft.status_error = c_io_herkulex_getStatusError();
+	    	oInputData.servoLeft.status_detai = c_io_herkulex_getStatusDetail();
+	    	if (oInputData.servoLeft.status_error)
+	    		c_io_herkulex_clear(oInputData.servoLeft.ID);
+	    }
+	}
+	if (!oInputData.init){
+		torq=((float)(oInputData.receiverOutput.joystick[0])/100)*1023;
+		oInputData.servoLeft.torque=torq;
+		//c_io_herkulex_setTorque2Servos(oInputData.servoRight.ID,torq,oInputData.servoLeft.ID,-torq);
+		if((oInputData.servoRight.angle>0.9*(PI/2) && torq>0) || (oInputData.servoRight.angle<-0.9*(PI/2) && torq<0))
+			c_io_herkulex_setTorque(oInputData.servoRight.ID,torq);
+		else
+			c_io_herkulex_setTorque(oInputData.servoRight.ID,0);
+		//c_io_herkulex_setTorqueControl(oInputData.servoRight.ID,TORQUE_BREAK);//set torque free
+		if((oInputData.servoLeft.angle>0.9*(PI/2) && torq>0) || (oInputData.servoLeft.angle<-0.9*(PI/2) && torq<0))
+			c_io_herkulex_setTorque(oInputData.servoLeft.ID,-torq);
+		else
+			c_io_herkulex_setTorque(oInputData.servoLeft.ID,0);
+		//c_io_herkulex_setTorqueControl(oInputData.servoLeft.ID,TORQUE_BREAK);
+	}
 	#endif
 
 	/*----------------------Seguranças-------------------------------------*/
@@ -339,62 +359,7 @@ void module_in_run()
 	}
 }
 /* IRQ handlers ------------------------------------------------------------- */
-void servo_init(uint8_t ID)
-{
-	c_io_herkulex_clear(ID);
 
-	//c_common_utils_delayms(12);
-	c_io_herkulex_reboot(ID);
-
-	c_common_utils_delayms(1000);
-	c_io_herkulex_setTorqueControl(ID,TORQUE_FREE);//torque free
-
-	DATA[0]=1;
-	//only reply to read commands
-	c_io_herkulex_configAckPolicy(ID,1);
-
-	//Acceleration Ratio = 0
-	DATA[0]=0;
-	c_io_herkulex_write(RAM,ID,REG_ACC_RATIO,1,DATA);
-
-	//set no acceleration time
-	DATA[0]=0;
-	c_io_herkulex_write(RAM,ID,REG_MAX_ACC_TIME,1,DATA);
-
-	DATA[0]=0;
-	c_io_herkulex_write(RAM,ID,REG_PWM_OFFSET,1,DATA);
-
-	//min pwm = 0
-	DATA[0]=0;
-	c_io_herkulex_write(RAM,ID,REG_MIN_PWM,1,DATA);
-
-	//max pwm >1023 -> no max pwm
-	DATA[1]=0x03;//little endian 0x03FF sent
-	DATA[0]=0xFF;
-	c_io_herkulex_write(RAM,ID,REG_MAX_PWM,2,DATA);
-
-	/** set overload pwm register, if overload_pwm>1023, overload is never
-	 * activated this is good for data acquisition, but may not be the case for
-	 * the tilt-rotor actualy flying.
-	 */
-	DATA[0]=0xFF;
-	DATA[1]=0x03;//little endian, 2048 sent
-	c_io_herkulex_write(RAM,ID,REG_OVERLOAD_PWM_THRESHOLD,1,DATA);
-
-	c_io_herkulex_setTorqueControl(ID,TORQUE_ON);//set torque on
-
-	c_common_utils_delayms(50);
-
-	c_io_herkulex_setPosition(ID,0);
-
-	/*Troca o id do servo, descomentar so para trocar
-	 * Se os dois servos tem o mesmo id é preciso desconecta um deles pra trocar o id
-	 */
-	//	DATA[0]=0x96; // ID novo 150
-	//	c_io_herkulex_write(EEP,oInputData.servoRight.ID,EEP_SERVO_ID,1,DATA);
-
-
-}
 /**
   * @}
   */

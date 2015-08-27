@@ -155,15 +155,15 @@ int main(void)
 
 	/* Init modules */
 	module_in_init();
-	module_co_init();
+	//module_co_init();
     module_do_init();
   //module_gps_init();
 
     /* Connect modules: interface1.o* = interface2.i* */
     //pv_interface_do.iGpsData    = pv_interface_gps.oGpsData;
     pv_interface_do.iInputData  = pv_interface_in.oInputData;
-    pv_interface_co.iInputData  = pv_interface_in.oInputData;
-    pv_interface_do.iControlOutputData  = pv_interface_co.oControlOutputData;
+    //pv_interface_co.iInputData  = pv_interface_in.oInputData;
+    //pv_interface_do.iControlOutputData  = pv_interface_co.oControlOutputData;
 
 	/* create tasks
 	 * Prioridades - quanto maior o valor, maior a prioridade
