@@ -87,7 +87,7 @@ void c_io_herkulex_clearBuffer(void)
  */
 float c_io_herkulex_raw2pos(uint8_t data[])
 {
-	int8_t rawData = (int16_t)(((data[1] & 0x03) << 8) | data[0]);
+	int16_t rawData = (int16_t)(((data[1] & 0x03) << 8) | data[0]);
 	return (((float)rawData) * 0.325 - 166.65) * M_PI / 180.0;
 }
 
@@ -512,7 +512,7 @@ void c_io_herkulex_config(uint8_t servoId)
 	 */
 	DATA[0] = 0xFF;
 	DATA[1] = 0x03;//little endian, 2048 sent
-	c_io_herkulex_write(RAM, servoId, REG_OVERLOAD_PWM_THRESHOLD, 2, DATA);
+	c_io_herkulex_write(RAM, servoId, REG_OVERLOAD_PWM_THRESHOLD, 1, DATA);
 
 	/** configura Kp, ki,kd and 1st and 2nd feedforward gains
 	uint8_t i, n=10;// n is the number of bytes to written

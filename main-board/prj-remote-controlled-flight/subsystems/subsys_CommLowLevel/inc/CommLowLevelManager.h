@@ -54,6 +54,7 @@ private:
      */
     void Init();
     proVantProtocol PROVANT;
+    proVantProtocol PROVANT2;
 //    uart UART;
 
     /***** Atributos e metodos especificos da topologia do modulo *****/

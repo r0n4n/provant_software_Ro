@@ -28,7 +28,7 @@ using namespace std;
 CommLowLevelManager::CommLowLevelManager(std::string name) :
     interface(new CommLowLevelInterface("CommLowLevel:Interface")),
     // sm1(new SubModule1), // talvez fosse mais interessante construir os submodulos no init
-    ms_sample_time(500),
+    ms_sample_time(10),
     name_(name)
 {
 
@@ -41,8 +41,12 @@ CommLowLevelManager::~CommLowLevelManager()
 
 void CommLowLevelManager::Init()
 {
-    PROVANT.init("/dev/ttyO1", 460800);
-    DEBUG(LEVEL_INFO, "Connected");
+    //PROVANT.init("/dev/ttyO1", 460800);
+	PROVANT.init("/dev/ttyO1", 921600);
+    DEBUG(LEVEL_INFO, "Connected 1");
+
+    PROVANT2.init("/dev/ttyO2", 460800);
+    DEBUG(LEVEL_INFO, "Connected 0");
 
     // DEBUG(DEBUG_INFO, "Initializing: ") << __func__ ;
 
@@ -61,7 +65,6 @@ void CommLowLevelManager::Run()
 {
     Init();
     // Algumas variaveis... 
-    std::string msg("Hello!");
     proVant::atitude atitude, atd;
     proVant::altitude altitude;
     atitude.roll = 0;
@@ -75,26 +78,17 @@ void CommLowLevelManager::Run()
 
     // Loop principal!
     while(1) {
-	//if(interface->pop(atd, &interface->q_atitude_in_)){        
-	//	DEBUG(LEVEL_INFO, "Recive message from ") << name_;
-	//	//printf("%f\n", atd.roll);
-	//}
-        i++;
-	//Send and recive uart
-	PROVANT.updateData();
-        //DEBUG(LEVEL_INFO, "Data updated ");
-	atitude = PROVANT.getVantData().getAtitude();
-//	atitude.roll=14;
-//	atitude.pitch=15;
-//	atitude.yaw=16;
-	cout<<"roll="<<atitude.roll<<",pitch="<<atitude.pitch<<",yaw="<<atitude.yaw<<endl;
-	//altitude.estAlt= PROVANT.getVantData().getEstAlt();
-	//altitude.vario= PROVANT.getVantData().getVario();
-	//atitude.roll = i;
-        //DEBUG(LEVEL_INFO, "Sending message from ") << name_;
-        interface->push(atitude, interface->q_atitude_out_);
-        interface->push(altitude, interface->q_altitude_out_);
-        boost::this_thread::sleep(boost::posix_time::milliseconds(ms_sample_time));
+    	//Send and recive uart
+    	PROVANT.updateData();
+    	atitude = PROVANT.getVantData().getAtitude();
+    	cout<<"roll="<<atitude.roll<<",pitch="<<atitude.pitch<<",yaw="<<atitude.yaw<<endl;
+
+    	PROVANT2.multwii_attitude(atitude.roll,atitude.pitch,atitude.yaw);
+    	PROVANT2.multwii_sendstack();
+
+    	interface->push(atitude, interface->q_atitude_out_);
+    	interface->push(altitude, interface->q_altitude_out_);
+    	boost::this_thread::sleep(boost::posix_time::milliseconds(ms_sample_time));
     }
 }
 

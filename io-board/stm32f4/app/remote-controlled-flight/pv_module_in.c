@@ -317,19 +317,19 @@ void module_in_run()
 	    }
 	}
 	if (!oInputData.init){
-		torq=((float)(oInputData.receiverOutput.joystick[0])/100)*1023;
+		torq=((float)(oInputData.receiverOutput.joystick[1])/100)*1023;
 		oInputData.servoLeft.torque=torq;
 		//c_io_herkulex_setTorque2Servos(oInputData.servoRight.ID,torq,oInputData.servoLeft.ID,-torq);
-		if((oInputData.servoRight.angle>0.9*(PI/2) && torq>0) || (oInputData.servoRight.angle<-0.9*(PI/2) && torq<0))
+		//if((oInputData.servoRight.angle>0.9*(PI/2) && torq>0) || (oInputData.servoRight.angle<-0.9*(PI/2) && torq<0))
 			c_io_herkulex_setTorque(oInputData.servoRight.ID,torq);
-		else
-			c_io_herkulex_setTorque(oInputData.servoRight.ID,0);
-		//c_io_herkulex_setTorqueControl(oInputData.servoRight.ID,TORQUE_BREAK);//set torque free
-		if((oInputData.servoLeft.angle>0.9*(PI/2) && torq>0) || (oInputData.servoLeft.angle<-0.9*(PI/2) && torq<0))
+//		else
+//			c_io_herkulex_setTorque(oInputData.servoRight.ID,0);
+//
+//		if((oInputData.servoLeft.angle>0.9*(PI/2) && torq>0) || (oInputData.servoLeft.angle<-0.9*(PI/2) && torq<0))
 			c_io_herkulex_setTorque(oInputData.servoLeft.ID,-torq);
-		else
-			c_io_herkulex_setTorque(oInputData.servoLeft.ID,0);
-		//c_io_herkulex_setTorqueControl(oInputData.servoLeft.ID,TORQUE_BREAK);
+//		else
+//			c_io_herkulex_setTorque(oInputData.servoLeft.ID,0);
+//
 	}
 	#endif
 

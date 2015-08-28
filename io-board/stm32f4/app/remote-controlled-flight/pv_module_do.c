@@ -24,8 +24,9 @@
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
 #define MODULE_PERIOD	    10//ms
-#define USART_BAUDRATE     460800
-#define NONHIL
+#define USART_BAUDRATE     921600
+//#define USART_BAUDRATE     460800
+//#define NONHIL
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
 portTickType lastWakeTime;

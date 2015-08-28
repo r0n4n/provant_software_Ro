@@ -77,6 +77,9 @@ int uart::init() {
 	case 460800:
 		brate = B460800;
 		break;
+	case 921600:
+		brate = B921600;
+		break;
 	}
 
 	cfsetispeed(&toptions, brate);

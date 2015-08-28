@@ -30,7 +30,7 @@ using namespace std;
 ContinuousControlManager::ContinuousControlManager(std::string name) :
     interface(new ContinuousControlInterface("ContinuousControl:Interface")),
     // sm1(new SubModule1), // talvez fosse mais interessante construir os submodulos no init
-    ms_sample_time(500),
+    ms_sample_time(10),
     name_(name)
 {
 	mpc=new MPC::MpcControler();
@@ -81,25 +81,16 @@ void ContinuousControlManager::Run()
     // Loop principal!
     while(1) {
     	if(interface->pop(atitude, &interface->q_atitude_in)){
-    		DEBUG(LEVEL_INFO, "Recive message from ") << name_;
+    		//DEBUG(LEVEL_INFO, "Recive message from ") << name_;
     		printf("roll=%f, pitch=%f, yaw=%f\n", atitude.roll, atitude.pitch, atitude.yaw);
     	}
     	if(interface->pop(altitude, &interface->q_altitude_in)){
-    		DEBUG(LEVEL_INFO, "Recive message from ") << name_;
+    		//DEBUG(LEVEL_INFO, "Recive message from ") << name_;
     		printf("reference=%d, altura=%d\n", altitude.estAlt, altitude.vario);
     	}
     	xs.setZero();
-    	mpc->Controler(xs);
-	//i++;
-	//Send and recive uart
-	//PROVANT.updateData();
-        //DEBUG(LEVEL_INFO, "Data updated ");
-	//atitude = PROVANT.getVantData().getAtitude();
-	//atitude.roll = i;
-        //DEBUG(LEVEL_INFO, "Sending message from ") << name_;
-        //interface->push(atitude, interface->q_atitude_out_);
-
-        boost::this_thread::sleep(boost::posix_time::milliseconds(ms_sample_time));
+    	//mpc->Controler(xs);
+	    boost::this_thread::sleep(boost::posix_time::milliseconds(ms_sample_time));
     }
 }
 
