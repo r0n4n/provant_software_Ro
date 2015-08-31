@@ -35,6 +35,10 @@ class vant {
 	float dotX;
 	float dotY;
 	float dotZ;
+	float alphar;
+	float alphal;
+	float dotAlphar;
+	float dotAlphal;
 
 	//Control output:
 	float servoLeft;
@@ -65,7 +69,7 @@ class vant {
 	uint8_t gpsUpdate;
 
 	//Analog
-	uint8_t vbat;
+	uint8_t  vbat;
 	uint16_t intPowerMeterSum;
 	uint16_t rssi;
 	uint16_t amperage;
@@ -135,6 +139,14 @@ public:
 	float getDotY();
 	void setDotZ(float dotZ);
 	float getDotZ();
+	void setAlphal(float alphal);
+	float getAlphal();
+	void setAlphar(float alphar);
+	float getAlphar();
+	void setDotAlphal(float dotAlphal);
+	float getDotAlphal();
+	void setDotAlphar(float dotAlphar);
+	float getDotAlphar();
 	void setServoLeft(float servoLeft);
 	float getServoLeft();
 	void setEscLeftNewtons(float escLeftNewtons);
@@ -220,6 +232,9 @@ public:
 	void setAcc(int pos, int16_t value);
 	int16_t getAcc(int pos);
 	proVant::atitude getAtitude();
+	proVant::position getPosition();
+	proVant::servos_state getServoState();
+	proVant::controlOutput getActuation();
 };
 
 #endif /* VANT_H_ */

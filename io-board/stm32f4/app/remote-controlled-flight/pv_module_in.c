@@ -78,10 +78,10 @@ void module_in_init()
 	oInputData.servoLeft.status_detai=0;
 	oInputData.servoRight.status_error=0;
 	oInputData.servoLeft.status_error=0;
-	oInputData.servoRight.angularSpeed=0;
-	oInputData.servoLeft.angularSpeed=0;
-	oInputData.servoRight.angle=0;
-	oInputData.servoLeft.angle=0;
+	oInputData.servoRight.servo.dotAlphar=0;
+	oInputData.servoLeft.servo.dotAlphal=0;
+	oInputData.servoRight.servo.alphar=0;
+	oInputData.servoLeft.servo.alphal=0;
 
 	/* Inicia a usart */
 	c_io_herkulex_init(USARTn,USART_BAUDRATE);

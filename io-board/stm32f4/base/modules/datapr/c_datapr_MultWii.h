@@ -15,6 +15,7 @@
 #include "stm32f4xx_conf.h"
 #include "c_common_uart.h"
 #include <math.h>
+#include "pv_typedefs.h"
 
 #ifdef __cplusplus
  extern "C" {
@@ -91,9 +92,18 @@ void headSerialResponse(uint8_t size, uint8_t multwii_msg);
 void tailSerialReply();
 int get_raw_size();
 /*********************End of serial comm************************************/
+/************************************************* Deserial functions *****************************************************************/
+uint16_t deserialize16(int posInit);
+uint32_t deserialize32(int posInit);
+float decodeFloat(int posInit);
+int  c_common_datapr_multiwii_receivestack(USART_TypeDef* USARTx);
+void decodeMessage(USART_TypeDef* USARTx,uint8_t tam, uint8_t msg);
+bool confirmCheckSum(USART_TypeDef* USARTx,uint8_t tam);
+/*********************End of serial comm************************************/
 
 /* Exported functions ------------------------------------------------------- */
 /*********************Begin of ... something************************************/
+pv_type_actuation  c_common_datapr_multwii_getattitude();
 
 void c_common_datapr_multwii_attitude(float x,float y,float z);
 void c_common_datapr_multwii_raw_imu(float* acc,float* gyr, float* mag);
@@ -106,7 +116,7 @@ void c_common_datapr_multwii_debug(float debug1,float  debug2,float  debug3,floa
 void c_common_datapr_multwii_sendstack(USART_TypeDef* USARTx);
 void c_common_datapr_multwii2_sendEscdata(int rpm[2],float current[2],float voltage[2]);
 void c_common_datapr_multwii2_rcNormalize(int channel[7]);
-void c_common_datapr_multwii2_sendControldatain(float rpy[3], float drpy[3], float position[3], float velocity[3]);
+void c_common_datapr_multwii2_sendControldatain(float rpy[3], float drpy[3], float position[3], float velocity[3],float alpha[2], float dotAlpha[2]);
 void c_common_datapr_multwii2_sendControldataout(float servo[2], float escTorque[2], float escRpm[2]);
 
 #ifdef __cplusplus

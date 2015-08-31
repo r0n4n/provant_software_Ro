@@ -119,7 +119,8 @@ public:
 	void multwii_sendstack();
 	void multwii2_sendEscdata(int rpm[2],float current[2],float voltage[2]);
 	void multwii2_rcNormalize(int channel[7]);
-	void multwii2_sendControldatain(float rpy[3], float drpy[3], float position[3], float velocity[3]);
+//	void multwii2_sendControldatain(float rpy[3], float drpy[3], float position[3], float velocity[3]);
+	void multwii2_sendControldatain(float rpy[3], float drpy[3], float position[3], float velocity[3], float alpha[2], float dotAlpha[2]);
 	void multwii2_sendControldataout(float servo[2], float escTorque[2], float escRpm[2]);
 };
 

@@ -61,26 +61,13 @@ typedef struct
 /** \brief Tipo do ESC com informações.*/
 typedef struct 
 {
-  char  ID;
-  float angularSpeed;
-  float current;
-  float voltage;
-  float rpm;
+  char  ID[2];
+  float angularSpeed[2];
+  float current[2];
+  float voltage[2];
+  float rpm[2];
   unsigned int  sampleTime;
 } pv_type_escOutput;
-
-/** \brief Dados do servo*/
-typedef struct 
-{
-  char  ID;
-  float angularSpeed;
-  float angle;
-  float torque;
-  uint8_t status_error;
-  uint8_t status_detai;
-  float rpm;
-  unsigned int  sampleTime;
-} pv_type_servoOutput;
 
 /** \brief Estrutura para orientação do VANT.*/
 typedef struct
@@ -96,13 +83,34 @@ typedef struct
   float dotX, dotY, dotZ;
 } pv_type_datapr_position;
 
+/** \brief Estrutura para stados dos servo do VANT.*/
+typedef struct
+{
+  float alphal, alphar;
+  float dotAlphal, dotAlphar;
+} pv_type_datapr_servos;
+
+/** \brief Dados do servo*/
+typedef struct
+{
+  char  ID;
+  pv_type_datapr_servos servo;
+  float torque;
+  uint8_t status_error;
+  uint8_t status_detai;
+  float rpm;
+  unsigned int  sampleTime;
+} pv_type_servoOutput;
+
 /** \brief Estrutura para dados de atuação.*/
 typedef struct
 {
   bool  servoTorqueControlEnable;
   float servoLeft;
-  float servoRight;
+  float escLeftNewtons;
   float escRightSpeed;
+  float servoRight;
+  float escRightNewtons;
   float escLeftSpeed;
 } pv_type_actuation;
 
@@ -206,6 +214,80 @@ typedef struct
 	float angularSpeed;
 	float position;
 } pv_msg_servo;
+
+/* Estruturas de mensagems do multiwii*/
+//GPS Raw Data
+typedef struct
+{
+	uint8_t gpsFix;
+	uint8_t gpsNumSat;
+	uint32_t gpsCoordLat;
+	uint32_t gpsCoordLong;
+	uint16_t gpsAltitude;
+	uint16_t gpsSpeed;
+	uint16_t gpsGroundCourse;
+}pv_type_gpsRawData;
+
+//GPS Comp Data
+typedef struct
+{
+	uint16_t gpsDistanceToHome;
+	uint16_t gpsDirectionToHome;
+	uint8_t gpsUpdate;
+}pv_type_gpsCompData;
+
+typedef struct
+{
+	uint8_t vbat;
+	uint16_t intPowerMeterSum;
+	uint16_t rssi;
+	uint16_t amperage;
+} pv_type_analog;
+
+typedef struct
+{
+	int32_t estAlt;
+	int16_t vario;
+}pv_type_altitude;
+
+typedef struct
+{
+	uint16_t cycleTime;
+	uint16_t i2cErrorsCount;
+	uint16_t sensor;
+	uint32_t flag;
+}pv_type_status;
+
+typedef struct
+{
+	uint16_t channels[12];
+	uint16_t normChannels[12];
+}pv_type_rc;
+
+//IDENT
+typedef struct
+{
+	uint8_t version;
+	uint8_t multitype;
+	uint8_t mspVersion;
+	uint32_t capability;
+}pv_type_ident;
+
+typedef struct
+	{
+	//Motor Pins
+	uint8_t pwmPin[8];
+	//Motor Speed
+	uint16_t motorSpeed[6];
+	//Servos
+	int16_t servos[6];
+}pv_type_motors;
+
+typedef struct
+	{
+	//Debug
+	int16_t debug[4];
+}pv_type_debug;
 
 /* Exported constants --------------------------------------------------------*/
 /* Exported macro ------------------------------------------------------------*/

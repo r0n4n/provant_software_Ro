@@ -40,6 +40,13 @@ namespace proVant{
 	} position;
 
 	typedef struct {
+		float alphar;
+		float alphal;
+		float dotAlphar;
+		float dotAlphal;
+	} servos_state;
+
+	typedef struct {
 		//Control output:
 		float servoLeft;
 		float escLeftNewtons;

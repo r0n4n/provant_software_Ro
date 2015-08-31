@@ -263,6 +263,11 @@ void proVantProtocol::decodeMessage(uint8_t tam, uint8_t msg){
 				vantData.setDotY(decodeFloat(42));
 				vantData.setDotZ(decodeFloat(46));
 
+				vantData.setAlphal(decodeFloat(50));
+				vantData.setAlphar(decodeFloat(54));
+				vantData.setDotAlphal(decodeFloat(58));
+				vantData.setDotAlphar(decodeFloat(62));
+
 				//printf("Roll %f\nPitch %f\nYaw %f\nDRoll %f\nDPitch %f\nDYaw %f\nX %f\nY %f\nZ %f\nDX %f\nDY %f\nDZ %f\n", vantData.getRoll(), vantData.getPitch(), vantData.getYaw(), vantData.getDotRoll(), vantData.getDotPitch(), vantData.getDotYaw(), vantData.getX(), vantData.getY(), vantData.getZ(), vantData.getDotX(), vantData.getDotY(), vantData.getDotZ());
 			break;
 			case MSP_CONTROLDATAOUT:
@@ -615,7 +620,7 @@ void proVantProtocol::multwii2_rcNormalize(int channel[7])
   tailSerialReply();
 }
 
-void proVantProtocol::multwii2_sendControldatain(float rpy[3], float drpy[3], float position[3], float velocity[3]){
+void proVantProtocol::multwii2_sendControldatain(float rpy[3], float drpy[3], float position[3], float velocity[3], float alpha[2], float dotAlpha[2]){
   headSerialResponse(48, MSP_CONTROLDATAIN);
   for (int i = 0; i < 3; ++i)
     serializeFloat(rpy[i]);
@@ -625,6 +630,10 @@ void proVantProtocol::multwii2_sendControldatain(float rpy[3], float drpy[3], fl
     serializeFloat(position[i]);
   for (int i = 0; i < 3; ++i)
     serializeFloat(velocity[i]);
+  for (int i = 0; i < 2; ++i)
+      serializeFloat(alpha[i]);
+  for (int i = 0; i < 2; ++i)
+      serializeFloat(dotAlpha[i]);
   tailSerialReply();
 }
 

@@ -34,9 +34,15 @@ unsigned int heartBeat=0;
 pv_msg_input iInputData;
 pv_msg_gps iGpsData;
 pv_msg_controlOutput iControlOutputData;
-float data1[2];
-float data2[2];
-float data3[2];
+float rpy[3];
+float drpy[3];
+float position[3];
+float velocity[3];
+float alpha[2];
+float dalpha[2];
+float aux[3];
+float servoTorque[2];
+float escForce[2];
 GPIOPin LED3;
 
 /* Private function prototypes -----------------------------------------------*/
@@ -80,9 +86,6 @@ void module_do_run()
 		//xQueueReceive(pv_interface_do.iGpsData, &iGpsData, 0);
 		//xQueueReceive(pv_interface_do.iControlOutputData, &iControlOutputData, 0);
 
-		arm_scale_f32(iInputData.imuOutput.accRaw,RAD_TO_DEG,iInputData.imuOutput.accRaw,3);
-		arm_scale_f32(iInputData.imuOutput.gyrRaw,RAD_TO_DEG,iInputData.imuOutput.gyrRaw,3);
-		int channel[]={iInputData.receiverOutput.joystick[0],iInputData.receiverOutput.joystick[1],iInputData.receiverOutput.joystick[2],iInputData.receiverOutput.joystick[3],iInputData.receiverOutput.aButton,iInputData.receiverOutput.bButton,iInputData.receiverOutput.vrPot};
 		# ifdef NONHIL
 		//c_common_datapr_multwii_raw_imu(iInputData.imuOutput.accRaw,iInputData.imuOutput.gyrRaw,iInputData.imuOutput.magRaw);
 		//c_common_datapr_multwii_attitude(iInputData.attitude.roll*RAD_TO_DEG*10,iInputData.attitude.pitch*RAD_TO_DEG*10,iInputData.attitude.yaw*RAD_TO_DEG*10);
@@ -107,18 +110,45 @@ void module_do_run()
 		//c_common_datapr_multwii2_sendControldataout(data1,data3,data2);
 		//c_common_datapr_multwii_sendstack(USART2);
 		#else
-		c_common_datapr_multwii_attitude(5,2,3);
-		c_common_datapr_multwii_altitude(-4,-5);
+		aux[0]=0;
+		aux[1]=0;
+
+		rpy[0]=1.1;
+		rpy[1]=2.2;
+		rpy[2]=3.3;
+
+		drpy[0]=4.4;
+		drpy[1]=5.5;
+		drpy[2]=6.6;
+
+		position[0]=7.7;
+		position[1]=8.8;
+		position[2]=9.9;
+
+		velocity[0]=10.15;
+		velocity[1]=11.11;
+		velocity[2]=12.12;
+
+		alpha[0]=13.13;
+		alpha[1]=14.14;
+
+		dalpha[0]=15.15;
+		dalpha[1]=16.16;
+
+		c_common_datapr_multwii2_sendControldatain(rpy,drpy,position,velocity,alpha,dalpha);
 		c_common_datapr_multwii_sendstack(USART2);
 
-		data1[0]=6.6;
-		data1[1]=7.7;
-		data2[0]=8.8;
-		data2[1]=9.9;
-		data3[0]=10.10;
-		data3[1]=11.11;
+		c_common_datapr_multiwii_receivestack(USART2);
+		pv_type_actuation  actuation=c_common_datapr_multwii_getattitude();
 
-		c_common_datapr_multwii2_sendControldataout(data1,data3,data2);
+		servoTorque[0]=actuation.servoLeft;
+		servoTorque[1]=actuation.servoRight;
+		escForce[0]=actuation.escLeftNewtons;
+		escForce[1]=actuation.escRightNewtons;
+		aux[0]=actuation.escLeftSpeed;
+		aux[1]=actuation.escRightSpeed;
+
+		c_common_datapr_multwii2_sendControldataout(servoTorque,escForce,aux);
 		c_common_datapr_multwii_sendstack(USART2);
 		#endif
 		/* toggle pin for debug */

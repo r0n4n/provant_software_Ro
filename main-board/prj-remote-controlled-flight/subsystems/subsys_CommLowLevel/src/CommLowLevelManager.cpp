@@ -65,29 +65,67 @@ void CommLowLevelManager::Run()
 {
     Init();
     // Algumas variaveis... 
-    proVant::atitude atitude, atd;
-    proVant::altitude altitude;
-    atitude.roll = 0;
-    atitude.pitch = 0;
-    atitude.yaw = 0;
-    atitude.dotRoll = 0;
-    atitude.dotPitch = 0;
-    atitude.dotYaw = 0;
+    proVant::atitude atitude;
+    proVant::position position;
+    proVant::servos_state servos;
+    proVant::controlOutput actuation;
+    float data1[2];
+    float data2[2];
+    float data3[2];
     int i = 0, n;
-    char *buffer;   
-
+    float esln, esls, esrn, esrs, serl, serr;
     // Loop principal!
     while(1) {
-    	//Send and recive uart
+    	//Recive states from Discovery
     	PROVANT.updateData();
     	atitude = PROVANT.getVantData().getAtitude();
-    	cout<<"roll="<<atitude.roll<<",pitch="<<atitude.pitch<<",yaw="<<atitude.yaw<<endl;
+    	position= PROVANT.getVantData().getPosition();
+    	servos= PROVANT.getVantData().getServoState();
+    	//Send Control to Discovery
+    	data1[0]=17.17;
+    	data1[1]=18.18;
+    	data3[0]=19.19;
+    	data3[1]=20.20;
+    	data2[0]=21.21;
+    	data2[1]=22.22;
+		PROVANT.multwii2_sendControldataout(data1,data3,data2);
+		PROVANT.multwii_sendstack();
 
-    	PROVANT2.multwii_attitude(atitude.roll,atitude.pitch,atitude.yaw);
+		//Receive Control from Discovery
+		PROVANT.updateData();
+		actuation=PROVANT.getVantData().getActuation();
+
+		//Print screen of data received
+		/*Position*/
+		cout<<"X= "<<position.x<<endl;
+		cout<<"Y= "<<position.y<<endl;
+		cout<<"Z= "<<position.z<<endl;
+		cout<<"dotX= "<<position.dotX<<endl;
+		cout<<"dotY= "<<position.dotY<<endl;
+		cout<<"dotZ= "<<position.dotZ<<endl;
+		/*Atitude*/
+		cout<<"Roll= "<<atitude.roll<<endl;
+		cout<<"Pitch= "<<atitude.pitch<<endl;
+		cout<<"Yaw= "<<atitude.yaw<<endl;
+		cout<<"dotRoll= "<<atitude.dotRoll<<endl;
+		cout<<"dotPitch= "<<atitude.dotPitch<<endl;
+		cout<<"dotYaw= "<<atitude.dotYaw<<endl;
+		/*Servos*/
+		cout<<"Alphal= "<<servos.alphal<<endl;
+		cout<<"Alphar= "<<servos.alphar<<endl;
+		cout<<"dotAlphal= "<<servos.dotAlphal<<endl;
+		cout<<"dotAlphar= "<<servos.dotAlphar<<endl;
+		/*Control*/
+		cout<<"EscLeftNew= "<<actuation.escLeftNewtons<<endl;
+		cout<<"EscRightNew= "<<actuation.escRightNewtons<<endl;
+		cout<<"ServLeft= "<<actuation.servoLeft<<endl;
+		cout<<"ServRight= "<<actuation.servoRight<<endl;
+
+		PROVANT2.multwii_attitude(atitude.roll,atitude.pitch,atitude.yaw);
     	PROVANT2.multwii_sendstack();
 
     	interface->push(atitude, interface->q_atitude_out_);
-    	interface->push(altitude, interface->q_altitude_out_);
+    	//interface->push(altitude, interface->q_altitude_out_);
     	boost::this_thread::sleep(boost::posix_time::milliseconds(ms_sample_time));
     }
 }

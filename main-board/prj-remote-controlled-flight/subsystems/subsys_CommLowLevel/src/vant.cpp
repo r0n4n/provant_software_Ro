@@ -32,6 +32,10 @@ vant::vant() {
 	x = 0;
 	y = 0;
 	z = 0;
+	alphar=0;
+	alphal=0;
+	dotAlphar=0;
+	dotAlphal=0;
 
 	//Control output:
 	escRightNewtons = 0;
@@ -556,6 +560,31 @@ int16_t vant::getAcc(int pos){
 	return this->acc[pos-1];
 }
 
+void vant::setAlphal(float alphal){
+	this->alphal=alphal;
+}
+float vant::getAlphal(){
+	return this->alphal;
+}
+void vant::setAlphar(float alphar){
+	this->alphar=alphar;
+}
+float vant::getAlphar(){
+	return this->alphar;
+}
+void vant::setDotAlphal(float dotAlphal){
+	this->dotAlphal=dotAlphal;
+}
+float vant::getDotAlphal(){
+	return this->dotAlphal;
+}
+void vant::setDotAlphar(float dotAlphar){
+	this->dotAlphar=dotAlphar;
+}
+float vant::getDotAlphar(){
+	return this->dotAlphar;
+}
+
 proVant::atitude vant::getAtitude(){
 	proVant::atitude atd;
 
@@ -569,3 +598,35 @@ proVant::atitude vant::getAtitude(){
 	return atd;
 }
 
+proVant::position vant::getPosition(){
+	proVant::position position;
+	position.x=this->getX();
+	position.y=this->getY();
+	position.z=this->getZ();
+
+	position.dotX=this->getDotX();
+	position.dotY=this->getDotY();
+	position.dotZ=this->getDotZ();
+
+	return position;
+}
+
+proVant::servos_state vant::getServoState(){
+	proVant::servos_state servos;
+	servos.alphal=this->alphal;
+	servos.alphar=this->alphar;
+	servos.dotAlphal=this->dotAlphal;
+	servos.dotAlphar=this->dotAlphar;
+	return servos;
+}
+
+proVant::controlOutput vant::getActuation(){
+	proVant::controlOutput actuation;
+	actuation.servoLeft=this->servoLeft;
+	actuation.servoRight=this->servoRight;
+	actuation.escRightNewtons=this->escRightNewtons;
+	actuation.escLeftNewtons=this->escLeftNewtons;
+	actuation.escRightSpeed=this->escRightSpeed;
+	actuation.escLeftSpeed=this->escLeftSpeed;
+	return actuation;
+}
