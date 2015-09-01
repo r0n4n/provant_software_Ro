@@ -116,7 +116,7 @@ void c_common_datapr_multwii_debug(float debug1,float  debug2,float  debug3,floa
 void c_common_datapr_multwii_sendstack(USART_TypeDef* USARTx);
 void c_common_datapr_multwii2_sendEscdata(int rpm[2],float current[2],float voltage[2]);
 void c_common_datapr_multwii2_rcNormalize(int channel[7]);
-void c_common_datapr_multwii2_sendControldatain(float rpy[3], float drpy[3], float position[3], float velocity[3],float alpha[2], float dotAlpha[2]);
+void c_common_datapr_multwii2_sendControldatain(float rpy[3], float drpy[3], float position[3], float velocity[3]);
 void c_common_datapr_multwii2_sendControldataout(float servo[2], float escTorque[2], float escRpm[2]);
 
 #ifdef __cplusplus

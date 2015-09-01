@@ -26,7 +26,7 @@
 #include "DataProcessingInterface.h"
 
 //Modulos (nao precisa, mas pode incluir todos os headers dos submodulos)
-
+#include "proVantProtocol.h"
 
 /*! \brief Gerenciador padrão para módulos.
  *
@@ -52,7 +52,7 @@ private:
      *
      */
     void Init();
-
+    proVantProtocol PROVANT2;
     /***** Atributos e metodos especificos da topologia do modulo *****/
 
     // Submodulos deste modulo

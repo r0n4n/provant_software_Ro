@@ -44,7 +44,7 @@ file(MAKE_DIRECTORY ${PROJECT_INCLUDE_DIR})
 file(MAKE_DIRECTORY ${PROJECT_DOC_DIR})
 
 # Adding modules via subsystem folders
-#add_subdirectory("${PROJECT_SUBSYS_DIR}/subsys_DataProcessing")
+add_subdirectory("${PROJECT_SUBSYS_DIR}/subsys_DataProcessing")
 add_subdirectory("${PROJECT_SUBSYS_DIR}/subsys_ContinuousControl")
 add_subdirectory("${PROJECT_SUBSYS_DIR}/subsys_CommLowLevel")
 
@@ -114,11 +114,14 @@ include_directories(
         ${PROJECT_CONFIG_DIR}
         ${Boost_INCLUDE_DIRS}
         "${PROJECT_COMMON_DIR}/inc"
-        "${PROJECT_SUBSYS_DIR}/common/inc"
-	"${PROJECT_SUBSYS_DIR}/common"
+	"${PROJECT_SUBSYS_DIR}/common"        
+	"${PROJECT_SUBSYS_DIR}/common/Provant/inc"
+	"${PROJECT_SUBSYS_DIR}/common/BeagleInterface/inc"	
+	${PROJECT_COMMON_DIR_SUBSYS}/
+	
 	
 	# Include all `ext` directories in each subsystem
-        #"${PROJECT_SUBSYS_DIR}/subsys_DataProcessing/inc"
+        "${PROJECT_SUBSYS_DIR}/subsys_DataProcessing/inc"
         "${PROJECT_SUBSYS_DIR}/subsys_ContinuousControl/inc"
         "${PROJECT_SUBSYS_DIR}/subsys_CommLowLevel/inc"
 	${PROJECT_SUBSYS_DIR}/common/qpOases/include
@@ -126,7 +129,7 @@ include_directories(
 
 link_directories(
         ${Boost_LIBRARIES}
-        #"${PROJECT_SUBSYS_DIR}/subsys_DataProcessing/build"
+        "${PROJECT_SUBSYS_DIR}/subsys_DataProcessing/build"
         "${PROJECT_SUBSYS_DIR}/subsys_ContinuousControl/build"
         "${PROJECT_SUBSYS_DIR}/subsys_CommLowLevel/build"
 	${PROJECT_SUBSYS_DIR}/common/qpOases/bin
@@ -139,7 +142,7 @@ set_target_properties(${PROJECT_NAME} PROPERTIES DEBUG_POSTFIX _d)
 
 target_link_libraries(${PROJECT_NAME}
                         # Subsystems
-                        #subsys_DataProcessing_bundle
+                        subsys_DataProcessing_bundle
                         subsys_ContinuousControl_bundle
 			subsys_CommLowLevel_bundle
 			# System libraries

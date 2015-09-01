@@ -13,7 +13,7 @@
 
 #include <iostream>
 
-//#include "DataProcessingManager.h"
+#include "DataProcessingManager.h"
 #include "ContinuousControlManager.h"
 #include "CommLowLevelManager.h"
 //#include "ModuleManager.h"
@@ -33,18 +33,26 @@ public:
 };
 
 int main(int argc, char ** argv) {
-    //DataProcessingManager DataProcessing("DataProcessing:Manager");
+    DataProcessingManager DataProcessing("DataProcessing:Manager");
     ContinuousControlManager   ContinuousControl("ContinuousControl:Manager");  //AQUI
     CommLowLevelManager        CommLowLevel("CommLowLevel:Manager");  //AQUI
-    //ModuleManager         GenericModule("GenericModule:Manager");
-    //DataProcessing.interface->q_out_ = &GenericModule.interface->q_in;
+
+
     CommLowLevel.interface->q_atitude_out_ = &ContinuousControl.interface->q_atitude_in; //Aqui
-    CommLowLevel.interface->q_altitude_out_ = &ContinuousControl.interface->q_altitude_in; //Aqui
+    CommLowLevel.interface->q_position_out_ = &ContinuousControl.interface->q_position_in; //Aqui
+    CommLowLevel.interface->q_servos_out_ = &ContinuousControl.interface->q_servos_in; //Aqui
+    ContinuousControl.interface->q_actuation_out_ = &CommLowLevel.interface->q_actuation_in; //Aqui
+
+    CommLowLevel.interface->q_atitude2_out_ = &DataProcessing.interface->q_atitude_in; //Aqui
+    CommLowLevel.interface->q_position2_out_ = &DataProcessing.interface->q_position_in; //Aqui
+    CommLowLevel.interface->q_servos2_out_ = &DataProcessing.interface->q_servos_in; //Aqui
+    ContinuousControl.interface->q_actuation2_out_ = &DataProcessing.interface->q_actuation_in; //Aqui
 
     boost::thread th1( boost::bind( &CommLowLevelManager::Run, CommLowLevel) ); //AQUI
     boost::thread th2( boost::bind( &ContinuousControlManager::Run, ContinuousControl) ); //AQUI
-    //boost::thread th2( boost::bind( &ModuleManager::Run,         GenericModule ) );
+    boost::thread th3( boost::bind( &DataProcessingManager::Run, DataProcessing) ); //AQUI
 
     th1.join();
     th2.join();
+    th3.join();
 }

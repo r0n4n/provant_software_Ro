@@ -40,7 +40,8 @@ float position[3];
 float velocity[3];
 float alpha[2];
 float dalpha[2];
-float aux[3];
+int aux[2];
+float aux2[3];
 float servoTorque[2];
 float escForce[2];
 GPIOPin LED3;
@@ -92,7 +93,7 @@ void module_do_run()
 		//c_common_datapr_multwii_attitude(iGpsData.heartBeat,iGpsData.gpsOutput.lat,iGpsData.gpsOutput.lon);
 		//c_common_datapr_multwii2_rcNormalize(channel);
 		//c_common_datapr_multwii_altitude(iInputData.position.z,iInputData.position_refrence.z*100);
-		c_common_datapr_multwii_debug(iInputData.servoLeft.angle*180/PI,iInputData.servoLeft.angularSpeed*180/PI,iInputData.servoRight.angle*180/PI,iInputData.servoRight.angularSpeed*180/PI);
+		c_common_datapr_multwii_debug(iInputData.servoLeft.servo.alphal*180/PI,iInputData.servoLeft.servo.dotAlphal*180/PI,iInputData.servoRight.servo.alphar*180/PI,iInputData.servoRight.servo.dotAlphar*180/PI);
 		//c_common_datapr_multwii_debug(iInputData.servoLeft.torque,iInputData.servoLeft.torque,0,0);
 		c_common_datapr_multwii_sendstack(USART2);
 
@@ -113,6 +114,10 @@ void module_do_run()
 		aux[0]=0;
 		aux[1]=0;
 
+		aux2[0]=0;
+		aux2[1]=0;
+		aux2[2]=0;
+
 		rpy[0]=1.1;
 		rpy[1]=2.2;
 		rpy[2]=3.3;
@@ -129,13 +134,14 @@ void module_do_run()
 		velocity[1]=11.11;
 		velocity[2]=12.12;
 
-		alpha[0]=13.13;
-		alpha[1]=14.14;
+		alpha[0]=13.13;//iInputData.servoLeft.servo.alphal;
+		alpha[1]=14.14;//iInputData.servoRight.servo.alphar;
 
-		dalpha[0]=15.15;
-		dalpha[1]=16.16;
+		dalpha[0]=15.15;//iInputData.servoLeft.servo.dotAlphal;
+		dalpha[1]=16.16;//iInputData.servoRight.servo.dotAlphar;
 
-		c_common_datapr_multwii2_sendControldatain(rpy,drpy,position,velocity,alpha,dalpha);
+		c_common_datapr_multwii2_sendControldatain(rpy,drpy,position,velocity);
+		c_common_datapr_multwii2_sendEscdata(aux,alpha,dalpha);
 		c_common_datapr_multwii_sendstack(USART2);
 
 		c_common_datapr_multiwii_receivestack(USART2);
@@ -145,10 +151,10 @@ void module_do_run()
 		servoTorque[1]=actuation.servoRight;
 		escForce[0]=actuation.escLeftNewtons;
 		escForce[1]=actuation.escRightNewtons;
-		aux[0]=actuation.escLeftSpeed;
-		aux[1]=actuation.escRightSpeed;
+		aux2[0]=actuation.escLeftSpeed;
+		aux2[1]=actuation.escRightSpeed;
 
-		c_common_datapr_multwii2_sendControldataout(servoTorque,escForce,aux);
+		c_common_datapr_multwii2_sendControldataout(servoTorque,escForce,aux2);
 		c_common_datapr_multwii_sendstack(USART2);
 		#endif
 		/* toggle pin for debug */

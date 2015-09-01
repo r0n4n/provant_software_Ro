@@ -52,7 +52,10 @@ set(SRCS
 
 	${PROJECT_COMMON_DIR}/src/AbstractMessageInterface.cpp
 	${PROJECT_COMMON_DIR}/src/AbstractModuleManager.cpp
-	${PROJECT_COMMON_DIR_SUBSYS}/MathNeon/src
+	${PROJECT_COMMON_DIR_SUBSYS}/Provant/src/proVantProtocol.cpp
+	${PROJECT_COMMON_DIR_SUBSYS}/Provant/src/vant.cpp
+	${PROJECT_COMMON_DIR_SUBSYS}/BeagleInterface/src/uart.cpp
+	
 )
 
 
@@ -70,6 +73,10 @@ set(CMAKE_DEBUG_POSTFIX "_d")
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_DEBUG} -Wall -ftime-report")
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_RELEASE} -Wall")
 set(CMAKE_INSTALL_PREFIX "${CMAKE_CURRENT_BINARY_DIR}/dist")
+
+# specify the cross compiler
+set(CMAKE_C_COMPILER	arm-linux-gnueabihf-gcc-4.8)
+set(CMAKE_CXX_COMPILER	arm-linux-gnueabihf-g++-4.8)
 
 #set( CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -pg" )
 #set( CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} -pg" )
@@ -97,7 +104,9 @@ include_directories(
         ${PROJECT_INCLUDE_DIR}
         #${PROJECT_EXT_INCLUDE}
         ${PROJECT_CONFIG_DIR}
-	${PROJECT_COMMON_DIR}/inc	
+	${PROJECT_COMMON_DIR}/inc
+	${PROJECT_COMMON_DIR_SUBSYS}/Provant/inc
+	${PROJECT_COMMON_DIR_SUBSYS}/BeagleInterface/inc	
 	${PROJECT_COMMON_DIR_SUBSYS}
 	${PROJECT_COMMON_DIR_SUBSYS}/qpOases/include
         ${Boost_INCLUDE_DIRS}
@@ -117,7 +126,7 @@ set_target_properties(${PROJECT_NAME} PROPERTIES DEBUG_POSTFIX _d)
 target_link_libraries(${PROJECT_NAME}
                         pthread
                         boost_system
-                        boost_thread-mt
+                        boost_thread
                         boost_log
                         boost_log_setup
 			qpOASES

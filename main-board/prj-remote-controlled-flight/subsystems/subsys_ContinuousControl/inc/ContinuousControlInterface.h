@@ -32,22 +32,20 @@ class ContinuousControlInterface : public AbstractMessageInterface
 {
 public:
     ContinuousControlInterface(std::string name) :
-        //q_out_(NULL),
-	//q_atitude_out_(NULL),
+        q_actuation_out_(NULL),
+		q_actuation2_out_(NULL),
         name_(name) { }
 
     ~ContinuousControlInterface();
 
     // Inboxes
-    //MsgQueue<std::string>  q_in;
     MsgQueue<proVant::atitude> q_atitude_in;
-    MsgQueue<proVant::altitude> q_altitude_in;
+    MsgQueue<proVant::position> q_position_in;
+    MsgQueue<proVant::servos_state> q_servos_in;
 
     // Outboxes (ponteiros para inboxes alheios)
-    //MsgQueue<std::string>* q_out_;
-    //MsgQueue<proVant::atitude>* q_atitude_out_;
-    //MsgQueue<proVant::position>* q_position_;
-    //MsgQueue<std::string>* q_out_;
+    MsgQueue<proVant::controlOutput>* q_actuation_out_;
+    MsgQueue<proVant::controlOutput>* q_actuation2_out_;
 
 private:
     std::string name_;

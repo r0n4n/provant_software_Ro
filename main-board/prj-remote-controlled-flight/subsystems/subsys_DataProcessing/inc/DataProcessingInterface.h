@@ -21,6 +21,7 @@
 //Father
 #include "AbstractMessageInterface.h"
 
+#include "proVantTypes.h"
 
 /*! \brief Implementação da interface entre os modulos.
  *
@@ -31,16 +32,19 @@ class DataProcessingInterface : public AbstractMessageInterface
 {
 public:
     DataProcessingInterface(std::string name) :
-        q_out_(NULL),
+
         name_(name) { }
 
     ~DataProcessingInterface();
 
     // Inboxes
-    MsgQueue<std::string>  q_in;
+    MsgQueue<proVant::atitude> q_atitude_in;
+    MsgQueue<proVant::position> q_position_in;
+    MsgQueue<proVant::servos_state> q_servos_in;
+    MsgQueue<proVant::controlOutput> q_actuation_in;
 
     // Outboxes (ponteiros para inboxes alheios)
-    MsgQueue<std::string>* q_out_;
+
 
 private:
     std::string name_;

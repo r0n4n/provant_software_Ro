@@ -57,7 +57,7 @@ DataProcessingInterface * dummyIface;
 void testThread(){
     std::string msg("Test message!");
     while(true) {
-        dummyIface->push(msg, dummyIface->q_out_);
+//        dummyIface->push(msg, dummyIface->q_out_);
         boost::this_thread::sleep(boost::posix_time::milliseconds(1000));
     }
 }
@@ -74,8 +74,8 @@ int main(){
     DEBUG(LEVEL_INFO, "Created!");
 
     // Connect
-    dummyIface->q_out_ = &module1->interface->q_in;
-    module1->interface->q_out_ = &dummyIface->q_in;
+    //dummyIface->q_out_ = &module1->interface->q_in;
+    //module1->interface->q_out_ = &dummyIface->q_in;
 
     // Run module
     boost::thread th1( boost::bind( &DataProcessingManager::Run, module1) );

@@ -33,8 +33,12 @@ class CommLowLevelInterface : public AbstractMessageInterface
 public:
     CommLowLevelInterface(std::string name) :
         //q_out_(NULL),
-    q_altitude_out_(NULL),
+    q_position_out_(NULL),
 	q_atitude_out_(NULL),
+	q_servos_out_(NULL),
+	q_position2_out_(NULL),
+	q_atitude2_out_(NULL),
+	q_servos2_out_(NULL),
         name_(name) { }
 
     ~CommLowLevelInterface();
@@ -44,9 +48,17 @@ public:
     //MsgQueue<proVant::atitude> q_atitude_in;
 
     // Outboxes (ponteiros para inboxes alheios)
-    //MsgQueue<std::string>* q_out_;
+    //ControlOutput
     MsgQueue<proVant::atitude>* q_atitude_out_;
-    MsgQueue<proVant::altitude>* q_altitude_out_;
+    MsgQueue<proVant::position>* q_position_out_;
+    MsgQueue<proVant::servos_state>* q_servos_out_;
+    MsgQueue<proVant::controlOutput> q_actuation_in;
+    //Dataprocesing
+    MsgQueue<proVant::atitude>* q_atitude2_out_;
+    MsgQueue<proVant::position>* q_position2_out_;
+    MsgQueue<proVant::servos_state>* q_servos2_out_;
+    MsgQueue<proVant::controlOutput> q_actuation2_in;
+
     //MsgQueue<proVant::position>* q_position_;
     //MsgQueue<std::string>* q_out_;
 

@@ -47,11 +47,10 @@ set(MAIN_FILE ${PROJECT_SOURCE_DIR}/white_box_test.cpp)
 set(SRCS
         ${PROJECT_SOURCE_DIR}/CommLowLevelInterface.cpp
         ${PROJECT_SOURCE_DIR}/CommLowLevelManager.cpp
-        ${PROJECT_SOURCE_DIR}/proVantProtocol.cpp
-        ${PROJECT_SOURCE_DIR}/vant.cpp
-        ${PROJECT_SOURCE_DIR}/uart.cpp
-        #${PROJECT_SOURCE_DIR}/SubModule2.cpp
-
+        ${PROJECT_COMMON_DIR_SUBSYS}/Provant/src/proVantProtocol.cpp
+	${PROJECT_COMMON_DIR_SUBSYS}/Provant/src/vant.cpp
+	${PROJECT_COMMON_DIR_SUBSYS}/BeagleInterface/src/uart.cpp        
+	#${PROJECT_SOURCE_DIR}/SubModule2.cpp
 	${PROJECT_COMMON_DIR}/src/AbstractMessageInterface.cpp
 	${PROJECT_COMMON_DIR}/src/AbstractModuleManager.cpp
 )
@@ -107,7 +106,8 @@ include_directories(
         #${PROJECT_EXT_INCLUDE}
         ${PROJECT_CONFIG_DIR}
 	${PROJECT_COMMON_DIR}/inc	
-	${PROJECT_COMMON_DIR_SUBSYS}/inc	
+	${PROJECT_COMMON_DIR_SUBSYS}/Provant/inc
+	${PROJECT_COMMON_DIR_SUBSYS}/BeagleInterface/inc	
         ${PROJECT_COMMON_DIR_SUBSYS}
 	${PROJECT_COMMON_DIR_SUBSYS}/qpOases/include
         ${Boost_INCLUDE_DIRS}

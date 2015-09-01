@@ -299,8 +299,8 @@ void module_in_run()
 	//Leitura da posicao e velocidade atual dos servo motores
 	if (!oInputData.init){
 		if (c_io_herkulex_readData(oInputData.servoRight.ID )){
-			oInputData.servoRight.angularSpeed = c_io_herkulex_getVelocity();
-			oInputData.servoRight.angle        = c_io_herkulex_getPosition();
+			oInputData.servoRight.servo.dotAlphar= c_io_herkulex_getVelocity();
+			oInputData.servoRight.servo.alphar   = c_io_herkulex_getPosition();
 			oInputData.servoRight.status_error = c_io_herkulex_getStatusError();
 			oInputData.servoRight.status_detai = c_io_herkulex_getStatusDetail();
 			if (oInputData.servoRight.status_error)
@@ -308,8 +308,8 @@ void module_in_run()
 		}
 
 	    if (c_io_herkulex_readData(oInputData.servoLeft.ID )){
-	    	oInputData.servoLeft.angularSpeed = c_io_herkulex_getVelocity();
-	    	oInputData.servoLeft.angle        = c_io_herkulex_getPosition();
+	    	oInputData.servoLeft.servo.dotAlphal = c_io_herkulex_getVelocity();
+	    	oInputData.servoLeft.servo.alphal        = c_io_herkulex_getPosition();
 	    	oInputData.servoLeft.status_error = c_io_herkulex_getStatusError();
 	    	oInputData.servoLeft.status_detai = c_io_herkulex_getStatusDetail();
 	    	if (oInputData.servoLeft.status_error)
@@ -320,16 +320,16 @@ void module_in_run()
 		torq=((float)(oInputData.receiverOutput.joystick[1])/100)*1023;
 		oInputData.servoLeft.torque=torq;
 		//c_io_herkulex_setTorque2Servos(oInputData.servoRight.ID,torq,oInputData.servoLeft.ID,-torq);
-		//if((oInputData.servoRight.angle>0.9*(PI/2) && torq>0) || (oInputData.servoRight.angle<-0.9*(PI/2) && torq<0))
+		if((oInputData.servoRight.servo.alphar>0.9*(PI/2) && torq>0) || (oInputData.servoRight.servo.alphar<-0.9*(PI/2) && torq<0))
+			c_io_herkulex_setTorque(oInputData.servoRight.ID,0);
+		else
 			c_io_herkulex_setTorque(oInputData.servoRight.ID,torq);
-//		else
-//			c_io_herkulex_setTorque(oInputData.servoRight.ID,0);
-//
-//		if((oInputData.servoLeft.angle>0.9*(PI/2) && torq>0) || (oInputData.servoLeft.angle<-0.9*(PI/2) && torq<0))
+
+		if((oInputData.servoLeft.servo.alphal>0.9*(PI/2) && torq<0) || (oInputData.servoLeft.servo.alphal<-0.9*(PI/2) && torq>0))
+			c_io_herkulex_setTorque(oInputData.servoLeft.ID,0);
+		else
 			c_io_herkulex_setTorque(oInputData.servoLeft.ID,-torq);
-//		else
-//			c_io_herkulex_setTorque(oInputData.servoLeft.ID,0);
-//
+
 	}
 	#endif
 
