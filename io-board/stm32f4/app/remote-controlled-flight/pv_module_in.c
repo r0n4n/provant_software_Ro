@@ -25,12 +25,8 @@
 
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
-#define MODULE_PERIOD	   10//ms
-//servos declaraciones
-USART_TypeDef *USARTn = USART1;
-#define USART_BAUDRATE     115200
-#define QUEUE_SIZE 500
-char DATA[100];
+#define MODULE_PERIOD	   20//ms
+
 //
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
@@ -70,30 +66,9 @@ void module_in_init()
 	/* Inicializador do receiver */
 	c_rc_receiver_init();
 
-	/*-------------------Inicializar os servos----------------------*/
 	/* Inicializador do servos */
-	oInputData.servoRight.ID=253;
-	oInputData.servoLeft.ID=150;
-	oInputData.servoRight.status_detai=0;
-	oInputData.servoLeft.status_detai=0;
-	oInputData.servoRight.status_error=0;
-	oInputData.servoLeft.status_error=0;
-	oInputData.servoRight.servo.dotAlphar=0;
-	oInputData.servoLeft.servo.dotAlphal=0;
-	oInputData.servoRight.servo.alphar=0;
-	oInputData.servoLeft.servo.alphal=0;
+	c_io_servos_init();
 
-	/* Inicia a usart */
-	c_io_herkulex_init(USARTn,USART_BAUDRATE);
-	//c_common_utils_delayms(12);
-	c_io_herkulex_config(oInputData.servoRight.ID);
-	c_common_utils_delayms(12);
-	c_io_herkulex_config(oInputData.servoLeft.ID);
-
-	//c_io_herkulex_setTorqueControl(oInputData.servoRight.ID, TORQUE_FREE);
-	c_io_herkulex_setPosition(oInputData.servoRight.ID,0);
-	c_common_utils_delayms(12);
-	c_io_herkulex_setPosition(oInputData.servoLeft.ID,0);
 	/* Pin for debug */
 	//debugPin = c_common_gpio_init(GPIOE, GPIO_Pin_13, GPIO_Mode_OUT);
 
@@ -122,6 +97,9 @@ void module_in_run()
    	int n_valid_samples=0;
   	long sample_time_gyro_us[1] ={0};
   	int16_t torq;
+  	float barometer[2];
+  	float temperature;
+  	long pressure;
   	////////////////
 
   	/*Dados usados no sonar*/
@@ -182,6 +160,7 @@ void module_in_run()
     #ifdef ENABLE_IMU
 	/*----------------------Tratamento da IMU---------------------*/
     /* Pega e trata os valores da imu */
+    c_io_imu_getBarometerRaw(&pressure,&temperature);
 	c_io_imu_getRaw(oInputData.imuOutput.accRaw, oInputData.imuOutput.gyrRaw, oInputData.imuOutput.magRaw,sample_time_gyro_us);
 	c_datapr_MahonyAHRSupdate(attitude_quaternion,oInputData.imuOutput.gyrRaw[0],oInputData.imuOutput.gyrRaw[1],oInputData.imuOutput.gyrRaw[2],oInputData.imuOutput.accRaw[0],oInputData.imuOutput.accRaw[1],oInputData.imuOutput.accRaw[2],oInputData.imuOutput.magRaw[0],oInputData.imuOutput.magRaw[1],oInputData.imuOutput.magRaw[2],sample_time_gyro_us[0]);
 	c_io_imu_Quaternion2Euler(attitude_quaternion, rpy);
@@ -298,38 +277,7 @@ void module_in_run()
 	/*----------------------Tratamento dos servos---------------------*/
 	//Leitura da posicao e velocidade atual dos servo motores
 	if (!oInputData.init){
-		if (c_io_herkulex_readData(oInputData.servoRight.ID )){
-			oInputData.servoRight.servo.dotAlphar= c_io_herkulex_getVelocity();
-			oInputData.servoRight.servo.alphar   = c_io_herkulex_getPosition();
-			oInputData.servoRight.status_error = c_io_herkulex_getStatusError();
-			oInputData.servoRight.status_detai = c_io_herkulex_getStatusDetail();
-			if (oInputData.servoRight.status_error)
-	    			c_io_herkulex_clear(oInputData.servoRight.ID);
-		}
-
-	    if (c_io_herkulex_readData(oInputData.servoLeft.ID )){
-	    	oInputData.servoLeft.servo.dotAlphal = c_io_herkulex_getVelocity();
-	    	oInputData.servoLeft.servo.alphal        = c_io_herkulex_getPosition();
-	    	oInputData.servoLeft.status_error = c_io_herkulex_getStatusError();
-	    	oInputData.servoLeft.status_detai = c_io_herkulex_getStatusDetail();
-	    	if (oInputData.servoLeft.status_error)
-	    		c_io_herkulex_clear(oInputData.servoLeft.ID);
-	    }
-	}
-	if (!oInputData.init){
-		torq=((float)(oInputData.receiverOutput.joystick[1])/100)*1023;
-		oInputData.servoLeft.torque=torq;
-		//c_io_herkulex_setTorque2Servos(oInputData.servoRight.ID,torq,oInputData.servoLeft.ID,-torq);
-		if((oInputData.servoRight.servo.alphar>0.9*(PI/2) && torq>0) || (oInputData.servoRight.servo.alphar<-0.9*(PI/2) && torq<0))
-			c_io_herkulex_setTorque(oInputData.servoRight.ID,0);
-		else
-			c_io_herkulex_setTorque(oInputData.servoRight.ID,torq);
-
-		if((oInputData.servoLeft.servo.alphal>0.9*(PI/2) && torq<0) || (oInputData.servoLeft.servo.alphal<-0.9*(PI/2) && torq>0))
-			c_io_herkulex_setTorque(oInputData.servoLeft.ID,0);
-		else
-			c_io_herkulex_setTorque(oInputData.servoLeft.ID,-torq);
-
+		oInputData.servosOutput.servo=c_io_servos_read();
 	}
 	#endif
 

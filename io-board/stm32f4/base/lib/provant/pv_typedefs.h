@@ -93,13 +93,13 @@ typedef struct
 /** \brief Dados do servo*/
 typedef struct
 {
-  char  ID;
+  char  idRight;
+  char  idLeft;
   pv_type_datapr_servos servo;
-  float torque;
-  uint8_t status_error;
-  uint8_t status_detai;
-  float rpm;
-  unsigned int  sampleTime;
+  uint8_t status_errorRight;
+  uint8_t status_errorLeft;
+  uint8_t status_detaiRight;
+  uint8_t status_detaiLeft;
 } pv_type_servoOutput;
 
 /** \brief Estrutura para dados de atuação.*/
@@ -167,8 +167,7 @@ typedef struct
   pv_type_receiverOutput receiverOutput;
   pv_type_sonarOutput    sonarOutput;
   pv_type_escOutput      escOutput;
-  pv_type_servoOutput    servoLeft;
-  pv_type_servoOutput    servoRight;
+  pv_type_servoOutput    servosOutput;
   pv_type_datapr_attitude attitude;
   pv_type_datapr_position position;
   pv_type_datapr_attitude attitude_reference;

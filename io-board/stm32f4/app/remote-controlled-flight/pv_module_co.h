@@ -26,7 +26,7 @@
 #include "c_common_gpio.h"
 #include "c_common_i2c.h"
 #include "c_io_blctrl.h"
-#include "c_io_rx24f.h"
+#include "c_io_servos.h"
 
 /*Control includes*/
 #include "c_rc_BS_control.h"
@@ -43,6 +43,8 @@ struct pv_interface_co
 /* Exported constants --------------------------------------------------------*/
 /* Exported macro ------------------------------------------------------------*/
 #define ESC_MINIMUM_VELOCITY	10//esc set point value (0-255)
+#define ENABLE_SERVO
+//#define ENABLE_ESC
 /* Exported functions ------------------------------------------------------- */
 void module_co_init();
 void module_co_run();

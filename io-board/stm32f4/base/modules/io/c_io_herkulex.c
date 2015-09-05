@@ -520,7 +520,7 @@ void c_io_herkulex_config(uint8_t servoId)
 		DATA[i]=0;
 	c_io_herkulex_write(RAM,servo1_id,REG_KP,n,DATA);
 	*/
-
+	//c_io_herkulex_setBaudRate(servoId,666666);
 	c_io_herkulex_setTorqueControl(servoId, TORQUE_ON);
 	c_io_herkulex_clear(servoId);
 }

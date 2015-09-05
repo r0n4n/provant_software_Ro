@@ -235,6 +235,7 @@ public:
 	proVant::position getPosition();
 	proVant::servos_state getServoState();
 	proVant::controlOutput getActuation();
+
 };
 
 #endif /* VANT_H_ */

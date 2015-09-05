@@ -11,7 +11,8 @@
 /* Exported macros ------------------------------------------------------------*/
 
 // Choose the controller
-#define LQR_ATTITUDE_HEIGHT_CONTROL
+//#define LQR_ATTITUDE_HEIGHT_CONTROL
+#define TORQUE_CONTROL
 //#define BACKSTEPPING_ATTITUDE_HEIGHT_CONTROL //Based on Chowdhurry's article
 //#define LQR_PATHTRACK_CONTROL  //To be implemented
 //#define HINF_PATHTRACK_CONTROL //To be implemented
@@ -20,7 +21,7 @@
 
 #if defined LQR_ATTITUDE_HEIGHT_CONTROL || defined BACKSTEPPING_ATTITUDE_HEIGHT_CONTROL
  #define STABILITY_CONTROL
-#elif defined LQR_PATHTRACK_CONTROL || defined HINF_PATHTRACK_CONTROL || defined HMIX_PATHTRACK_CONTROL
+#elif defined LQR_PATHTRACK_CONTROL || defined HINF_PATHTRACK_CONTROL || defined HMIX_PATHTRACK_CONTROL || defined TORQUE_CONTROL
  #define PATH_TRACKING_CONTROL
 #endif
 

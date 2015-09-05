@@ -57,20 +57,7 @@ void module_co_init()
   c_io_blctrl_init_i2c(I2C3);
 
   /* Inicializar os servos */
-  c_io_rx24f_init(1000000);
-  c_common_utils_delayms(2);
-  c_io_rx24f_setSpeed(1, 200);
-  c_io_rx24f_setSpeed(2, 200);
-  c_common_utils_delayms(2);
-  /* CCW Compliance Margin e CCW Compliance margin */
-  c_io_rx24f_write(1, 0x1A,0x03);
-  c_io_rx24f_write(1, 0x1B,0x03);
-  c_io_rx24f_write(2, 0x1A,0x03);
-  c_io_rx24f_write(2, 0x1B,0x03);
-  c_common_utils_delayms(2);
-  c_io_rx24f_move(1, 130);
-  c_io_rx24f_move(2, 150);
-  c_common_utils_delayms(100);
+  //feito no module in
 
   /*Inicializar o tipo de controlador*/
   c_rc_BS_control_init();
@@ -121,35 +108,35 @@ void module_co_run()
 	 * */
 	#ifdef LQR_ATTITUDE_HEIGHT_CONTROL
 		iActuation = c_rc_LQR_AH_controller(iInputData.attitude,iInputData.attitude_reference,iInputData.position,iInputData.position_refrence,(float)(iInputData.receiverOutput.joystick[0])/200,iInputData.flightmode);
+		// Ajusta o eixo de referencia do servo (montado ao contrario)
+		iActuation.servoLeft = -iActuation.servoLeft;
 	#elif defined BACKSTEPPING_ATTITUDE_HEIGHT_CONTROL
 		iActuation = c_rc_BS_AH_controller(iInputData.attitude,iInputData.attitude_reference,iInputData.position,iInputData.position_refrence,(float)(iInputData.receiverOutput.joystick[0])/200,iInputData.flightmode,iInputData.enableintegration);
+		// Ajusta o eixo de referencia do servo (montado ao contrario)
+		iActuation.servoLeft = -iActuation.servoLeft;
+	#elif defined TORQUE_CONTROL
+		iActuation.servoRight=((float)iInputData.receiverOutput.joystick[1]/100)*1023;
+		iActuation.servoLeft=iActuation.servoRight;
 	#endif
-
-	//iActuation = c_rc_BS_AH_controller(iInputData.attitude,iInputData.attitude_reference,iInputData.position,iInputData.position_refrence,(float)iInputData.receiverOutput.joystick[0]/200,iInputData.flightmode,iInputData.enableintegration);
-
-	// Ajusta o eixo de referencia do servo (montado ao contrario)
-	iActuation.servoLeft = -iActuation.servoLeft;
-
+	#ifdef ENABLE_SERVO
 	/* Escrita dos servos */
-
 	if (iInputData.securityStop){
-		c_io_rx24f_move(1, 130+0);
-		c_io_rx24f_move(2, 150+0);
+		//c_io_servos_writePosition(0,0);
+		c_io_servos_writeTorque(0,0);
 	}
 	else{
 		// inicializacao
 		if (iInputData.init){
-			c_io_rx24f_move(1, 130+0);
-			c_io_rx24f_move(2, 150+0);
+			//c_io_servos_writePosition(0,0);
+			c_io_servos_writeTorque(0,0);
 		}
 		else{
-			if( (iActuation.servoRight*RAD_TO_DEG<70) && (iActuation.servoRight*RAD_TO_DEG>-70) )
-				c_io_rx24f_move(2, 150+iActuation.servoRight*RAD_TO_DEG);
-			if( (iActuation.servoLeft*RAD_TO_DEG<70) && (iActuation.servoLeft*RAD_TO_DEG>-70) )
-				c_io_rx24f_move(1, 130+iActuation.servoLeft*RAD_TO_DEG);
+			//c_io_servos_writePosition(iActuation.servoRight,iActuation.servoLeft);
+			c_io_servos_writeTorque(iActuation.servoRight,iActuation.servoLeft);
 		}
 	}
-
+	#endif
+	#ifdef ENABLE_ESC
 	/* Escrita dos esc */
 	unsigned char sp_right;
 	unsigned char sp_left;
@@ -174,6 +161,7 @@ void module_co_run()
 			c_io_blctrl_setSpeed(0, sp_left );//sp_left
 		}
 	}
+	#endif
 	oControlOutputData.actuation.escLeftSpeed=iActuation.escLeftSpeed;
 	oControlOutputData.actuation.escRightSpeed=iActuation.escRightSpeed;
 	oControlOutputData.actuation.servoLeft=iActuation.servoLeft;

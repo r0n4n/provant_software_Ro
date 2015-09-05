@@ -41,6 +41,7 @@ CommLowLevelManager::~CommLowLevelManager()
 
 void CommLowLevelManager::Init()
 {
+    //921600     460800
     PROVANT.init("/dev/ttyO1", 921600);
     DEBUG(LEVEL_INFO, "Connected 1");
 
@@ -66,6 +67,7 @@ void CommLowLevelManager::Run()
     proVant::servos_state servos;
     proVant::controlOutput actuation;
     proVant::controlOutput actuation2;
+
     float data1[2];
     float data2[2];
     float data3[2];
@@ -79,7 +81,7 @@ void CommLowLevelManager::Run()
     	atitude = PROVANT.getVantData().getAtitude();
     	position= PROVANT.getVantData().getPosition();
     	servos= PROVANT.getVantData().getServoState();    //Function made to save curren as alpha and
-    	                                                  //voltage as dotalpha in class vant
+
     	//Send Control to Discovery
     	if(interface->pop(actuation, &interface->q_actuation_in)){
     		/*Control*/
@@ -100,14 +102,14 @@ void CommLowLevelManager::Run()
 //		//Print screen of data received
 //		/*Atitude*/
 		cout<<"Atitude Received"<<endl;
-//		cout<<"Roll= "<<atitude.roll<<endl;
-//		cout<<"Pitch= "<<atitude.pitch<<endl;
-//		cout<<"Yaw= "<<atitude.yaw<<endl;
-//		cout<<"dotRoll= "<<atitude.dotRoll<<endl;
-//		cout<<"dotPitch= "<<atitude.dotPitch<<endl;
-//		cout<<"dotYaw= "<<atitude.dotYaw<<endl;
-//		/*Position*/
-		cout<<"Position Received"<<endl;
+		cout<<"Roll= "<<atitude.roll<<endl;
+		cout<<"Pitch= "<<atitude.pitch<<endl;
+		cout<<"Yaw= "<<atitude.yaw<<endl;
+		cout<<"dotRoll= "<<atitude.dotRoll<<endl;
+		cout<<"dotPitch= "<<atitude.dotPitch<<endl;
+		cout<<"dotYaw= "<<atitude.dotYaw<<endl;
+////		/*Position*/
+//		cout<<"Position Received"<<endl;
 //		cout<<"X= "<<position.x<<endl;
 //		cout<<"Y= "<<position.y<<endl;
 //		cout<<"Z= "<<position.z<<endl;
@@ -115,13 +117,13 @@ void CommLowLevelManager::Run()
 //		cout<<"dotY= "<<position.dotY<<endl;
 //		cout<<"dotZ= "<<position.dotZ<<endl;
 //		/*Servos*/
-		cout<<"Servos Received"<<endl;
+//		cout<<"Servos Received"<<endl;
 //		cout<<"Alphal= "<<servos.alphal<<endl;
 //		cout<<"Alphar= "<<servos.alphar<<endl;
 //		cout<<"dotAlphal= "<<servos.dotAlphal<<endl;
 //		cout<<"dotAlphar= "<<servos.dotAlphar<<endl;
 //		/*Control*/
-		cout<<"Control Received"<<endl;
+//		cout<<"Control Received"<<endl;
 //		cout<<"EscLeftNew= "<<actuation2.escLeftNewtons<<endl;
 //		cout<<"EscRightNew= "<<actuation2.escRightNewtons<<endl;
 //		cout<<"ServLeft= "<<actuation2.servoLeft<<endl;

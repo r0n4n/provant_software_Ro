@@ -23,9 +23,9 @@
     * Se ENABLE_* 1 então tal modulo será utilizado
     *
     */
-//#define ENABLE_IMU
-//#define ENABLE_SERVO
-#define ENABLE_ESC
+#define ENABLE_IMU
+#define ENABLE_SERVO
+//#define ENABLE_ESC
 //#define ENABLE_SONAR
 #define ENALBE_DEBUG
 
@@ -64,8 +64,7 @@
 
  /* proVANT includes */
 #include "c_io_blctrl.h"
-#include "c_io_rx24f.h" // Depois serao trocado pelo servo novo
-#include "c_io_herkulex.h" //Depois serao trocada por uma class que troque so os servos
+#include "c_io_servos.h"
 #include "c_io_imu.h"
 #include "c_io_sonar.h"
 #include "c_rc_receiver.h"

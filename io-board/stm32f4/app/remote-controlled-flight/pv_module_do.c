@@ -25,7 +25,7 @@
 /* Private define ------------------------------------------------------------*/
 #define MODULE_PERIOD	    10//ms
 #define USART_BAUDRATE     921600
-//#define USART_BAUDRATE     460800
+
 //#define NONHIL
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
@@ -130,32 +130,33 @@ void module_do_run()
 		position[1]=8.8;
 		position[2]=9.9;
 
-		velocity[0]=10.15;
+		velocity[0]=10.10;
 		velocity[1]=11.11;
 		velocity[2]=12.12;
 
-		alpha[0]=13.13;//iInputData.servoLeft.servo.alphal;
-		alpha[1]=14.14;//iInputData.servoRight.servo.alphar;
+		alpha[0]=iInputData.servosOutput.servo.alphal*RAD_TO_DEG;
+		alpha[1]=iInputData.servosOutput.servo.alphar*RAD_TO_DEG;
 
-		dalpha[0]=15.15;//iInputData.servoLeft.servo.dotAlphal;
-		dalpha[1]=16.16;//iInputData.servoRight.servo.dotAlphar;
+		dalpha[0]=iInputData.servosOutput.servo.dotAlphal*RAD_TO_DEG;
+		dalpha[1]=iInputData.servosOutput.servo.dotAlphar*RAD_TO_DEG;
 
 		c_common_datapr_multwii2_sendControldatain(rpy,drpy,position,velocity);
 		c_common_datapr_multwii2_sendEscdata(aux,alpha,dalpha);
 		c_common_datapr_multwii_sendstack(USART2);
 
-		c_common_datapr_multiwii_receivestack(USART2);
-		pv_type_actuation  actuation=c_common_datapr_multwii_getattitude();
 
-		servoTorque[0]=actuation.servoLeft;
-		servoTorque[1]=actuation.servoRight;
-		escForce[0]=actuation.escLeftNewtons;
-		escForce[1]=actuation.escRightNewtons;
-		aux2[0]=actuation.escLeftSpeed;
-		aux2[1]=actuation.escRightSpeed;
+		//c_common_datapr_multiwii_receivestack(USART2);
+		//pv_type_actuation  actuation=c_common_datapr_multwii_getattitude();
 
-		c_common_datapr_multwii2_sendControldataout(servoTorque,escForce,aux2);
-		c_common_datapr_multwii_sendstack(USART2);
+//		servoTorque[0]=actuation.servoLeft;
+//		servoTorque[1]=actuation.servoRight;
+//		escForce[0]=actuation.escLeftNewtons;
+//		escForce[1]=actuation.escRightNewtons;
+//		aux2[0]=actuation.escLeftSpeed;
+//		aux2[1]=actuation.escRightSpeed;
+//
+//		c_common_datapr_multwii2_sendControldataout(servoTorque,escForce,aux2);
+//		c_common_datapr_multwii_sendstack(USART2);
 		#endif
 		/* toggle pin for debug */
 		c_common_gpio_toggle(LED3);

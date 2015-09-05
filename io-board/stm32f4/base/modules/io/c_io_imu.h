@@ -18,6 +18,7 @@
 #include "c_common_utils.h"
 #include "c_common_gpio.h"
 
+
 #define ARM_MATH_CM4
 #include "arm_math.h"
 #include <math.h>
@@ -91,12 +92,14 @@
 #define CALIBRATE
 
 /* Exported macro ------------------------------------------------------------*/
-#define C_IO_IMU_USE_ITG_ADXL_HMC
+//#define C_IO_IMU_USE_ITG_ADXL_HMC
 //#define C_IO_IMU_USE_MPU6050_HMC5883
+#define C_IO_IMU_USE_GY_87
 
 /* Exported functions ------------------------------------------------------- */
  void c_io_imu_init(I2C_TypeDef* I2Cx);
  void c_io_imu_getRaw(float  * accRaw, float * gyrRaw, float * magRaw, long * sample_time__gyro_us);
+ void c_io_imu_getBarometerRaw(long *pressure,float *temperature);
  void c_io_imu_getComplimentaryRPY(float * acce_raw, float * gyro_raw, float * magn_raw, float sample_time, float * rpy);
  void c_io_imu_getKalmanFilterRPY(float * rpy, float * acce_raw, float * gyro_raw, float * magn_raw);
  void c_io_imu_initKalmanFilter();

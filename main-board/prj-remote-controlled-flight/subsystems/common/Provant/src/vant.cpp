@@ -630,3 +630,4 @@ proVant::controlOutput vant::getActuation(){
 	actuation.escLeftSpeed=this->escLeftSpeed;
 	return actuation;
 }
+

@@ -155,7 +155,7 @@ int main(void)
 
 	/* Init modules */
 	module_in_init();
-	//module_co_init();
+	module_co_init();
     module_do_init();
   //module_gps_init();
 
@@ -163,7 +163,7 @@ int main(void)
     //pv_interface_do.iGpsData    = pv_interface_gps.oGpsData;
     pv_interface_do.iInputData  = pv_interface_in.oInputData;
     //pv_interface_co.iInputData  = pv_interface_in.oInputData;
-    //pv_interface_do.iControlOutputData  = pv_interface_co.oControlOutputData;
+    pv_interface_do.iControlOutputData  = pv_interface_co.oControlOutputData;
 
 	/* create tasks
 	 * Prioridades - quanto maior o valor, maior a prioridade
@@ -171,7 +171,7 @@ int main(void)
     xTaskCreate(blink_led_task, (signed char *)"Blink led", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+1, NULL);
     xTaskCreate(module_do_task, (signed char *)"Data out", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+2, NULL);
     xTaskCreate(module_in_task, (signed char *)"Data input", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+3, NULL);
-   // xTaskCreate(module_co_task, (signed char *)"Control + output", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+4, NULL);
+    xTaskCreate(module_co_task, (signed char *)"Control + output", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+4, NULL);
     //xTaskCreate(module_gps_task, (signed char *)"Gps", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+2, NULL);
     //xTaskCreate(module_sm_task, (signed char *)"State machine", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+1, NULL);
 

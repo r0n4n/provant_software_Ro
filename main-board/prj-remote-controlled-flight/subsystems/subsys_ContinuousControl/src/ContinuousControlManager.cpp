@@ -77,7 +77,7 @@ void ContinuousControlManager::Run()
     while(1) {
     	if(interface->pop(atitude, &interface->q_atitude_in)){
     		/*Atitude*/
-    		cout<<"Atitude Received C"<<endl;
+//    		cout<<"Atitude Received C"<<endl;
 //    		cout<<"Roll= "<<atitude.roll<<endl;
 //    		cout<<"Pitch= "<<atitude.pitch<<endl;
 //    		cout<<"Yaw= "<<atitude.yaw<<endl;
@@ -87,7 +87,7 @@ void ContinuousControlManager::Run()
     	}
     	if(interface->pop(position, &interface->q_position_in)){
     		/*Position*/
-    		cout<<"Position Received C"<<endl;
+//    		cout<<"Position Received C"<<endl;
 //    		cout<<"X= "<<position.x<<endl;
 //    		cout<<"Y= "<<position.y<<endl;
 //    		cout<<"Z= "<<position.z<<endl;
@@ -97,7 +97,7 @@ void ContinuousControlManager::Run()
     	}
     	if(interface->pop(servos, &interface->q_servos_in)){
     		/*Servos*/
-    		cout<<"Servos Received C"<<endl;
+//    		cout<<"Servos Received C"<<endl;
 //    		cout<<"Alphal= "<<servos.alphal<<endl;
 //    		cout<<"Alphar= "<<servos.alphar<<endl;
 //    		cout<<"dotAlphal= "<<servos.dotAlphal<<endl;

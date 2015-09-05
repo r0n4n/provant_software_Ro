@@ -52,6 +52,54 @@
   #define HMC58X3_R_IDA 10
   #define HMC58X3_R_IDB 11
   #define HMC58X3_R_IDC 12
+#elif defined C_IO_IMU_USE_GY_87
+  #include "c_io_imu_MPU6050.h"
+  #include "c_io_imu_bmp180.h"
+  // HMC58X3 register map. For details see HMC58X3 datasheet
+  #define HMC5883L_ADDRESS       0x1E
+  #define HMC5883L_REG_CONFIG_A  0x00
+  #define HMC5883L_REG_CONFIG_B  0x01
+  #define HMC5883L_REG_MODE      0x02
+  #define HMC5883L_REG_OUT_X_M   0x03
+  #define HMC5883L_REG_OUT_X_L   0x04
+  #define HMC5883L_REG_OUT_Z_M   0x05
+  #define HMC5883L_REG_OUT_Z_L   0x06
+  #define HMC5883L_REG_OUT_Y_M   0x07
+  #define HMC5883L_REG_OUT_Y_L   0x08
+  #define HMC5883L_REG_STATUS    0x09
+  #define HMC5883L_REG_IDENT_A   0x0A
+  #define HMC5883L_REG_IDENT_B   0x0B
+  #define HMC5883L_REG_IDENT_C   0x0C
+  /*Bias*/
+  #define HMC_POS_BIAS 1
+  #define HMC_NEG_BIAS 2
+  /*Sample rate*/
+  #define HMC5883L_SAMPLES_8  0b11
+  #define HMC5883L_SAMPLES_4  0b10
+  #define HMC5883L_SAMPLES_2  0b01
+  #define HMC5883L_SAMPLES_1  0b00
+  /*Operation range*/
+  #define HMC5883L_RANGE_8_1GA   0b111
+  #define HMC5883L_RANGE_5_6GA   0b110
+  #define HMC5883L_RANGE_4_7GA   0b101
+  #define HMC5883L_RANGE_4GA     0b100
+  #define HMC5883L_RANGE_2_5GA   0b011
+  #define HMC5883L_RANGE_1_9GA   0b010
+  #define HMC5883L_RANGE_1_3GA   0b001
+  #define HMC5883L_RANGE_0_88GA  0b000
+  /*Data Rate*/
+  #define HMC5883L_DATARATE_75HZ     0b110
+  #define HMC5883L_DATARATE_30HZ     0b101
+  #define HMC5883L_DATARATE_15HZ     0b100
+  #define HMC5883L_DATARATE_7_5HZ    0b011
+  #define HMC5883L_DATARATE_3HZ      0b010
+  #define HMC5883L_DATARATE_1_5HZ    0b001
+  #define HMC5883L_DATARATE_0_75_HZ  0b000
+  /*Operation mode*/
+  #define HMC5883L_IDLE       0b10
+  #define HMC5883L_SINGLE     0b01
+  #define HMC5883L_CONTINOUS  0b00
+
 #else
   #error "Define an IMU type in `c_io_imu.h`! C_IO_USE_ITG_ADXL, or other!"
 #endif
@@ -92,7 +140,7 @@ void c_io_imu_Quaternion2EulerMadgwick(float * q, float * rpy);
  */
 void c_io_imu_init(I2C_TypeDef* I2Cx)
 {
-
+  uint8_t byteBuffer;
   I2Cx_imu=I2Cx;
 
 #ifdef C_IO_IMU_USE_ITG_ADXL_HMC // Inicialização para a IMU selecionada
@@ -135,15 +183,7 @@ void c_io_imu_init(I2C_TypeDef* I2Cx)
   c_common_i2c_writeByte(I2Cx_imu, GYRO_ADDR, 0x3E, 3); //clock to PLL gyro z axis
 
   /*-----------------------Magnetometer------------------------------*/
-  // HMC5883 (Magn) Run in continuous mode
-  c_common_i2c_writeByte(I2Cx_imu, MAGN_ADDR, 0x02, 0x00);
 
-  // configure the B register to default value of Sensor Input Field Range: 1.2Ga
-  // +/- 1.2Ga <-> +/- 2047
-  c_common_i2c_writeByte(I2Cx_imu, MAGN_ADDR, 0x01, 0x20);
-
-  //75Hz (maximum)
-  c_common_i2c_writeByte(I2Cx_imu, MAGN_ADDR, 0x00, 0x18);
 #endif
 
 #ifdef C_IO_IMU_USE_MPU6050_HMC5883 //Inicialização para a IMU baseada na MPU6050
@@ -158,6 +198,75 @@ void c_io_imu_init(I2C_TypeDef* I2Cx)
   //c_common_i2c_writeByte(0x1E, 0x02, 0x00);
   //uint8_t hmcid[3];
   //c_common_i2c_readBytes(HMC58X3_ADDR, HMC58X3_R_IDA, 3, hmcid);
+#endif
+#ifdef C_IO_IMU_USE_GY_87
+  	  // Alocar o sub i2c -> desligar o I2C Master da MPU, habilitar I2C bypass
+      c_common_i2c_writeBit(I2Cx_imu, MPU6050_I2C_ADDRESS, MPU6050_USER_CTRL, MPU6050_I2C_MST_EN, 0);
+
+      c_common_i2c_writeBit(I2Cx_imu, MPU6050_I2C_ADDRESS, MPU6050_INT_PIN_CFG, MPU6050_I2C_BYPASS_EN, 1);
+
+      // Clear the 'sleep' bit to start the sensor.
+      c_common_i2c_writeBit(I2Cx_imu, MPU6050_I2C_ADDRESS, MPU6050_PWR_MGMT_1, MPU6050_SLEEP, 0);
+
+      /*-----------------------Acelerometer------------------------------*/
+      // Source clock
+      //  0 Internal 8MHz oscillator
+      //  1 PLL with X axis gyroscope reference
+      //  2 PLL with Y axis gyroscope reference
+      //  3 PLL with Z axis gyroscope reference
+      //  4 PLL with external 32.768kHz reference
+      //  5 PLL with external 19.2MHz reference
+      //  6 Reserved
+      //  7 Stops the clock and keeps the timing generato in reset
+      c_common_i2c_writeBit(I2Cx_imu,MPU6050_I2C_ADDRESS,MPU6050_PWR_MGMT_1,0,1);
+      c_common_i2c_writeBit(I2Cx_imu,MPU6050_I2C_ADDRESS,MPU6050_PWR_MGMT_1,1,1);
+
+
+      // Accelerometer increase G-range
+      //0x0B -> (+/- 16G)
+      //8    -> (+/- 2G)
+      //9    -> (+/- 4G)<-
+      c_common_i2c_writeByte(I2Cx_imu, MPU6050_I2C_ADDRESS, MPU6050_ACCEL_CONFIG,3);
+
+      /*-----------------------Gyroscope-------------------*/
+      //DLPF_CFG |  Accelerometer |         Gyroscope     |
+      //         |  (Fs = 1kHz)   |                       |
+      //         |----------------|------------------------
+      //         |Bandwidth| Delay|Bandwidth| Delay |  Fs |
+      //         |(Hz)     | (ms) |  (Hz)   |  (ms) |(kHz)|
+      //---------|---------|------|---------|-------|-----|
+      // 0       | 260     |   0  |   256   | 0.98  |  8  |
+      // 1       | 184     | 2.0  |   188   | 1.9   |  1  |
+      // 2       |  94     | 3.0  |    98   | 2.8   |  1  |
+      // 3       |  44     | 4.9  |    42   | 4.8   |  1  |
+      // 4       |  21     | 8.5  |    20   | 8.3   |  1  |
+      // 5       |  10     |13.8  |    10   | 13.4  |  1  |
+      // 6       |   5     |19.0  |     5   | 18.6  |  1  |
+      // 7       |     RESERVED   |      RESERVED   |  8  |
+      c_common_i2c_writeBit(I2Cx_imu, MPU6050_I2C_ADDRESS, MPU6050_CONFIG, 2,1);
+      c_common_i2c_writeBit(I2Cx_imu, MPU6050_I2C_ADDRESS, MPU6050_CONFIG, 1,1);
+      c_common_i2c_writeBit(I2Cx_imu, MPU6050_I2C_ADDRESS, MPU6050_CONFIG, 0,0);
+
+      // Output data frequency (must change if the value in register 0x16 changes to fc=256Hz)
+      // 0 -> f=250Hz
+      // 1 -> f=500Hz
+      // 2 -> f=1000Hz
+      // 3 -> f=2000Hz
+      c_common_i2c_writeByte(I2Cx_imu, MPU6050_I2C_ADDRESS, MPU6050_GYRO_CONFIG,1);
+
+      /*-----------------------Magnetometer------------------------------*/
+      // HMC5883 (Magn) Run in continuous mode
+      c_common_i2c_writeByte(I2Cx_imu, HMC5883L_ADDRESS, HMC5883L_REG_MODE,0x00);
+
+      // configure the B register to default value of Sensor Input Field Range: 1.2Ga
+      // +/- 1.3Ga
+      c_common_i2c_writeByte(I2Cx_imu, HMC5883L_ADDRESS, HMC5883L_REG_CONFIG_B, 0x20);
+
+      //75Hz (maximum)
+      c_common_i2c_writeByte(I2Cx_imu, HMC5883L_ADDRESS, HMC5883L_REG_CONFIG_A, 0x18);
+
+      /*-----------------------Barometer------------------------------*/
+      c_io_imu_bmp180_int(I2Cx_imu);
 #endif
 }
 
@@ -311,6 +420,39 @@ float mag_tmp[3]={0};
 #endif
 
 #ifdef C_IO_IMU_USE_MPU6050_HMC5883
+
+    uint8_t  buffer[14];
+    c_common_i2c_readBytes(I2Cx_imu, MPU6050_I2C_ADDRESS, MPU6050_ACCEL_XOUT_H, 14, buffer);
+
+    /** A sensitividade do acelerômetro da MPU6050 é dada pela tabela (extraída do datasheet):
+    AFS_SEL | Full Scale Range | LSB Sensitivity
+    --------|------------------|----------------
+    0       | ±2g              | 16384 LSB/g
+    1       | ±4g              | 8192 LSB/g
+    2       | ±8g              | 4096 LSB/g
+    3       | ±16g             | 2048 LSB/g
+    ***********************************************/
+    float accScale = 16384.0f;
+
+    accRaw[0] = -1.0f*(float)((((signed char)buffer[0]) << 8) | ((uint8_t)buffer[1] & 0xFF))/accScale;
+    accRaw[1] = -1.0f*(float)((((signed char)buffer[2]) << 8) | ((uint8_t)buffer[3] & 0xFF))/accScale;
+    accRaw[2] =       (float)((((signed char)buffer[4]) << 8) | ((uint8_t)buffer[5] & 0xFF))/accScale;
+
+    /** A sensitividade do giroscópio da MPU6050 é dada pela tabela (extraída do datasheet):
+    FS_SEL | Full Scale Range | LSB Sensitivity
+    -------|------------------|----------------
+    0      | ± 250 °/s        | 131 LSB/°/s
+    1      | ± 500 °/s        | 65.5 LSB/°/s
+    2      | ± 1000 °/s       | 32.8 LSB/°/s
+    3      | ± 2000 °/s       | 16.4 LSB/°/s
+    ***********************************************/
+    float gyrScale = 131.0f;
+
+    gyrRaw[0] = (float)((((signed char)buffer[8])  << 8) | ((uint8_t)buffer[9]  & 0xFF))/gyrScale;
+    gyrRaw[1] = (float)((((signed char)buffer[10]) << 8) | ((uint8_t)buffer[11] & 0xFF))/gyrScale;
+    gyrRaw[2] = (float)((((signed char)buffer[12]) << 8) | ((uint8_t)buffer[13] & 0xFF))/gyrScale;
+#endif
+#ifdef C_IO_IMU_USE_GY_87
     uint8_t  buffer[14];
     c_common_i2c_readBytes(I2Cx_imu, MPU6050_I2C_ADDRESS, MPU6050_ACCEL_XOUT_H, 14, buffer);
 
@@ -345,6 +487,14 @@ float mag_tmp[3]={0};
 
 }
 
+void c_io_imu_getBarometerRaw(long *pressure,float *temperature){
+#ifdef C_IO_IMU_USE_GY_87
+	/*Barometer*/
+	*temperature=c_io_imu_bmp180_getTemperature();
+	/*Read pressure*/
+	*pressure= c_io_imu_bmp180_getPressure();
+#endif
+}
 float abs2(float num){
   if (num < 0)
     return -num;

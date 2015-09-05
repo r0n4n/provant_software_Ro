@@ -27,7 +27,7 @@ using namespace std;
 DataProcessingManager::DataProcessingManager(std::string name) :
     interface(new DataProcessingInterface("DataProcessing:Interface")),
     // sm1(new SubModule1), // talvez fosse mais interessante construir os submodulos no init
-    ms_sample_time(100),
+    ms_sample_time(10),
     name_(name)
 {
 
@@ -117,7 +117,7 @@ void DataProcessingManager::Run()
 
     	//Print screen of data received
     	/*Atitude*/
-    	cout<<"Atitude Received D"<<endl;
+//    	cout<<"Atitude Received D"<<endl;
 //    	cout<<"Roll= "<<atitude.roll<<endl;
 //    	cout<<"Pitch= "<<atitude.pitch<<endl;
 //    	cout<<"Yaw= "<<atitude.yaw<<endl;
@@ -125,7 +125,7 @@ void DataProcessingManager::Run()
 //    	cout<<"dotPitch= "<<atitude.dotPitch<<endl;
 //    	cout<<"dotYaw= "<<atitude.dotYaw<<endl;
     	/*Position*/
-    	cout<<"Position Received D"<<endl;
+//    	cout<<"Position Received D"<<endl;
 //    	cout<<"X= "<<position.x<<endl;
 //    	cout<<"Y= "<<position.y<<endl;
 //    	cout<<"Z= "<<position.z<<endl;
@@ -133,13 +133,13 @@ void DataProcessingManager::Run()
 //    	cout<<"dotY= "<<position.dotY<<endl;
 //    	cout<<"dotZ= "<<position.dotZ<<endl;
     	/*Servos*/
-    	cout<<"Servos Received D"<<endl;
+//    	cout<<"Servos Received D"<<endl;
 //    	cout<<"Alphal= "<<servos.alphal<<endl;
 //    	cout<<"Alphar= "<<servos.alphar<<endl;
 //    	cout<<"dotAlphal= "<<servos.dotAlphal<<endl;
 //    	cout<<"dotAlphar= "<<servos.dotAlphar<<endl;
     	/*Control*/
-    	cout<<"Control Received D"<<endl;
+//    	cout<<"Control Received D"<<endl;
 //    	cout<<"EscLeftNew= "<<actuation.escLeftNewtons<<endl;
 //    	cout<<"EscRightNew= "<<actuation.escRightNewtons<<endl;
 //    	cout<<"ServLeft= "<<actuation.servoLeft<<endl;
