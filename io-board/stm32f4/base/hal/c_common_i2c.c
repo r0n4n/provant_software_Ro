@@ -388,25 +388,6 @@ void c_common_i2c_writeBit(I2C_TypeDef* I2Cx ,uint8_t device, uint8_t address, u
 	c_common_i2c_writeByte(I2Cx, device, address,byteBuffer);
 }
 
-
-/** \brief Write multiple bits in an 8-bit device register.
- * @param devAddr I2C slave device address
- * @param regAddr Register regAddr to write to
- * @param bitStart First bit position to write (0-7)
- * @param length Number of bits to write (not more than 8)
- * @param data Right-aligned value to write
- * @return Status of operation (true = success)
- */
-void c_common_i2c_writeBits(I2C_TypeDef* I2Cx, uint8_t device, uint8_t address, uint8_t bitStart, uint8_t length, uint8_t data) {
-    uint8_t byteBuffer;
-    c_common_i2c_readBytes(I2Cx, device, address, 1,&byteBuffer);
-    uint8_t mask = ((1 << length) - 1) << (bitStart - length + 1);
-    data <<= (bitStart - length + 1); // shift data into correct position
-    data &= mask; // zero all non-important bits in data
-    byteBuffer &= ~(mask); // zero all important bits in existing byte
-    byteBuffer |= data; // combine data with existing byte
-    c_common_i2c_writeByte(I2Cx, device, address,byteBuffer);
-}
 /* IRQ handlers ------------------------------------------------------------- */
 
 

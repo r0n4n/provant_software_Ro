@@ -24,9 +24,9 @@
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
 #define MODULE_PERIOD	    10//ms
-#define USART_BAUDRATE     921600
+#define USART_BAUDRATE     460800 //921600
 
-//#define NONHIL
+#define NONHIL
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
 portTickType lastWakeTime;
@@ -88,12 +88,16 @@ void module_do_run()
 		//xQueueReceive(pv_interface_do.iControlOutputData, &iControlOutputData, 0);
 
 		# ifdef NONHIL
+		aux2[0]=iInputData.attitude.roll;
+		aux2[1]=iInputData.attitude.pitch;
+		aux2[2]=iInputData.attitude.yaw;
 		//c_common_datapr_multwii_raw_imu(iInputData.imuOutput.accRaw,iInputData.imuOutput.gyrRaw,iInputData.imuOutput.magRaw);
-		//c_common_datapr_multwii_attitude(iInputData.attitude.roll*RAD_TO_DEG*10,iInputData.attitude.pitch*RAD_TO_DEG*10,iInputData.attitude.yaw*RAD_TO_DEG*10);
+		c_common_datapr_multwii_attitude(iInputData.attitude.roll*RAD_TO_DEG*10,iInputData.attitude.pitch*RAD_TO_DEG*10,iInputData.attitude.yaw*RAD_TO_DEG*10);
+		c_common_datapr_multwii2_sendControldatain(iInputData.imuOutput.accRaw,iInputData.imuOutput.gyrRaw,iInputData.imuOutput.magRaw,aux2);
 		//c_common_datapr_multwii_attitude(iGpsData.heartBeat,iGpsData.gpsOutput.lat,iGpsData.gpsOutput.lon);
 		//c_common_datapr_multwii2_rcNormalize(channel);
 		//c_common_datapr_multwii_altitude(iInputData.position.z,iInputData.position_refrence.z*100);
-		c_common_datapr_multwii_debug(iInputData.servoLeft.servo.alphal*180/PI,iInputData.servoLeft.servo.dotAlphal*180/PI,iInputData.servoRight.servo.alphar*180/PI,iInputData.servoRight.servo.dotAlphar*180/PI);
+		//c_common_datapr_multwii_debug(iInputData.servoLeft.servo.alphal*180/PI,iInputData.servoLeft.servo.dotAlphal*180/PI,iInputData.servoRight.servo.alphar*180/PI,iInputData.servoRight.servo.dotAlphar*180/PI);
 		//c_common_datapr_multwii_debug(iInputData.servoLeft.torque,iInputData.servoLeft.torque,0,0);
 		c_common_datapr_multwii_sendstack(USART2);
 

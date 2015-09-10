@@ -34,6 +34,11 @@
 
 /* Includes ------------------------------------------------------------------*/
 /* Exported types ------------------------------------------------------------*/
+/* Exported macro ------------------------------------------------------------*/
+//#define C_IO_IMU_USE_ITG_ADXL_HMC
+//#define C_IO_IMU_USE_MPU6050_HMC5883
+#define C_IO_IMU_USE_GY_87
+
 /* Exported constants --------------------------------------------------------*/
 #define PV_IMU_ROLL        0
 #define PV_IMU_PITCH       1
@@ -50,34 +55,68 @@
 #define ACC_FILTER_2OD_5HZ
 #define MAG_FILTER_2OD_5HZ
 
-#define OFFSET_GYRO_X		   	-0.054287654320988
-#define OFFSET_GYRO_Y		   	-0.017202469135802
-#define OFFSET_GYRO_Z			0.008808641975309
+#ifdef C_IO_IMU_USE_ITG_ADXL_HMC
+	#define OFFSET_GYRO_X		   	-0.054287654320988
+	#define OFFSET_GYRO_Y		   	-0.017202469135802
+	#define OFFSET_GYRO_Z			0.008808641975309
 
-// Accelerometer
-// "accel x,y,z (min/max) = X_MIN/X_MAX Y_MIN/Y_MAX Z_MIN/Z_MAX *1000"
-#define ACCEL_X_MIN ((float) -0.996)
-#define ACCEL_X_MAX ((float) 1.097)
-#define ACCEL_Y_MIN ((float) -1.031)
-#define ACCEL_Y_MAX ((float) 1.070)
-#define ACCEL_Z_MIN ((float) -1.115)
-#define ACCEL_Z_MAX ((float) 0.914)
+ 	 // Accelerometer
+ 	 // "accel x,y,z (min/max) = X_MIN/X_MAX Y_MIN/Y_MAX Z_MIN/Z_MAX *1000"
+ 	 #define ACCEL_X_MIN ((float) -0.996)
+ 	 #define ACCEL_X_MAX ((float) 1.097)
+ 	 #define ACCEL_Y_MIN ((float) -1.031)
+ 	 #define ACCEL_Y_MAX ((float) 1.070)
+ 	 #define ACCEL_Z_MIN ((float) -1.115)
+ 	 #define ACCEL_Z_MAX ((float) 0.914)
 
-//Magnetometer parameters for calibration
-//see:http://diydrones.com/profiles/blogs/advanced-hard-and-soft-iron-magnetometer-calibration-for-dummies?id=705844%3ABlogPost%3A1676387&page=2#comments
-#define M11 1.807
-#define M12 -0.055
-#define M13 0.052
-#define M21 0.214
-#define M22 1.926
-#define M23 0.003
-#define M31 0.02
-#define M32 -0.048
-#define M33 2.071
+ 	 //Magnetometer parameters for calibration
+ 	 //see:http://diydrones.com/profiles/blogs/advanced-hard-and-soft-iron-magnetometer-calibration-for-dummies?id=705844%3ABlogPost%3A1676387&page=2#comments
+ 	 #define M11 1.807
+ 	 #define M12 -0.055
+ 	 #define M13 0.052
+ 	 #define M21 0.214
+ 	 #define M22 1.926
+ 	 #define M23 0.003
+ 	 #define M31 0.02
+ 	 #define M32 -0.048
+ 	 #define M33 2.071
 
-#define Bx -106.511
-#define By -150.561
-#define Bz -417.946
+ 	 #define Bx -106.511
+ 	 #define By -150.561
+ 	 #define Bz -417.946
+
+#endif
+#ifdef C_IO_IMU_USE_GY_87
+	#define OFFSET_GYRO_X		    -0.0261683229863
+	#define OFFSET_GYRO_Y		    -0.0001869642579
+	#define OFFSET_GYRO_Z			-0.0000596364945
+
+ 	 // Accelerometer
+  	 // "accel x,y,z (min/max) = X_MIN/X_MAX Y_MIN/Y_MAX Z_MIN/Z_MAX *1000"
+     #define ACCEL_X_MIN ((float) -0.996)
+	 #define ACCEL_X_MAX ((float)  1.097)
+	 #define ACCEL_Y_MIN ((float) -1.031)
+	 #define ACCEL_Y_MAX ((float)  1.070)
+	 #define ACCEL_Z_MIN ((float) -1.115)
+	 #define ACCEL_Z_MAX ((float)  0.914)
+
+  	 //Magnetometer parameters for calibration
+  	 //see:http://diydrones.com/profiles/blogs/advanced-hard-and-soft-iron-magnetometer-calibration-for-dummies?id=705844%3ABlogPost%3A1676387&page=2#comments
+  	 #define M11 1.807
+  	 #define M12 -0.055
+  	 #define M13 0.052
+  	 #define M21 0.214
+  	 #define M22 1.926
+  	 #define M23 0.003
+  	 #define M31 0.02
+  	 #define M32 -0.048
+  	 #define M33 2.071
+
+  	 #define Bx -106.511
+  	 #define By -150.561
+  	 #define Bz -417.946
+#endif
+
 
 // Sensor calibration scale and offset values
 // #define ACCEL_SENSIBILITY 256
@@ -91,15 +130,13 @@
 // define to use the calibration data. If not defined then the raw values of the sensors are used
 #define CALIBRATE
 
-/* Exported macro ------------------------------------------------------------*/
-//#define C_IO_IMU_USE_ITG_ADXL_HMC
-//#define C_IO_IMU_USE_MPU6050_HMC5883
-#define C_IO_IMU_USE_GY_87
 
 /* Exported functions ------------------------------------------------------- */
  void c_io_imu_init(I2C_TypeDef* I2Cx);
  void c_io_imu_getRaw(float  * accRaw, float * gyrRaw, float * magRaw, long * sample_time__gyro_us);
  void c_io_imu_getBarometerRaw(long *pressure,float *temperature);
+ float c_io_imu_getTemperature();
+ float c_io_imu_getPressure();
  void c_io_imu_getComplimentaryRPY(float * acce_raw, float * gyro_raw, float * magn_raw, float sample_time, float * rpy);
  void c_io_imu_getKalmanFilterRPY(float * rpy, float * acce_raw, float * gyro_raw, float * magn_raw);
  void c_io_imu_initKalmanFilter();

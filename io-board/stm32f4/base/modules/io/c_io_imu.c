@@ -200,59 +200,13 @@ void c_io_imu_init(I2C_TypeDef* I2Cx)
   //c_common_i2c_readBytes(HMC58X3_ADDR, HMC58X3_R_IDA, 3, hmcid);
 #endif
 #ifdef C_IO_IMU_USE_GY_87
-  	  // Alocar o sub i2c -> desligar o I2C Master da MPU, habilitar I2C bypass
-      c_common_i2c_writeBit(I2Cx_imu, MPU6050_I2C_ADDRESS, MPU6050_USER_CTRL, MPU6050_I2C_MST_EN, 0);
+  	  /*-----------------------Acelerometer------------------------------*/
+  	  c_io_imu_MPU6050_int(I2Cx_imu);
 
-      c_common_i2c_writeBit(I2Cx_imu, MPU6050_I2C_ADDRESS, MPU6050_INT_PIN_CFG, MPU6050_I2C_BYPASS_EN, 1);
-
-      // Clear the 'sleep' bit to start the sensor.
-      c_common_i2c_writeBit(I2Cx_imu, MPU6050_I2C_ADDRESS, MPU6050_PWR_MGMT_1, MPU6050_SLEEP, 0);
-
-      /*-----------------------Acelerometer------------------------------*/
-      // Source clock
-      //  0 Internal 8MHz oscillator
-      //  1 PLL with X axis gyroscope reference
-      //  2 PLL with Y axis gyroscope reference
-      //  3 PLL with Z axis gyroscope reference
-      //  4 PLL with external 32.768kHz reference
-      //  5 PLL with external 19.2MHz reference
-      //  6 Reserved
-      //  7 Stops the clock and keeps the timing generato in reset
-      c_common_i2c_writeBit(I2Cx_imu,MPU6050_I2C_ADDRESS,MPU6050_PWR_MGMT_1,0,1);
-      c_common_i2c_writeBit(I2Cx_imu,MPU6050_I2C_ADDRESS,MPU6050_PWR_MGMT_1,1,1);
-
-
-      // Accelerometer increase G-range
-      //0x0B -> (+/- 16G)
-      //8    -> (+/- 2G)
-      //9    -> (+/- 4G)<-
-      c_common_i2c_writeByte(I2Cx_imu, MPU6050_I2C_ADDRESS, MPU6050_ACCEL_CONFIG,3);
-
-      /*-----------------------Gyroscope-------------------*/
-      //DLPF_CFG |  Accelerometer |         Gyroscope     |
-      //         |  (Fs = 1kHz)   |                       |
-      //         |----------------|------------------------
-      //         |Bandwidth| Delay|Bandwidth| Delay |  Fs |
-      //         |(Hz)     | (ms) |  (Hz)   |  (ms) |(kHz)|
-      //---------|---------|------|---------|-------|-----|
-      // 0       | 260     |   0  |   256   | 0.98  |  8  |
-      // 1       | 184     | 2.0  |   188   | 1.9   |  1  |
-      // 2       |  94     | 3.0  |    98   | 2.8   |  1  |
-      // 3       |  44     | 4.9  |    42   | 4.8   |  1  |
-      // 4       |  21     | 8.5  |    20   | 8.3   |  1  |
-      // 5       |  10     |13.8  |    10   | 13.4  |  1  |
-      // 6       |   5     |19.0  |     5   | 18.6  |  1  |
-      // 7       |     RESERVED   |      RESERVED   |  8  |
-      c_common_i2c_writeBit(I2Cx_imu, MPU6050_I2C_ADDRESS, MPU6050_CONFIG, 2,1);
-      c_common_i2c_writeBit(I2Cx_imu, MPU6050_I2C_ADDRESS, MPU6050_CONFIG, 1,1);
-      c_common_i2c_writeBit(I2Cx_imu, MPU6050_I2C_ADDRESS, MPU6050_CONFIG, 0,0);
-
-      // Output data frequency (must change if the value in register 0x16 changes to fc=256Hz)
-      // 0 -> f=250Hz
-      // 1 -> f=500Hz
-      // 2 -> f=1000Hz
-      // 3 -> f=2000Hz
-      c_common_i2c_writeByte(I2Cx_imu, MPU6050_I2C_ADDRESS, MPU6050_GYRO_CONFIG,1);
+  	  /*-------Cria as condiçoes necessarias para conectar o HMC5883L----*/
+  	  c_io_imu_MPU6050_setI2CMasterModeEnabled(false);
+  	  c_io_imu_MPU6050_setI2CBypassEnabled(true) ;
+  	  c_io_imu_MPU6050_setSleepEnabled(false);
 
       /*-----------------------Magnetometer------------------------------*/
       // HMC5883 (Magn) Run in continuous mode
@@ -453,36 +407,122 @@ float mag_tmp[3]={0};
     gyrRaw[2] = (float)((((signed char)buffer[12]) << 8) | ((uint8_t)buffer[13] & 0xFF))/gyrScale;
 #endif
 #ifdef C_IO_IMU_USE_GY_87
-    uint8_t  buffer[14];
-    c_common_i2c_readBytes(I2Cx_imu, MPU6050_I2C_ADDRESS, MPU6050_ACCEL_XOUT_H, 14, buffer);
+    // Read x, y, z acceleration, pack the data.
+       	int16_t  buffer[3]={};
+       	float accScale =0.00012207f; //= 1/8192
+       	/*g-ranges, full resolution - 1/sensitivity
+       	 * ±2g  16384 LSB/g
+         * ±4g  8192 LSB/g   <- setado no c_io_imu_MPU6050_int
+         * ±8g  4096 LSB/g
+         * ±16g 2048 LSB/g
+       	 */
+       	c_io_imu_MPU6050_getAcceleration(&buffer[0],&buffer[1],&buffer[2]);
 
-    /** A sensitividade do acelerômetro da MPU6050 é dada pela tabela (extraída do datasheet):
-    AFS_SEL | Full Scale Range | LSB Sensitivity
-    --------|------------------|----------------
-    0       | ±2g              | 16384 LSB/g
-    1       | ±4g              | 8192 LSB/g
-    2       | ±8g              | 4096 LSB/g
-    3       | ±16g             | 2048 LSB/g
-    ***********************************************/
-    float accScale = 16384.0f;
+       	// Para transformar em valores no SI -> acc/8192 *G m/s^2
+       	accRaw[0] = buffer[0]*accScale;
+       	accRaw[1] = buffer[1]*accScale;
+       	accRaw[2] = buffer[2]*accScale;
 
-    accRaw[0] = -1.0f*(float)((((signed char)buffer[0]) << 8) | ((uint8_t)buffer[1] & 0xFF))/accScale;
-    accRaw[1] = -1.0f*(float)((((signed char)buffer[2]) << 8) | ((uint8_t)buffer[3] & 0xFF))/accScale;
-    accRaw[2] =       (float)((((signed char)buffer[4]) << 8) | ((uint8_t)buffer[5] & 0xFF))/accScale;
+       	//2nd order filter with fc=5Hz
+       	#ifdef ACC_FILTER_2OD_5HZ
+       		float k1_2o_5Hz=-1.778631777824585, k2_2o_5Hz=0.800802646665708, k3_2o_5Hz=0.005542717210281, k4_2o_5Hz=0.011085434420561, k5_2o_5Hz=0.005542717210281;
 
-    /** A sensitividade do giroscópio da MPU6050 é dada pela tabela (extraída do datasheet):
-    FS_SEL | Full Scale Range | LSB Sensitivity
-    -------|------------------|----------------
-    0      | ± 250 °/s        | 131 LSB/°/s
-    1      | ± 500 °/s        | 65.5 LSB/°/s
-    2      | ± 1000 °/s       | 32.8 LSB/°/s
-    3      | ± 2000 °/s       | 16.4 LSB/°/s
-    ***********************************************/
-    float gyrScale = 131.0f;
+       		for (int i=0; i<3; i++){
+    			acc_filtered[i] = -k1_2o_5Hz*acc_filtered_k_minus_1[i] - k2_2o_5Hz*acc_filtered_k_minus_2[i] + k3_2o_5Hz*accRaw[i] + k4_2o_5Hz*acc_raw_k_minus_1[i] + k5_2o_5Hz*acc_raw_k_minus_2[i];
+    			// Filter memory
+    			acc_raw_k_minus_2[i] = acc_raw_k_minus_1[i];
+    			acc_raw_k_minus_1[i] = accRaw[i];
+    			acc_filtered_k_minus_2[i] = acc_filtered_k_minus_1[i];
+    			acc_filtered_k_minus_1[i] = acc_filtered[i];
+    		}
+    	#endif
 
-    gyrRaw[0] = (float)((((signed char)buffer[8])  << 8) | ((uint8_t)buffer[9]  & 0xFF))/gyrScale;
-    gyrRaw[1] = (float)((((signed char)buffer[10]) << 8) | ((uint8_t)buffer[11] & 0xFF))/gyrScale;
-    gyrRaw[2] = (float)((((signed char)buffer[12]) << 8) | ((uint8_t)buffer[13] & 0xFF))/gyrScale;
+    	// Read x, y, z from gyro, pack the data
+        /** A sensitividade do giroscopio é dada pela tabela (extraída do datasheet):
+         FS_SEL | Full Scale Range | LSB Sensitivity
+        --------|------------------|----------------
+            0   |    ± 250 °/s     |  131 LSB/°/s
+            1   |    ± 500 °/s     |  65.5 LSB/°/s
+            2   |    ± 1000 °/s    |  32.8 LSB/°/s
+            3   |    ± 2000 °/s    |  16.4 LSB/°/s <- setado no c_io_imu_MPU6050_int
+        ***********************************************/
+
+        float gyrScale =16.4f;
+        gyrScale = 0.0174532925f/gyrScale;//0.0174532925 = PI/180
+
+        c_io_imu_MPU6050_getRotation(&buffer[0],&buffer[1],&buffer[2]);
+        //c_common_i2c_readBytes(I2Cx_imu, GYRO_ADDR, GYRO_X_ADDR, 6, imuBuffer);
+        sample_time_gyro_us[0] = c_io_imu_sample_time_us();
+
+        gyrRaw[0] =  buffer[0]*gyrScale;
+        gyrRaw[1] =  buffer[1]*gyrScale;
+        gyrRaw[2] =  buffer[2]*gyrScale;
+
+        // Read x, y, z from magnetometer;
+
+        c_common_i2c_readBytes(I2Cx_imu, HMC5883L_ADDRESS, HMC5883L_REG_OUT_X_M , 6, imuBuffer);
+
+        magRaw[0] =  (int16_t)((imuBuffer[1] | (imuBuffer[0] << 8)));// X
+        magRaw[1] =  (int16_t)((imuBuffer[5] | (imuBuffer[4] << 8)));// Y
+        magRaw[2] =  (int16_t)((imuBuffer[3] | (imuBuffer[2] << 8)));// Z
+
+        //2nd order filter with fc=5Hz
+        #ifdef MAG_FILTER_2OD_5HZ
+        //float k1_2o_5Hz=-1.778631777824585, k2_2o_5Hz=0.800802646665708, k3_2o_5Hz=0.005542717210281, k4_2o_5Hz=0.011085434420561, k5_2o_5Hz=0.005542717210281;
+        	for (int i=0; i<3; i++){
+        		mag_filtered[i] = -k1_2o_5Hz*mag_filtered_k_minus_1[i] - k2_2o_5Hz*mag_filtered_k_minus_2[i] + k3_2o_5Hz*magRaw[i] + k4_2o_5Hz*mag_raw_k_minus_1[i] + k5_2o_5Hz*mag_raw_k_minus_2[i];
+        		// Filter memory
+        		mag_raw_k_minus_2[i] = mag_raw_k_minus_1[i];
+        		mag_raw_k_minus_1[i] = magRaw[i];
+        		mag_filtered_k_minus_2[i] = mag_filtered_k_minus_1[i];
+        		mag_filtered_k_minus_1[i] = mag_filtered[i];
+        	}
+        #endif
+
+    	#ifdef CALIBRATE
+        	// Compensate accelerometer error
+    		#ifdef ACC_FILTER_2OD_5HZ
+        		accRaw[0] = (acc_filtered[0] - ACCEL_X_OFFSET) * ACCEL_X_SCALE;
+        		accRaw[1] = (acc_filtered[1] - ACCEL_Y_OFFSET) * ACCEL_Y_SCALE;
+        		accRaw[2] = (acc_filtered[2] - ACCEL_Z_OFFSET) * ACCEL_Z_SCALE;
+    		#else
+        		accRaw[0] = (accRaw[0] - ACCEL_X_OFFSET) * ACCEL_X_SCALE;
+        		accRaw[1] = (accRaw[1] - ACCEL_Y_OFFSET) * ACCEL_Y_SCALE;
+        		accRaw[2] = (accRaw[2] - ACCEL_Z_OFFSET) * ACCEL_Z_SCALE;
+    		#endif
+
+        	// Compensate magnetometer error
+    		#ifdef MAG_FILTER_2OD_5HZ
+        		for (int i=0; i<3; i++)
+        			magRaw[i] = mag_filtered[i] - mag_bias[i];
+
+        		float result[3] = {0, 0, 0};
+        		for (int i=0; i<3; i++)
+        			for (int j=0; j<3; ++j)
+        				result[i] += mag_calibration_matrix[i][j] * magRaw[j];
+
+        		//calibrated values
+        		for (int i=0; i<3; i++) magRaw[i] = result[i];
+
+    		#else
+        		for (int i=0; i<3; ++i)
+        			magRaw[i] = magRaw[i] - mag_bias[i];
+
+        		float result[3] = {0, 0, 0};
+        		for (int i=0; i<3; ++i)
+        			for (int j=0; j<3; ++j)
+        				result[i] += mag_calibration_matrix[i][j] * magRaw[j];
+
+        		//calibrated values
+        		for (int i=0; i<3; ++i) magRaw[i] = result[i];
+
+    		#endif
+
+        	// Compensate gyroscope error
+        	gyrRaw[0] -= OFFSET_GYRO_X;
+        	gyrRaw[1] -= OFFSET_GYRO_Y;
+        	gyrRaw[2] -= OFFSET_GYRO_Z;
+    	#endif
 #endif
 
 }
@@ -493,6 +533,20 @@ void c_io_imu_getBarometerRaw(long *pressure,float *temperature){
 	*temperature=c_io_imu_bmp180_getTemperature();
 	/*Read pressure*/
 	*pressure= c_io_imu_bmp180_getPressure();
+#endif
+}
+float c_io_imu_getTemperature(){
+#ifdef C_IO_IMU_USE_GY_87
+	/*Read temperature*/
+	float temperature=c_io_imu_bmp180_getTemperature();
+	return temperature;
+#endif
+}
+float c_io_imu_getPressure(){
+#ifdef C_IO_IMU_USE_GY_87
+	/*Read pressure*/
+	float pressure=c_io_imu_bmp180_getPressure();
+	return pressure;
 #endif
 }
 float abs2(float num){
