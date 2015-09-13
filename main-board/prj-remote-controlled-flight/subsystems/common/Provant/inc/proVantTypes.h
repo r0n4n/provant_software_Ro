@@ -106,12 +106,12 @@ namespace proVant{
 
 	typedef struct {
 		//RC
-		uint16_t channels[12];
+		uint16_t channels[7];
 	} rc;
 
 	typedef struct {
 		//RC Normalize
-		int16_t normChannels[12];
+		int16_t normChannels[7];
 	} rcNormalize;
 
 	typedef struct {

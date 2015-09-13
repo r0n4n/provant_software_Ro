@@ -85,10 +85,10 @@ class vant {
 	uint32_t flag;
 	
 	//RC
-	uint16_t channels[12];
+	int16_t channels[7];
 
 	//RC Normalize
-	int16_t normChannels[12];
+	int16_t normChannels[7];
 
 	//IDENT
 	uint8_t version; 
@@ -235,7 +235,8 @@ public:
 	proVant::position getPosition();
 	proVant::servos_state getServoState();
 	proVant::controlOutput getActuation();
-
+	proVant::debug getDebug();
+	proVant::rcNormalize getNormChannels();
 };
 
 #endif /* VANT_H_ */

@@ -85,7 +85,7 @@ vant::vant() {
 	flag = 0;
 	
 	//RC
-	for(i = 0; i < 12; i++){
+	for(i = 0; i < 7; i++){
 		channels[i] = 0;
 		normChannels[i] = 0;
 	}
@@ -462,12 +462,12 @@ uint16_t vant::getChannel(int channel){
 }
 
 void vant::setNormChannel(int channel, int16_t value){
-	this->channels[channel-1] = value;
+	this->normChannels[channel-1] = value;
 
 }
 
 int16_t vant::getNormChannel(int channel){
-	return channels[channel-1];
+	return normChannels[channel-1];
 }
 
 void vant::setVersion(uint8_t version){
@@ -630,4 +630,22 @@ proVant::controlOutput vant::getActuation(){
 	actuation.escLeftSpeed=this->escLeftSpeed;
 	return actuation;
 }
-
+proVant::debug vant::getDebug(){
+	proVant::debug debug2;
+	debug2.debug[0]=this->debug[0];
+	debug2.debug[1]=this->debug[1];
+	debug2.debug[2]=this->debug[2];
+	debug2.debug[3]=this->debug[3];
+	return debug2;
+}
+proVant::rcNormalize vant::getNormChannels(){
+	proVant::rcNormalize channel;
+	channel.normChannels[0]=this->normChannels[0];
+	channel.normChannels[1]=this->normChannels[1];
+	channel.normChannels[2]=this->normChannels[2];
+	channel.normChannels[3]=this->normChannels[3];
+	channel.normChannels[4]=this->normChannels[4];
+	channel.normChannels[5]=this->normChannels[5];
+	channel.normChannels[6]=this->normChannels[6];
+	return channel;
+}

@@ -24,9 +24,10 @@
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
 #define MODULE_PERIOD	    10//ms
-#define USART_BAUDRATE     460800 //921600
+//#define USART_BAUDRATE     460800  //<-Bluethood
+#define USART_BAUDRATE     921600 //<-Beaglebone
 
-#define NONHIL
+//#define NONHIL
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
 portTickType lastWakeTime;
@@ -44,6 +45,7 @@ int aux[2];
 float aux2[3];
 float servoTorque[2];
 float escForce[2];
+int channel[7];
 GPIOPin LED3;
 
 /* Private function prototypes -----------------------------------------------*/
@@ -122,13 +124,13 @@ void module_do_run()
 		aux2[1]=0;
 		aux2[2]=0;
 
-		rpy[0]=1.1;
-		rpy[1]=2.2;
-		rpy[2]=3.3;
+		rpy[0]=iInputData.attitude.roll;
+		rpy[1]=iInputData.attitude.pitch;
+		rpy[2]=iInputData.attitude.yaw;
 
-		drpy[0]=4.4;
-		drpy[1]=5.5;
-		drpy[2]=6.6;
+		drpy[0]=iInputData.attitude.dotRoll;
+		drpy[1]=iInputData.attitude.dotPitch;
+		drpy[2]=iInputData.attitude.dotYaw;
 
 		position[0]=7.7;
 		position[1]=8.8;
@@ -144,10 +146,19 @@ void module_do_run()
 		dalpha[0]=iInputData.servosOutput.servo.dotAlphal*RAD_TO_DEG;
 		dalpha[1]=iInputData.servosOutput.servo.dotAlphar*RAD_TO_DEG;
 
+		channel[0]=iInputData.receiverOutput.joystick[0];
+		channel[1]=iInputData.receiverOutput.joystick[1];
+		channel[2]=iInputData.receiverOutput.joystick[2];
+		channel[3]=iInputData.receiverOutput.joystick[3];
+		channel[4]=iInputData.receiverOutput.aButton;
+		channel[5]=iInputData.receiverOutput.bButton;
+		channel[6]=0;
+
 		c_common_datapr_multwii2_sendControldatain(rpy,drpy,position,velocity);
 		c_common_datapr_multwii2_sendEscdata(aux,alpha,dalpha);
+		c_common_datapr_multwii_debug(1,2,3,4);
+		c_common_datapr_multwii2_rcNormalize(channel);
 		c_common_datapr_multwii_sendstack(USART2);
-
 
 		//c_common_datapr_multiwii_receivestack(USART2);
 		//pv_type_actuation  actuation=c_common_datapr_multwii_getattitude();

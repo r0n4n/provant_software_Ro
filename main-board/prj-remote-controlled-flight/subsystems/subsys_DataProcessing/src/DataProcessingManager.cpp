@@ -21,6 +21,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string>
+#include <chrono>
 
 using namespace std;
 
@@ -59,7 +60,6 @@ void DataProcessingManager::Run()
     Init();
 
     // Algumas variaveis...
-    std::string msg("Hello!");
     proVant::atitude atitude;
     proVant::position position;
     proVant::servos_state servos;
@@ -80,6 +80,7 @@ void DataProcessingManager::Run()
     // Loop principal!
     while(1) {
         //...
+    	auto start2 = std::chrono::steady_clock::now();
     	if(interface->pop(atitude, &interface->q_atitude_in)){
     		/*Atitude*/
     		rpy[0]=atitude.roll;
@@ -115,42 +116,17 @@ void DataProcessingManager::Run()
     		aux2[1]=actuation.escRightSpeed;
     	}
 
-    	//Print screen of data received
-    	/*Atitude*/
-//    	cout<<"Atitude Received D"<<endl;
-//    	cout<<"Roll= "<<atitude.roll<<endl;
-//    	cout<<"Pitch= "<<atitude.pitch<<endl;
-//    	cout<<"Yaw= "<<atitude.yaw<<endl;
-//    	cout<<"dotRoll= "<<atitude.dotRoll<<endl;
-//    	cout<<"dotPitch= "<<atitude.dotPitch<<endl;
-//    	cout<<"dotYaw= "<<atitude.dotYaw<<endl;
-    	/*Position*/
-//    	cout<<"Position Received D"<<endl;
-//    	cout<<"X= "<<position.x<<endl;
-//    	cout<<"Y= "<<position.y<<endl;
-//    	cout<<"Z= "<<position.z<<endl;
-//    	cout<<"dotX= "<<position.dotX<<endl;
-//    	cout<<"dotY= "<<position.dotY<<endl;
-//    	cout<<"dotZ= "<<position.dotZ<<endl;
-    	/*Servos*/
-//    	cout<<"Servos Received D"<<endl;
-//    	cout<<"Alphal= "<<servos.alphal<<endl;
-//    	cout<<"Alphar= "<<servos.alphar<<endl;
-//    	cout<<"dotAlphal= "<<servos.dotAlphal<<endl;
-//    	cout<<"dotAlphar= "<<servos.dotAlphar<<endl;
-    	/*Control*/
-//    	cout<<"Control Received D"<<endl;
-//    	cout<<"EscLeftNew= "<<actuation.escLeftNewtons<<endl;
-//    	cout<<"EscRightNew= "<<actuation.escRightNewtons<<endl;
-//    	cout<<"ServLeft= "<<actuation.servoLeft<<endl;
-//    	cout<<"ServRight= "<<actuation.servoRight<<endl;
 
+    	PROVANT2.multwii_attitude(rpy[0]*RAD_TO_DEG,rpy[1]*RAD_TO_DEG,rpy[2]*RAD_TO_DEG);
     	PROVANT2.multwii2_sendControldatain(rpy,drpy,trajectory,velocity);
-    	PROVANT2.multwii2_sendEscdata(aux,alpha,dalpha);
     	PROVANT2.multwii_sendstack();
+    	PROVANT2.multwii2_sendEscdata(aux,alpha,dalpha);
     	PROVANT2.multwii2_sendControldataout(servoTorque,escForce,aux2);
     	PROVANT2.multwii_sendstack();
-        boost::this_thread::sleep(boost::posix_time::milliseconds(ms_sample_time));
+    	auto end2 = std::chrono::steady_clock::now();
+    	auto elapsed2 = std::chrono::duration_cast<std::chrono::microseconds>(end2 - start2);
+    	std::cout << "It took me 2: " << (float)(elapsed2.count()/1000) << " miliseconds." << std::endl;
+    	boost::this_thread::sleep(boost::posix_time::milliseconds(ms_sample_time));
     }
 }
 

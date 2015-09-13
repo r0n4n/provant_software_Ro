@@ -27,6 +27,7 @@
 
 //Modulos (nao precisa, mas pode incluir todos os headers dos submodulos)
 #include "proVantProtocol.h"
+#include "provant_const.h"
 
 /*! \brief Gerenciador padrão para módulos.
  *

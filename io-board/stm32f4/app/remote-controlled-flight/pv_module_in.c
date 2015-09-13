@@ -162,7 +162,7 @@ void module_in_run()
     /* Pega e trata os valores da imu */
     //c_io_imu_getBarometerRaw(&pressure,&temperature);
     //temperature=c_io_imu_getTemperature();
-    pressure=c_io_imu_getPressure();
+    //pressure=c_io_imu_getPressure();
 	c_io_imu_getRaw(oInputData.imuOutput.accRaw, oInputData.imuOutput.gyrRaw, oInputData.imuOutput.magRaw,sample_time_gyro_us);
 	c_datapr_MahonyAHRSupdate(attitude_quaternion,oInputData.imuOutput.gyrRaw[0],oInputData.imuOutput.gyrRaw[1],oInputData.imuOutput.gyrRaw[2],oInputData.imuOutput.accRaw[0],oInputData.imuOutput.accRaw[1],oInputData.imuOutput.accRaw[2],oInputData.imuOutput.magRaw[0],oInputData.imuOutput.magRaw[1],oInputData.imuOutput.magRaw[2],sample_time_gyro_us[0]);
 	c_io_imu_Quaternion2Euler(attitude_quaternion, rpy);

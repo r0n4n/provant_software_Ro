@@ -166,11 +166,11 @@ void proVantProtocol::decodeMessage(uint8_t tam, uint8_t msg){
 				vantData.setNormChannel(5, (int16_t)deserialize16(10));
 				vantData.setNormChannel(6, (int16_t)deserialize16(12));
 				vantData.setNormChannel(7, (int16_t)deserialize16(14));
-				vantData.setNormChannel(8, (int16_t)deserialize16(16));
-				vantData.setNormChannel(9, (int16_t)deserialize16(18));
-				vantData.setNormChannel(10, (int16_t)deserialize16(20));
-				vantData.setNormChannel(11, (int16_t)deserialize16(22));
-				vantData.setNormChannel(12, (int16_t)deserialize16(24));
+//				vantData.setNormChannel(8, (int16_t)deserialize16(16));
+//				vantData.setNormChannel(9, (int16_t)deserialize16(18));
+//				vantData.setNormChannel(10, (int16_t)deserialize16(20));
+//				vantData.setNormChannel(11, (int16_t)deserialize16(22));
+//				vantData.setNormChannel(12, (int16_t)deserialize16(24));
 
 				//printf("Ch1 %d\nCh2 %d\nCh3 %d\nCh4 %d\nCh5 %d\nCh6 %d\nCh7 %d\nCh8 %d\nCh9 %d\nCh10 %d\nCh11 %d\nCh12 %d\n", vantData.getNormChannel(1), vantData.getNormChannel(2), vantData.getNormChannel(3), vantData.getNormChannel(4), vantData.getNormChannel(5), vantData.getNormChannel(6), vantData.getNormChannel(7), vantData.getNormChannel(8), vantData.getNormChannel(9), vantData.getNormChannel(10), vantData.getNormChannel(11), vantData.getNormChannel(12));
 			break;

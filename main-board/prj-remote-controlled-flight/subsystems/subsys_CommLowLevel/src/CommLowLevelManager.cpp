@@ -22,6 +22,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string>
+#include <chrono>
 
 using namespace std;
 
@@ -65,6 +66,8 @@ void CommLowLevelManager::Run()
     proVant::atitude atitude;
     proVant::position position;
     proVant::servos_state servos;
+    proVant::debug debug;
+    proVant::rcNormalize rc;
     proVant::controlOutput actuation;
     proVant::controlOutput actuation2;
 
@@ -75,12 +78,14 @@ void CommLowLevelManager::Run()
     float esln, esls, esrn, esrs, serl, serr;
     // Loop principal!
     while(1) {
-
+    	auto start = std::chrono::steady_clock::now();
     	//Recive states from Discovery
     	PROVANT.updateData();
     	atitude = PROVANT.getVantData().getAtitude();
     	position= PROVANT.getVantData().getPosition();
-    	servos= PROVANT.getVantData().getServoState();    //Function made to save curren as alpha and
+    	servos= PROVANT.getVantData().getServoState();    //Function made to save current as alpha and voltage as dotalpha
+    	debug= PROVANT.getVantData().getDebug();
+    	rc= PROVANT.getVantData().getNormChannels();
 
     	//Send Control to Discovery
     	if(interface->pop(actuation, &interface->q_actuation_in)){
@@ -99,36 +104,6 @@ void CommLowLevelManager::Run()
 		PROVANT.updateData();
 		actuation2=PROVANT.getVantData().getActuation();
 
-//		//Print screen of data received
-//		/*Atitude*/
-		cout<<"Atitude Received"<<endl;
-		cout<<"Roll= "<<atitude.roll<<endl;
-		cout<<"Pitch= "<<atitude.pitch<<endl;
-		cout<<"Yaw= "<<atitude.yaw<<endl;
-		cout<<"dotRoll= "<<atitude.dotRoll<<endl;
-		cout<<"dotPitch= "<<atitude.dotPitch<<endl;
-		cout<<"dotYaw= "<<atitude.dotYaw<<endl;
-////		/*Position*/
-//		cout<<"Position Received"<<endl;
-//		cout<<"X= "<<position.x<<endl;
-//		cout<<"Y= "<<position.y<<endl;
-//		cout<<"Z= "<<position.z<<endl;
-//		cout<<"dotX= "<<position.dotX<<endl;
-//		cout<<"dotY= "<<position.dotY<<endl;
-//		cout<<"dotZ= "<<position.dotZ<<endl;
-//		/*Servos*/
-//		cout<<"Servos Received"<<endl;
-//		cout<<"Alphal= "<<servos.alphal<<endl;
-//		cout<<"Alphar= "<<servos.alphar<<endl;
-//		cout<<"dotAlphal= "<<servos.dotAlphal<<endl;
-//		cout<<"dotAlphar= "<<servos.dotAlphar<<endl;
-//		/*Control*/
-//		cout<<"Control Received"<<endl;
-//		cout<<"EscLeftNew= "<<actuation2.escLeftNewtons<<endl;
-//		cout<<"EscRightNew= "<<actuation2.escRightNewtons<<endl;
-//		cout<<"ServLeft= "<<actuation2.servoLeft<<endl;
-//		cout<<"ServRight= "<<actuation2.servoRight<<endl;
-
 		interface->push(position, interface->q_position_out_);
     	interface->push(atitude, interface->q_atitude_out_);
     	interface->push(servos, interface->q_servos_out_);
@@ -136,7 +111,10 @@ void CommLowLevelManager::Run()
     	interface->push(position, interface->q_position2_out_);
     	interface->push(atitude, interface->q_atitude2_out_);
     	interface->push(servos, interface->q_servos2_out_);
-
+    	//Elapsed time code
+    	auto end = std::chrono::steady_clock::now();
+    	auto elapsed = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
+    	std::cout << "It took me " << (float)(elapsed.count()/1000) << " miliseconds." << std::endl;
     	boost::this_thread::sleep(boost::posix_time::milliseconds(ms_sample_time));
     }
 }
