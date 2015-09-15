@@ -605,7 +605,7 @@ void proVantProtocol::multwii2_sendEscdata(int rpm[2],float current[2],float vol
  *
  * @param channel Dados das medidas dos canais realizados pelo receiver
  */
-void proVantProtocol::multwii2_rcNormalize(int channel[7])
+void proVantProtocol::multwii2_rcNormalize(int16_t channel[7])
 {
   headSerialResponse(2*7, MSP_RCNORMALIZE);
   for (int i = 0; i < 7; ++i)

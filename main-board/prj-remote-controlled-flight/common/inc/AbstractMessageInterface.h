@@ -77,7 +77,8 @@ public:
                 mq->q_mutex.unlock();
                 return false;
             } else {
-                value = mq->queue.front();
+                //value = mq->queue.front();
+            	value = mq->queue.back();
                 mq->queue.pop();
                 mq->q_mutex.unlock();
                 return true;

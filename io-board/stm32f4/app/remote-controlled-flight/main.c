@@ -162,9 +162,8 @@ int main(void)
     /* Connect modules: interface1.o* = interface2.i* */
     //pv_interface_do.iGpsData    = pv_interface_gps.oGpsData;
     pv_interface_do.iInputData  = pv_interface_in.oInputData;
-    //pv_interface_co.iInputData  = pv_interface_in.oInputData;
     pv_interface_do.iControlOutputData  = pv_interface_co.oControlOutputData;
-
+    pv_interface_co.iControlBeagleData  = pv_interface_do.oControlBeagleData;
 	/* create tasks
 	 * Prioridades - quanto maior o valor, maior a prioridade
 	 * */

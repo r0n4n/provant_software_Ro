@@ -23,7 +23,7 @@
 
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
-#define MODULE_PERIOD	 10//ms
+#define MODULE_PERIOD	 12//ms
 #define ESC_ON           1
 #define SERVO_ON         1
 
@@ -31,6 +31,7 @@
 /* Private variables ---------------------------------------------------------*/
 portTickType lastWakeTime;
 pv_msg_input iInputData;
+pv_msg_controlOutput iControlBeagleData;
 pv_msg_controlOutput oControlOutputData; 
 GPIOPin LED5;
 
@@ -64,9 +65,12 @@ void module_co_init()
 
   /* Pin for debug */
   LED5 = c_common_gpio_init(GPIOD, GPIO_Pin_14, GPIO_Mode_OUT); //LD5
-
+  /*Data consumed by the thread*/
   pv_interface_co.iInputData          = xQueueCreate(1, sizeof(pv_msg_input));
+  pv_interface_co.iControlBeagleData  = xQueueCreate(1, sizeof(pv_msg_controlOutput));
+  /*Data produced by the thread*/
   pv_interface_co.oControlOutputData  = xQueueCreate(1, sizeof(pv_msg_controlOutput));
+
 }
 
 /** \brief Função principal do módulo de RC.
@@ -98,6 +102,7 @@ void module_co_run()
 
     /* Passa os valores davariavel compartilha para a variavel iInputData */
     xQueueReceive(pv_interface_co.iInputData, &iInputData, 0);
+    xQueueReceive(pv_interface_co.iControlBeagleData, &iControlBeagleData, 0);
 
     /* Leitura do numero de ciclos atuais */
 	lastWakeTime = xTaskGetTickCount();
@@ -115,9 +120,10 @@ void module_co_run()
 		// Ajusta o eixo de referencia do servo (montado ao contrario)
 		iActuation.servoLeft = -iActuation.servoLeft;
 	#elif defined TORQUE_CONTROL
-		iActuation.servoRight=((float)iInputData.receiverOutput.joystick[1]/100)*1023;
-		iActuation.servoLeft=iActuation.servoRight;
+		iActuation.servoRight=iControlBeagleData.actuation.servoRight;//((float)iInputData.receiverOutput.joystick[1]/84)*1023;//
+		iActuation.servoLeft=iControlBeagleData.actuation.servoLeft;//((float)iInputData.receiverOutput.joystick[1]/84)*1023;
 	#endif
+
 	#ifdef ENABLE_SERVO
 	/* Escrita dos servos */
 	if (iInputData.securityStop){

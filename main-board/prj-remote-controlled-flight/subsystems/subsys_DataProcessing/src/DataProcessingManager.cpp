@@ -28,7 +28,7 @@ using namespace std;
 DataProcessingManager::DataProcessingManager(std::string name) :
     interface(new DataProcessingInterface("DataProcessing:Interface")),
     // sm1(new SubModule1), // talvez fosse mais interessante construir os submodulos no init
-    ms_sample_time(10),
+    ms_sample_time(15),
     name_(name)
 {
 
@@ -64,23 +64,28 @@ void DataProcessingManager::Run()
     proVant::position position;
     proVant::servos_state servos;
     proVant::controlOutput actuation;
-    float rpy[3];
-    float drpy[3];
-    float trajectory[3];
-    float velocity[3];
-    float alpha[2];
-    float dalpha[2];
-    int aux[2];
-    float aux2[3];
-    float servoTorque[2];
-    float escForce[2];
+    proVant::debug debug;
+    proVant::rcNormalize rc;
+
+    float rpy[3]={};
+    float drpy[3]={};
+    float trajectory[3]={};
+    float velocity[3]={};
+    float alpha[2]={};
+    float dalpha[2]={};
+    int aux[2]={};
+    float aux2[3]={};
+    float servoTorque[2]={};
+    float escForce[2]={};
+    int16_t debugv[4]={};
+    int16_t normChannels[7]={};
 
     int i = 0;
 
     // Loop principal!
     while(1) {
         //...
-    	auto start2 = std::chrono::steady_clock::now();
+//    	auto start2 = std::chrono::steady_clock::now();
     	if(interface->pop(atitude, &interface->q_atitude_in)){
     		/*Atitude*/
     		rpy[0]=atitude.roll;
@@ -115,7 +120,23 @@ void DataProcessingManager::Run()
     		aux2[0]=actuation.escLeftSpeed;
     		aux2[1]=actuation.escRightSpeed;
     	}
-
+    	if(interface->pop(debug, &interface->q_debug_in)){
+    		/*Debug*/
+    		debugv[0]=debug.debug[0];
+    		debugv[1]=debug.debug[1];
+    		debugv[2]=debug.debug[2];
+    		debugv[3]=debug.debug[3];
+    	}
+    	if(interface->pop(rc, &interface->q_rc_in)){
+    		/*Debug*/
+    		normChannels[0]=rc.normChannels[0];
+    		normChannels[1]=rc.normChannels[1];
+    		normChannels[2]=rc.normChannels[2];
+    		normChannels[3]=rc.normChannels[3];
+    		normChannels[4]=rc.normChannels[4];
+    		normChannels[5]=rc.normChannels[5];
+    		normChannels[6]=rc.normChannels[6];
+    	}
 
     	PROVANT2.multwii_attitude(rpy[0]*RAD_TO_DEG,rpy[1]*RAD_TO_DEG,rpy[2]*RAD_TO_DEG);
     	PROVANT2.multwii2_sendControldatain(rpy,drpy,trajectory,velocity);
@@ -123,9 +144,12 @@ void DataProcessingManager::Run()
     	PROVANT2.multwii2_sendEscdata(aux,alpha,dalpha);
     	PROVANT2.multwii2_sendControldataout(servoTorque,escForce,aux2);
     	PROVANT2.multwii_sendstack();
-    	auto end2 = std::chrono::steady_clock::now();
-    	auto elapsed2 = std::chrono::duration_cast<std::chrono::microseconds>(end2 - start2);
-    	std::cout << "It took me 2: " << (float)(elapsed2.count()/1000) << " miliseconds." << std::endl;
+    	//PROVANT2.multwii2_rcNormalize(normChannels);
+    	//PROVANT2.multwii_debug((float)debugv[0],(float)debugv[1],(float)debugv[2],(float)debugv[3]);
+    	//PROVANT2.multwii_sendstack();
+//    	auto end2 = std::chrono::steady_clock::now();
+//    	auto elapsed2 = std::chrono::duration_cast<std::chrono::microseconds>(end2 - start2);
+//      std::cout << "It took me 2: " << (float)(elapsed2.count()/1000) << " miliseconds." << std::endl;
     	boost::this_thread::sleep(boost::posix_time::milliseconds(ms_sample_time));
     }
 }

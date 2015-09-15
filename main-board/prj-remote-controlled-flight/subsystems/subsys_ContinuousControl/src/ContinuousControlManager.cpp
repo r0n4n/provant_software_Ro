@@ -30,7 +30,7 @@ using namespace std;
 ContinuousControlManager::ContinuousControlManager(std::string name) :
     interface(new ContinuousControlInterface("ContinuousControl:Interface")),
     // sm1(new SubModule1), // talvez fosse mais interessante construir os submodulos no init
-    ms_sample_time(10),
+    ms_sample_time(12),
     name_(name)
 {
 	mpc=new MPC::MpcControler();
@@ -63,16 +63,18 @@ void ContinuousControlManager::Run()
 {
     Init();
     // Algumas variaveis... 
-    std::string msg("Hello!");
     proVant::atitude atitude;
     proVant::position position;
     proVant::servos_state servos;
     proVant::controlOutput actuation;
-
+    proVant::debug debug;
+    proVant::rcNormalize rcNormalize;
+    int i=0;
     // Matrix class
     VectorXf xs(20);
     cout<<"init"<<endl;
-
+    for (int j=0;j<7;j++)
+    	rcNormalize.normChannels[j]=0;
     // Loop principal!
     while(1) {
     	if(interface->pop(atitude, &interface->q_atitude_in)){
@@ -103,19 +105,39 @@ void ContinuousControlManager::Run()
 //    		cout<<"dotAlphal= "<<servos.dotAlphal<<endl;
 //    		cout<<"dotAlphar= "<<servos.dotAlphar<<endl;
     	}
+    	if(interface->pop(debug, &interface->q_debug_in)){
+    		/*Servos*/
+    	//  cout<<"Servos Received C"<<endl;
+    	//  cout<<"Alphal= "<<servos.alphal<<endl;
+    	//  cout<<"Alphar= "<<servos.alphar<<endl;
+    	//  cout<<"dotAlphal= "<<servos.dotAlphal<<endl;
+    	//  cout<<"dotAlphar= "<<servos.dotAlphar<<endl;
+    	}
+    	if(interface->pop(rcNormalize, &interface->q_rc_in)){
+    	   	/*Servos*/
+    	//	cout<<"channel[1]"<<rcNormalize.normChannels[1]<<endl;
+    	//	cout<<"Alphar= "<<servos.alphar<<endl;
+    	//  cout<<"dotAlphal= "<<servos.dotAlphal<<endl;
+    	//  cout<<"dotAlphar= "<<servos.dotAlphar<<endl;
+    	}
     	xs.setZero();
     	//mpc->Controler(xs);
-    	actuation.servoLeft=17.17;
-    	actuation.servoRight=18.18;
+    	actuation.servoLeft=((float)rcNormalize.normChannels[1]/84)*1023;
+    	actuation.servoRight=((float)rcNormalize.normChannels[1]/84)*1023;
     	actuation.escLeftNewtons=19.19;
     	actuation.escRightNewtons=20.20;
     	actuation.escLeftSpeed=21.21;
     	actuation.escRightSpeed=22.22;
-
+//    	cout<<"Control"<<endl;
+//    	cout<<"C-k="<<i<<endl;
+//    	cout<<"C-Cannel 1:"<<rcNormalize.normChannels[1]<<endl;
+//    	cout<<"C-actuation-left:"<<actuation.servoLeft<<endl;
+//    	cout<<"C-actutation-right:"<<actuation.servoRight<<endl;
+//    	cout<<"C-sample:"<<ms_sample_time<<endl;
 
     	interface->push(actuation, interface->q_actuation_out_);
     	interface->push(actuation, interface->q_actuation2_out_);
-
+    	i++;
 	    boost::this_thread::sleep(boost::posix_time::milliseconds(ms_sample_time));
     }
 }

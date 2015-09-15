@@ -71,14 +71,20 @@ void CommLowLevelManager::Run()
     proVant::controlOutput actuation;
     proVant::controlOutput actuation2;
 
-    float data1[2];
-    float data2[2];
-    float data3[2];
-    int i = 0, n;
-    float esln, esls, esrn, esrs, serl, serr;
+    float data1[2]={};
+    float data2[2]={};
+    float data3[2]={};
+    int i = 0;
+
+    actuation.servoLeft=0;
+    actuation.servoRight=0;
+    actuation.escLeftNewtons=0;
+    actuation.escRightNewtons=0;
+    actuation.escLeftSpeed=0;
+    actuation.escRightSpeed=0;
     // Loop principal!
     while(1) {
-    	auto start = std::chrono::steady_clock::now();
+//    	auto start = std::chrono::steady_clock::now();
     	//Recive states from Discovery
     	PROVANT.updateData();
     	atitude = PROVANT.getVantData().getAtitude();
@@ -100,21 +106,32 @@ void CommLowLevelManager::Run()
     		PROVANT.multwii_sendstack();
     	}
 
-    	//Test: receives control sent to discovery from discovery
-		PROVANT.updateData();
-		actuation2=PROVANT.getVantData().getActuation();
+//    	//Test: receives control sent to discovery from discovery
+//		PROVANT.updateData();
+//		actuation2=PROVANT.getVantData().getActuation();
 
 		interface->push(position, interface->q_position_out_);
     	interface->push(atitude, interface->q_atitude_out_);
     	interface->push(servos, interface->q_servos_out_);
+    	interface->push(debug, interface->q_debug_out_);
+    	interface->push(rc, interface->q_rc_out_);
 
     	interface->push(position, interface->q_position2_out_);
     	interface->push(atitude, interface->q_atitude2_out_);
     	interface->push(servos, interface->q_servos2_out_);
+    	interface->push(debug, interface->q_debug2_out_);
+    	interface->push(rc, interface->q_rc2_out_);
+//    	cout<<"D-Comunication"<<endl;
+//    	cout<<"D-k="<<i<<endl;
+//    	cout<<"D-Cannel 1:"<<rc.normChannels[1]<<endl;
+//    	cout<<"D-actuation-left:"<<actuation.servoLeft<<endl;
+//    	cout<<"D-actutation-right:"<<actuation.servoRight<<endl;
+//    	cout<<"D-sample:"<<ms_sample_time<<endl;
     	//Elapsed time code
-    	auto end = std::chrono::steady_clock::now();
-    	auto elapsed = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
-    	std::cout << "It took me " << (float)(elapsed.count()/1000) << " miliseconds." << std::endl;
+//    	auto end = std::chrono::steady_clock::now();
+//    	auto elapsed = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
+//    	std::cout << "It took me " << (float)(elapsed.count()/1000) << " miliseconds." << std::endl;
+    	i++;
     	boost::this_thread::sleep(boost::posix_time::milliseconds(ms_sample_time));
     }
 }

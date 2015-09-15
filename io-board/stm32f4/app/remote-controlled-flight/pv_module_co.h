@@ -38,7 +38,9 @@
 struct pv_interface_co 
 {
   xQueueHandle iInputData;  
-  xQueueHandle oControlOutputData;  
+  xQueueHandle oControlOutputData;
+  xQueueHandle iControlBeagleData;
+
 } pv_interface_co;
 /* Exported constants --------------------------------------------------------*/
 /* Exported macro ------------------------------------------------------------*/

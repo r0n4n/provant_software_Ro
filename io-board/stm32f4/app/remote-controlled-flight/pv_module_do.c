@@ -23,7 +23,7 @@
 
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
-#define MODULE_PERIOD	    10//ms
+#define MODULE_PERIOD	    12//ms
 //#define USART_BAUDRATE     460800  //<-Bluethood
 #define USART_BAUDRATE     921600 //<-Beaglebone
 
@@ -35,6 +35,7 @@ unsigned int heartBeat=0;
 pv_msg_input iInputData;
 pv_msg_gps iGpsData;
 pv_msg_controlOutput iControlOutputData;
+pv_msg_controlOutput oControlBeagleData;
 float rpy[3];
 float drpy[3];
 float position[3];
@@ -64,9 +65,12 @@ void module_do_init()
   c_common_usart2_init(USART_BAUDRATE);
 
   /* Reserva o local de memoria compartilhado */
+  /*Data consumed by the thread*/
   pv_interface_do.iInputData          = xQueueCreate(1, sizeof(pv_msg_input));
- // pv_interface_do.iGpsData           = xQueueCreate(1, sizeof(pv_msg_gps));
- // pv_interface_do.iControlOutputData  = xQueueCreate(1, sizeof(pv_msg_controlOutput));
+  pv_interface_do.iControlOutputData  = xQueueCreate(1, sizeof(pv_msg_controlOutput));
+  // pv_interface_do.iGpsData           = xQueueCreate(1, sizeof(pv_msg_gps));
+  /*Data produced by the thread*/
+  pv_interface_do.oControlBeagleData  = xQueueCreate(1, sizeof(pv_msg_controlOutput));
 
   /* Pin for debug */
   LED3 = c_common_gpio_init(GPIOD, GPIO_Pin_13, GPIO_Mode_OUT); //LED3
@@ -80,14 +84,19 @@ void module_do_init()
   */
 void module_do_run()
 {
+	oControlBeagleData.actuation.servoRight = 0;
+	oControlBeagleData.actuation.servoLeft  = 0;
+	oControlBeagleData.actuation.escRightSpeed = 0;
+	oControlBeagleData.actuation.escLeftSpeed  = 0;
 	while(1)
 	{
 		lastWakeTime = xTaskGetTickCount();
 		heartBeat++;
 
 		xQueueReceive(pv_interface_do.iInputData, &iInputData, 0);
+		xQueueReceive(pv_interface_do.iControlOutputData, &iControlOutputData, 0);
 		//xQueueReceive(pv_interface_do.iGpsData, &iGpsData, 0);
-		//xQueueReceive(pv_interface_do.iControlOutputData, &iControlOutputData, 0);
+
 
 		# ifdef NONHIL
 		aux2[0]=iInputData.attitude.roll;
@@ -160,18 +169,11 @@ void module_do_run()
 		c_common_datapr_multwii2_rcNormalize(channel);
 		c_common_datapr_multwii_sendstack(USART2);
 
-		//c_common_datapr_multiwii_receivestack(USART2);
-		//pv_type_actuation  actuation=c_common_datapr_multwii_getattitude();
+		c_common_datapr_multiwii_receivestack(USART2);
+		pv_type_actuation  actuation=c_common_datapr_multwii_getattitude();
 
-//		servoTorque[0]=actuation.servoLeft;
-//		servoTorque[1]=actuation.servoRight;
-//		escForce[0]=actuation.escLeftNewtons;
-//		escForce[1]=actuation.escRightNewtons;
-//		aux2[0]=actuation.escLeftSpeed;
-//		aux2[1]=actuation.escRightSpeed;
-//
-//		c_common_datapr_multwii2_sendControldataout(servoTorque,escForce,aux2);
-//		c_common_datapr_multwii_sendstack(USART2);
+		oControlBeagleData.actuation=actuation;
+		xQueueOverwrite(pv_interface_do.oControlBeagleData, &oControlBeagleData);
 		#endif
 		/* toggle pin for debug */
 		c_common_gpio_toggle(LED3);
