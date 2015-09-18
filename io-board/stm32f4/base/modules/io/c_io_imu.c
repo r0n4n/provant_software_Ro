@@ -542,10 +542,10 @@ float c_io_imu_getTemperature(){
 	return temperature;
 #endif
 }
-float c_io_imu_getPressure(){
+int c_io_imu_getPressure(){
 #ifdef C_IO_IMU_USE_GY_87
 	/*Read pressure*/
-	float pressure=c_io_imu_bmp180_getPressure();
+	int pressure=(int)c_io_imu_bmp180_getPressure();
 	return pressure;
 #endif
 }

@@ -108,6 +108,9 @@ class vant {
 	//Debug
 	int16_t debug[4];
 
+	//Debug
+	float debug2[4];
+
 	//Raw Imu Data
 	int16_t gyro[3];
 	int16_t mag[3];
@@ -225,6 +228,8 @@ public:
 	int16_t getServo(int servo);
 	void setDebug(int pos, int16_t value);
 	int16_t getDebug(int pos);
+	void setDebug2(int pos, float value);
+	float getDebug2(int pos);
 	void setGyro(int pos, int16_t value);
 	int16_t getGyro(int pos);
 	void setMag(int pos, int16_t value);
@@ -236,6 +241,7 @@ public:
 	proVant::servos_state getServoState();
 	proVant::controlOutput getActuation();
 	proVant::debug getDebug();
+	proVant::debug2 getDebug2();
 	proVant::rcNormalize getNormChannels();
 };
 

@@ -287,6 +287,15 @@ void proVantProtocol::decodeMessage(uint8_t tam, uint8_t msg){
 
 				//printf("RPM1 %f\nCurrent1 %f\nVoltage1 %f\nRPM2 %f\nCurrent2 %f\nVoltage2 %f\n", vantData.getRpm(0), vantData.getCurrent(0), vantData.getVoltage(0), vantData.getRpm(1), vantData.getCurrent(1), vantData.getVoltage(1));
 			break;
+			case MSP_DEBUG2:
+				//printf("ESC Data message with %d bytes \n", tam);
+				vantData.setDebug2(0, decodeFloat(2));
+				vantData.setDebug2(1, decodeFloat(6));
+				vantData.setDebug2(2, decodeFloat(10));
+				vantData.setDebug2(3, decodeFloat(14));
+
+				//printf("RPM1 %f\nCurrent1 %f\nVoltage1 %f\nRPM2 %f\nCurrent2 %f\nVoltage2 %f\n", vantData.getRpm(0), vantData.getCurrent(0), vantData.getVoltage(0), vantData.getRpm(1), vantData.getCurrent(1), vantData.getVoltage(1));
+			break;
 		}
 	}
 }

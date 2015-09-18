@@ -143,6 +143,11 @@ namespace proVant{
 	} debug;
 
 	typedef struct {
+		//Debug
+		float debug[4];
+	} debug2;
+
+	typedef struct {
 		//Raw Imu Data
 		int16_t gyro[3];
 		int16_t mag[3];

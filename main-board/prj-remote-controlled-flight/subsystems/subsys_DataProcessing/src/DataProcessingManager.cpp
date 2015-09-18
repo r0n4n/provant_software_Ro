@@ -64,7 +64,7 @@ void DataProcessingManager::Run()
     proVant::position position;
     proVant::servos_state servos;
     proVant::controlOutput actuation;
-    proVant::debug debug;
+    proVant::debug2 debug;
     proVant::rcNormalize rc;
 
     float rpy[3]={};
@@ -77,7 +77,7 @@ void DataProcessingManager::Run()
     float aux2[3]={};
     float servoTorque[2]={};
     float escForce[2]={};
-    int16_t debugv[4]={};
+    float debugv[4]={};
     int16_t normChannels[7]={};
 
     int i = 0;
@@ -145,8 +145,8 @@ void DataProcessingManager::Run()
     	PROVANT2.multwii2_sendControldataout(servoTorque,escForce,aux2);
     	PROVANT2.multwii_sendstack();
     	//PROVANT2.multwii2_rcNormalize(normChannels);
-    	//PROVANT2.multwii_debug((float)debugv[0],(float)debugv[1],(float)debugv[2],(float)debugv[3]);
-    	//PROVANT2.multwii_sendstack();
+    	PROVANT2.multwii_debug((float)debugv[0],(float)debugv[1],(float)debugv[2],(float)debugv[3]);
+    	PROVANT2.multwii_sendstack();
 //    	auto end2 = std::chrono::steady_clock::now();
 //    	auto elapsed2 = std::chrono::duration_cast<std::chrono::microseconds>(end2 - start2);
 //      std::cout << "It took me 2: " << (float)(elapsed2.count()/1000) << " miliseconds." << std::endl;

@@ -42,7 +42,7 @@ public:
     MsgQueue<proVant::atitude> q_atitude_in;
     MsgQueue<proVant::position> q_position_in;
     MsgQueue<proVant::servos_state> q_servos_in;
-    MsgQueue<proVant::debug> q_debug_in;
+    MsgQueue<proVant::debug2> q_debug_in;
     MsgQueue<proVant::rcNormalize> q_rc_in;
 
     // Outboxes (ponteiros para inboxes alheios)

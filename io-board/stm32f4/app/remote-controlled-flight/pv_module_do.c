@@ -47,6 +47,7 @@ float aux2[3];
 float servoTorque[2];
 float escForce[2];
 int channel[7];
+float debug[4];
 GPIOPin LED3;
 
 /* Private function prototypes -----------------------------------------------*/
@@ -126,7 +127,7 @@ void module_do_run()
 		//c_common_datapr_multwii2_sendControldataout(data1,data3,data2);
 		//c_common_datapr_multwii_sendstack(USART2);
 		#else
-		aux[0]=0;
+		aux[0]=(float)iInputData.imuOutput.pressure;
 		aux[1]=0;
 
 		aux2[0]=0;
@@ -163,9 +164,13 @@ void module_do_run()
 		channel[5]=iInputData.receiverOutput.bButton;
 		channel[6]=0;
 
+		debug[0]=(float)iInputData.imuOutput.pressure;
+		debug[1]=0;
+		debug[2]=0;
+		debug[4]=0;
 		c_common_datapr_multwii2_sendControldatain(rpy,drpy,position,velocity);
 		c_common_datapr_multwii2_sendEscdata(aux,alpha,dalpha);
-		c_common_datapr_multwii_debug(1,2,3,4);
+		//c_common_datapr_multwii2_debug(debug[0],debug[1],debug[2],debug[3]);
 		c_common_datapr_multwii2_rcNormalize(channel);
 		c_common_datapr_multwii_sendstack(USART2);
 

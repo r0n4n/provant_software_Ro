@@ -37,7 +37,8 @@ typedef struct
   float accRaw[3];
   float gyrRaw[3];
   float magRaw[3];
-  float temp;
+  float temperature;
+  int pressure;
   unsigned int  sampleTime;
 } pv_type_imuOutput;
 

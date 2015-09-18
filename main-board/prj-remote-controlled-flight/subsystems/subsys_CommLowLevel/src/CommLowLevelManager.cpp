@@ -66,7 +66,7 @@ void CommLowLevelManager::Run()
     proVant::atitude atitude;
     proVant::position position;
     proVant::servos_state servos;
-    proVant::debug debug;
+    proVant::debug2 debug;
     proVant::rcNormalize rc;
     proVant::controlOutput actuation;
     proVant::controlOutput actuation2;
@@ -84,13 +84,13 @@ void CommLowLevelManager::Run()
     actuation.escRightSpeed=0;
     // Loop principal!
     while(1) {
-//    	auto start = std::chrono::steady_clock::now();
+    	auto start = std::chrono::steady_clock::now();
     	//Recive states from Discovery
     	PROVANT.updateData();
     	atitude = PROVANT.getVantData().getAtitude();
     	position= PROVANT.getVantData().getPosition();
     	servos= PROVANT.getVantData().getServoState();    //Function made to save current as alpha and voltage as dotalpha
-    	debug= PROVANT.getVantData().getDebug();
+    	//debug= PROVANT.getVantData().getDebug2();
     	rc= PROVANT.getVantData().getNormChannels();
 
     	//Send Control to Discovery
@@ -122,15 +122,15 @@ void CommLowLevelManager::Run()
     	interface->push(debug, interface->q_debug2_out_);
     	interface->push(rc, interface->q_rc2_out_);
 //    	cout<<"D-Comunication"<<endl;
-//    	cout<<"D-k="<<i<<endl;
+//    	cout<<"D-k="<<debug.debug[0]<<endl;
 //    	cout<<"D-Cannel 1:"<<rc.normChannels[1]<<endl;
 //    	cout<<"D-actuation-left:"<<actuation.servoLeft<<endl;
 //    	cout<<"D-actutation-right:"<<actuation.servoRight<<endl;
 //    	cout<<"D-sample:"<<ms_sample_time<<endl;
     	//Elapsed time code
-//    	auto end = std::chrono::steady_clock::now();
-//    	auto elapsed = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
-//    	std::cout << "It took me " << (float)(elapsed.count()/1000) << " miliseconds." << std::endl;
+    	auto end = std::chrono::steady_clock::now();
+    	auto elapsed = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
+    	std::cout << "It took me " << (float)(elapsed.count()/1000) << " miliseconds." << std::endl;
     	i++;
     	boost::this_thread::sleep(boost::posix_time::milliseconds(ms_sample_time));
     }

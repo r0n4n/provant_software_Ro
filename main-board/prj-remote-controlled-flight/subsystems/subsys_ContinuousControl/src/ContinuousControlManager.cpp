@@ -67,7 +67,7 @@ void ContinuousControlManager::Run()
     proVant::position position;
     proVant::servos_state servos;
     proVant::controlOutput actuation;
-    proVant::debug debug;
+    proVant::debug2 debug;
     proVant::rcNormalize rcNormalize;
     int i=0;
     // Matrix class

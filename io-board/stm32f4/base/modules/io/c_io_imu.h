@@ -136,7 +136,7 @@
  void c_io_imu_getRaw(float  * accRaw, float * gyrRaw, float * magRaw, long * sample_time__gyro_us);
  void c_io_imu_getBarometerRaw(long *pressure,float *temperature);
  float c_io_imu_getTemperature();
- float c_io_imu_getPressure();
+ int c_io_imu_getPressure();
  void c_io_imu_getComplimentaryRPY(float * acce_raw, float * gyro_raw, float * magn_raw, float sample_time, float * rpy);
  void c_io_imu_getKalmanFilterRPY(float * rpy, float * acce_raw, float * gyro_raw, float * magn_raw);
  void c_io_imu_initKalmanFilter();

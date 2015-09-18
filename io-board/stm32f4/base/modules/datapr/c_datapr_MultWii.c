@@ -537,14 +537,29 @@ void c_common_datapr_multwii_motor(float forca_esquerdo,float forca_direito)
  */
 void c_common_datapr_multwii_debug(float debug1,float  debug2,float  debug3,float debug4)
 {
-  headSerialResponse(8, MSP_DEBUG);
+  headSerialResponse(8, MSP_DEBUG2);
   serialize32_as16((int)((debug1)));
   serialize32_as16((int)((debug2)));
   serialize32_as16((int)((debug3)));
   serialize32_as16((int)((debug4)));
   tailSerialReply();
 }
-
+/**
+ * @brief Envia os dados de debug para a pilha.
+ * @param debug1 debug1
+ * @param debug2 debug2
+ * @param debug3 debug3
+ * @param debug4 debug4
+ */
+void c_common_datapr_multwii2_debug(float debug1,float  debug2,float  debug3,float debug4)
+{
+  headSerialResponse(16, MSP_DEBUG2);
+  serializeFloat(debug1);
+  serializeFloat(debug2);
+  serializeFloat(debug3);
+  serializeFloat(debug4);
+  tailSerialReply();
+}
 /**
  * @brief Envia os dados dos escs para a pilha
  * @details Tipo de mensagem provant

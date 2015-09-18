@@ -536,6 +536,14 @@ int16_t vant::getDebug(int pos){
 	return this->debug[pos-1];
 }
 
+void vant::setDebug2(int pos, float value){
+	this->debug2[pos-1] = value;
+}
+
+float vant::getDebug2(int pos){
+	return this->debug2[pos-1];
+}
+
 void vant::setGyro(int pos, int16_t value){
 	this->gyro[pos-1] = value;
 }
@@ -636,6 +644,14 @@ proVant::debug vant::getDebug(){
 	debug2.debug[1]=this->debug[1];
 	debug2.debug[2]=this->debug[2];
 	debug2.debug[3]=this->debug[3];
+	return debug2;
+}
+proVant::debug2 vant::getDebug2(){
+	proVant::debug2 debug2;
+	debug2.debug[0]=this->debug2[0];
+	debug2.debug[1]=this->debug2[1];
+	debug2.debug[2]=this->debug2[2];
+	debug2.debug[3]=this->debug2[3];
 	return debug2;
 }
 proVant::rcNormalize vant::getNormChannels(){

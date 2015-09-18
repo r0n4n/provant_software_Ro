@@ -77,6 +77,7 @@
 #define MSP_CONTROLDATAOUT       98
 #define MSP_CONTROLDATAIN        97
 #define MSP_RCNORMALIZE          96
+#define MSP_DEBUG2               95
 
 /* Private variables ---------------------------------------------------------*/
 char multwii_msg[3076];
@@ -113,6 +114,7 @@ void c_common_datapr_multwii_motor_pins();
 void c_common_datapr_multwii_motor(float forca_esquerdo,float forca_direito);
 void c_common_datapr_multwii_servos(float angle1,float angle2);
 void c_common_datapr_multwii_debug(float debug1,float  debug2,float  debug3,float debug4);
+void c_common_datapr_multwii2_debug(float debug1,float  debug2,float  debug3,float debug4);
 void c_common_datapr_multwii_sendstack(USART_TypeDef* USARTx);
 void c_common_datapr_multwii2_sendEscdata(int rpm[2],float current[2],float voltage[2]);
 void c_common_datapr_multwii2_rcNormalize(int channel[7]);
