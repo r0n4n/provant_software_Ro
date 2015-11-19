@@ -129,9 +129,9 @@ void CommLowLevelManager::Run()
     	interface->push(rc, interface->q_rc2_out_);
 
     	//Elapsed time code
-    	auto end = std::chrono::steady_clock::now();
-    	auto elapsed = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
-    	std::cout << "It took me " << (float)(elapsed.count()/1000) << " miliseconds." << std::endl;
+//    	auto end = std::chrono::steady_clock::now();
+//    	auto elapsed = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
+//    	std::cout << "It took me " << (float)(elapsed.count()/1000) << " miliseconds." << std::endl;
 
     	i++;
     	boost::this_thread::sleep(boost::posix_time::milliseconds(ms_sample_time));
