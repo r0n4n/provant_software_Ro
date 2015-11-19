@@ -23,7 +23,7 @@
 
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
-#define MODULE_PERIOD	 12//ms
+#define MODULE_PERIOD	 15//ms
 #define ESC_ON           1
 #define SERVO_ON         1
 
@@ -86,6 +86,8 @@ void module_co_init()
 void module_co_run() 
 {
   unsigned int heartBeat=0;
+  bool a=0;
+  unsigned char sp_right=0;
   /* Inicializa os dados da attitude*/
   oControlOutputData.actuation.servoRight = 0;
   oControlOutputData.actuation.servoLeft  = 0;
@@ -122,6 +124,8 @@ void module_co_run()
 	#elif defined TORQUE_CONTROL
 		iActuation.servoRight=iControlBeagleData.actuation.servoRight;//((float)iInputData.receiverOutput.joystick[1]/84)*1023;//
 		iActuation.servoLeft=iControlBeagleData.actuation.servoLeft;//((float)iInputData.receiverOutput.joystick[1]/84)*1023;
+		iActuation.escLeftNewtons=iControlBeagleData.actuation.escLeftNewtons;
+		iActuation.escRightNewtons=iControlBeagleData.actuation.escRightNewtons;
 	#endif
 
 	#ifdef ENABLE_SERVO
@@ -142,12 +146,13 @@ void module_co_run()
 		}
 	}
 	#endif
+
 	#ifdef ENABLE_ESC
 	/* Escrita dos esc */
 	unsigned char sp_right;
 	unsigned char sp_left;
-	sp_right = setPointESC_Forca(iActuation.escRightSpeed);
-	sp_left = setPointESC_Forca(iActuation.escLeftSpeed );
+	sp_right = setPointESC_Forca(iActuation.escRightNewtons);
+	sp_left = setPointESC_Forca(iActuation.escLeftNewtons );
 
 	if (iInputData.securityStop){
 		c_io_blctrl_setSpeed(1, 0 );//sp_right
@@ -157,26 +162,27 @@ void module_co_run()
 	else{
 		//inicializacao
 		if (iInputData.init){
-			c_io_blctrl_setSpeed(1, ESC_MINIMUM_VELOCITY );
+			//c_io_blctrl_setSpeed(1, ESC_MINIMUM_VELOCITY);
 			c_common_utils_delayus(10);
-			c_io_blctrl_setSpeed(0, ESC_MINIMUM_VELOCITY );
+			//c_io_blctrl_setSpeed(0, ESC_MINIMUM_VELOCITY);
 		}
 		else{
-			c_io_blctrl_setSpeed(1, sp_right );//sp_right
+			//c_io_blctrl_setSpeed(1, sp_right );//sp_right
 			c_common_utils_delayus(10);
-			c_io_blctrl_setSpeed(0, sp_left );//sp_left
+			//c_io_blctrl_setSpeed(0, sp_left );//sp_left
 		}
 	}
 	#endif
+
 	oControlOutputData.actuation.escLeftSpeed=iActuation.escLeftSpeed;
 	oControlOutputData.actuation.escRightSpeed=iActuation.escRightSpeed;
 	oControlOutputData.actuation.servoLeft=iActuation.servoLeft;
 	oControlOutputData.actuation.servoRight=iActuation.servoRight;
 
-	oControlOutputData.heartBeat                  = heartBeat;
+	oControlOutputData.heartBeat = heartBeat;
 
     unsigned int timeNow=xTaskGetTickCount();
-    oControlOutputData.cicleTime                  = timeNow - lastWakeTime;
+    oControlOutputData.cicleTime = timeNow - lastWakeTime;
 
     /* toggle pin for debug */
     c_common_gpio_toggle(LED5);
@@ -194,6 +200,7 @@ void module_co_run()
  */
 unsigned char setPointESC_Forca(float forca){
 	//	Coefficients:
+#ifdef AXI2814
 	float p1 = 0.00088809, p2 = -0.039541, p3 = 0.67084, p4 = -5.2113, p5 = 16.33, p6 = 10.854, p7 = 3.0802, set_point=0;
 
 	if (forca <= 0)
@@ -205,6 +212,21 @@ unsigned char setPointESC_Forca(float forca){
 	    	return (unsigned char)255;
 	    else
 	    	return (unsigned char)set_point;}
+#endif
+
+#ifdef AXI2826
+	float p1 = 0.000546, p2 = -0.026944, p3 = 0.508397, p4 = -4.822076, p5 = 35.314598, p6 = 3.636088, set_point=0;
+
+	if (forca <= 0)
+		return (unsigned char) ESC_MINIMUM_VELOCITY;
+	else{
+		set_point = (p1*pow(forca,5) + p2*pow(forca,4) + p3*pow(forca,3) + p4*pow(forca,2)
+								+ p5*forca + p6);
+	    if (set_point >= 255)
+	    	return (unsigned char)255;
+	    else
+	    	return (unsigned char)set_point;}
+#endif
 }
 /* IRQ handlers ------------------------------------------------------------- */
 

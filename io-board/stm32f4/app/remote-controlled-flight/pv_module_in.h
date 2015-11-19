@@ -25,7 +25,6 @@
     */
 #define ENABLE_IMU
 #define ENABLE_SERVO
-//#define ENABLE_ESC
 //#define ENABLE_SONAR
 #define ENALBE_DEBUG
 

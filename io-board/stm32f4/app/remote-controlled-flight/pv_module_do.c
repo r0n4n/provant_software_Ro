@@ -23,7 +23,7 @@
 
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
-#define MODULE_PERIOD	    12//ms
+#define MODULE_PERIOD	    15//ms
 //#define USART_BAUDRATE     460800  //<-Bluethood
 #define USART_BAUDRATE     921600 //<-Beaglebone
 
@@ -149,11 +149,11 @@ void module_do_run()
 		velocity[1]=11.11;
 		velocity[2]=12.12;
 
-		alpha[0]=iInputData.servosOutput.servo.alphal*RAD_TO_DEG;
-		alpha[1]=iInputData.servosOutput.servo.alphar*RAD_TO_DEG;
+		alpha[0]=iInputData.servosOutput.servo.alphal;
+		alpha[1]=iInputData.servosOutput.servo.alphar;
 
-		dalpha[0]=iInputData.servosOutput.servo.dotAlphal*RAD_TO_DEG;
-		dalpha[1]=iInputData.servosOutput.servo.dotAlphar*RAD_TO_DEG;
+		dalpha[0]=iInputData.servosOutput.servo.dotAlphal;
+		dalpha[1]=iInputData.servosOutput.servo.dotAlphar;
 
 		channel[0]=iInputData.receiverOutput.joystick[0];
 		channel[1]=iInputData.receiverOutput.joystick[1];
@@ -165,7 +165,8 @@ void module_do_run()
 
 		c_common_datapr_multwii2_sendControldatain(rpy,drpy,position,velocity);
 		c_common_datapr_multwii2_sendEscdata(aux,alpha,dalpha);
-		c_common_datapr_multwii_debug(1,2,3,4);
+		//c_common_datapr_multwii_debug(iControlOutputData.actuation.escLeftSpeed,iControlOutputData.actuation.escRightSpeed,3,4);
+		c_common_datapr_multwii_debug(channel[0],channel[1],channel[2],channel[3]);
 		c_common_datapr_multwii2_rcNormalize(channel);
 		c_common_datapr_multwii_sendstack(USART2);
 

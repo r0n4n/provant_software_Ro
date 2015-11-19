@@ -25,7 +25,7 @@
 
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
-#define MODULE_PERIOD	   12//ms
+#define MODULE_PERIOD	   15//ms
 
 //
 /* Private macro -------------------------------------------------------------*/
@@ -60,6 +60,7 @@ void module_in_init()
 	/* Inicialização da imu */
 	c_common_i2c_init(I2C1);
 	c_io_imu_init(I2C1);
+
 	/* Inicializador do sonar */
 	c_io_sonar_init();
 

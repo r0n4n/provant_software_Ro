@@ -163,23 +163,39 @@ void c_io_servos_writePosition(float positionRight, float positionLeft)
 #endif
 }
 
+/** \brief Escrita dos servos por Torque o maximo torque permitido é 2 N.m.
+  * @param  Torque Servomotor Direito
+  * @retval Torque Servomotor Esquerdo
+  *
+  * Receve o torque em N.m e interpreta ele para um registrador de 0 - 1023
+  *
+  * Devido as diferenças do modelo matematica com a construção mecanica o sinal do torque do servo esquerdo deve
+  * ser adaptado.
+  *
+  */
 void c_io_servos_writeTorque(float torqueRight, float torqueLeft)
 {
 #ifdef SERVO_RX24F
 
 #endif
 #ifdef SERVO_HERKULEX
-	/* Escrita dos servos Torque*/
+	float sp_torqR;
+	float sp_torqL;
+
+	// Calculo do set point
+	sp_torqR=(torqueRight*10.1971621*1023)/24;  // O registrador dos servos precisa de 0 ate 1023 -> dinamica direta
+	sp_torqL=(torqueLeft*10.1971621*1023)/24;
+
 	//c_io_herkulex_setTorque2Servos(oInputData.servoRight.ID,torq,oInputData.servoLeft.ID,-torq);
-	if((alphaRight>0.9*(PI/2) && torqueRight>0) || (alphaRight<-0.9*(PI/2) && torqueRight<0))
+	if((alphaRight>0.9*(PI/2) && sp_torqR>0) || (alphaRight<-0.9*(PI/2) && sp_torqR<0))
 		c_io_herkulex_setTorque(idServoRight,0);
 	else
-		c_io_herkulex_setTorque(idServoRight,torqueRight);
+		c_io_herkulex_setTorque(idServoRight,sp_torqR);
 
-	if((alphaLeft>0.9*(PI/2) && torqueLeft<0) || (alphaLeft<-0.9*(PI/2) && torqueLeft>0))
+	if((alphaLeft>0.9*(PI/2) && sp_torqL<0) || (alphaLeft<-0.9*(PI/2) && sp_torqL>0))
 		c_io_herkulex_setTorque(idServoLeft,0);
 	else
-		c_io_herkulex_setTorque(idServoLeft,-torqueLeft);
+		c_io_herkulex_setTorque(idServoLeft,-sp_torqL);
 
 #endif
 }

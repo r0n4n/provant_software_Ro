@@ -30,10 +30,12 @@ using namespace std;
 ContinuousControlManager::ContinuousControlManager(std::string name) :
     interface(new ContinuousControlInterface("ContinuousControl:Interface")),
     // sm1(new SubModule1), // talvez fosse mais interessante construir os submodulos no init
-    ms_sample_time(12),
+    ms_sample_time(15),
     name_(name)
 {
-	mpc=new MPC::MpcControler();
+	//mpc=new MPC::MpcControler();
+	lqr=new LQR::LQRControler();
+	//test= new TEST::TESTActuator();
 }
 
 ContinuousControlManager::~ContinuousControlManager()
@@ -71,7 +73,9 @@ void ContinuousControlManager::Run()
     proVant::rcNormalize rcNormalize;
     int i=0;
     // Matrix class
-    VectorXf xs(20);
+    MatrixXf xs(16,1);
+    MatrixXf channels(4,1);
+    MatrixXf u(4,1);
     cout<<"init"<<endl;
     for (int j=0;j<7;j++)
     	rcNormalize.normChannels[j]=0;
@@ -120,19 +124,22 @@ void ContinuousControlManager::Run()
     	//  cout<<"dotAlphal= "<<servos.dotAlphal<<endl;
     	//  cout<<"dotAlphar= "<<servos.dotAlphar<<endl;
     	}
+    	channels.setZero();
+    	channels<<rcNormalize.normChannels[0],rcNormalize.normChannels[1],rcNormalize.normChannels[2],rcNormalize.normChannels[3];
     	xs.setZero();
-    	//mpc->Controler(xs);
-    	actuation.servoLeft=((float)rcNormalize.normChannels[1]/84)*1023;
-    	actuation.servoRight=((float)rcNormalize.normChannels[1]/84)*1023;
-    	actuation.escLeftNewtons=19.19;
-    	actuation.escRightNewtons=20.20;
-    	actuation.escLeftSpeed=21.21;
-    	actuation.escRightSpeed=22.22;
-//    	cout<<"Control"<<endl;
-//    	cout<<"C-k="<<i<<endl;
-//    	cout<<"C-Cannel 1:"<<rcNormalize.normChannels[1]<<endl;
-//    	cout<<"C-actuation-left:"<<actuation.servoLeft<<endl;
-//    	cout<<"C-actutation-right:"<<actuation.servoRight<<endl;
+    	xs<<position.x,position.y,position.z,atitude.roll,atitude.pitch,atitude.yaw,servos.alphar,servos.alphal
+    			,position.dotX,position.dotY,position.dotZ,atitude.dotRoll,atitude.dotPitch,atitude.dotYaw,servos.dotAlphar,servos.dotAlphal;
+    	//u=mpc->Controler(xs);
+    	u=lqr->Controler(xs);
+    	//u=test->Controler(channels);
+        cout<<u<<endl;
+    	actuation.escRightNewtons=u(0,0);
+    	actuation.escLeftNewtons=u(1,0);
+    	actuation.servoRight=u(2,0);
+    	actuation.servoLeft=u(3,0);
+    	actuation.escLeftSpeed=0;
+    	actuation.escRightSpeed=0;
+
 //    	cout<<"C-sample:"<<ms_sample_time<<endl;
 
     	interface->push(actuation, interface->q_actuation_out_);
