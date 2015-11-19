@@ -74,8 +74,8 @@ set(CMAKE_INSTALL_PREFIX "${CMAKE_CURRENT_BINARY_DIR}/dist")
 # specify the cross compiler
 #set(CMAKE_C_COMPILER	/usr/bin/arm-linux-gnueabi-gcc)
 #set(CMAKE_CXX_COMPILER	/usr/bin/arm-linux-gnueabi-g++)
-set(CMAKE_C_COMPILER	arm-linux-gnueabihf-gcc-4.8)
-set(CMAKE_CXX_COMPILER	arm-linux-gnueabihf-g++-4.8)
+set(CMAKE_C_COMPILER	arm-linux-gnueabihf-gcc)
+set(CMAKE_CXX_COMPILER	arm-linux-gnueabihf-g++)
 
 
 #set( CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -pg" )
@@ -87,10 +87,10 @@ set( CMAKE_C_FLAGS  "${CMAKE_C_FLAGS} -std=c++11 -march=armv7-a -mtune=cortex-a8
 find_package(PkgConfig REQUIRED)
 
 ADD_DEFINITIONS(-DBOOST_LOG_DYN_LINK) #linkar a biblioteca de Logging dinamicamente
-#set(Boost_INCLUDE_DIRS  "/home/richard/lib/boost_1_58_0/spirit/include")
-#set(Boost_LIBRARIES   	"/home/richard/lib/boost_1_58_0/stage/lib")
-set(Boost_INCLUDE_DIRS  "/home/richard/boost_lib_hf/include")
-set(Boost_LIBRARIES   	"/home/richard/boost_lib_hf/lib")
+#set(Boost_INCLUDE_DIRS  "/home/richard/boost_lib_hf/include")
+#set(Boost_LIBRARIES   	"/home/richard/boost_lib_hf/lib")
+set(Boost_INCLUDE_DIRS  "$ENV{HOME}/boost/boost_lib/include")
+set(Boost_LIBRARIES   	"$ENV{HOME}/boost/boost_lib/lib")
 
 
 # DEBUG MESSAGES -------------------------------------------------------------

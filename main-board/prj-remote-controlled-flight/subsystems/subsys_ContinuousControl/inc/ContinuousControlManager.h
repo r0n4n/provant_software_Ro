@@ -22,6 +22,8 @@
 #include "AbstractModuleManager.h"
 #include "Eigen/Dense"
 #include "MpcControler.h"
+#include "LQRControler.h"
+#include "TESTActuator.h"
 #include "math.h"
 
 //Interface
@@ -60,6 +62,8 @@ private:
     // Tempo de amostragem para loop principal
     int ms_sample_time;
     MPC::MpcControler * mpc;
+    LQR::LQRControler * lqr;
+    TEST::TESTActuator * test;
     // Nome do modulo
     std::string name_;
 

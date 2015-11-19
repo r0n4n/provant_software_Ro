@@ -46,7 +46,9 @@ struct pv_interface_co
 /* Exported macro ------------------------------------------------------------*/
 #define ESC_MINIMUM_VELOCITY	10//esc set point value (0-255)
 #define ENABLE_SERVO
-//#define ENABLE_ESC
+#define AXI2826
+//#define AXI2814
+#define ENABLE_ESC
 /* Exported functions ------------------------------------------------------- */
 void module_co_init();
 void module_co_run();

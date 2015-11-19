@@ -29,7 +29,7 @@ using namespace std;
 CommLowLevelManager::CommLowLevelManager(std::string name) :
     interface(new CommLowLevelInterface("CommLowLevel:Interface")),
     // sm1(new SubModule1), // talvez fosse mais interessante construir os submodulos no init
-    ms_sample_time(10),
+    ms_sample_time(5),
     name_(name)
 {
 
@@ -109,8 +109,14 @@ void CommLowLevelManager::Run()
 //    	//Test: receives control sent to discovery from discovery
 //		PROVANT.updateData();
 //		actuation2=PROVANT.getVantData().getActuation();
+    	//Elapsed time code
+    	auto end = std::chrono::steady_clock::now();
+    	auto elapsed = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
+    	std::cout << "It took me " << (float)(elapsed.count()/1000) << " miliseconds." << std::endl;
 
-		interface->push(position, interface->q_position_out_);
+
+    	debug.debug[0]=elapsed.count();
+    	interface->push(position, interface->q_position_out_);
     	interface->push(atitude, interface->q_atitude_out_);
     	interface->push(servos, interface->q_servos_out_);
     	interface->push(debug, interface->q_debug_out_);
@@ -121,6 +127,7 @@ void CommLowLevelManager::Run()
     	interface->push(servos, interface->q_servos2_out_);
     	interface->push(debug, interface->q_debug2_out_);
     	interface->push(rc, interface->q_rc2_out_);
+<<<<<<< HEAD
 //    	cout<<"D-Comunication"<<endl;
 //    	cout<<"D-k="<<debug.debug[0]<<endl;
 //    	cout<<"D-Cannel 1:"<<rc.normChannels[1]<<endl;
@@ -131,6 +138,10 @@ void CommLowLevelManager::Run()
     	auto end = std::chrono::steady_clock::now();
     	auto elapsed = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
     	std::cout << "It took me " << (float)(elapsed.count()/1000) << " miliseconds." << std::endl;
+=======
+
+
+>>>>>>> test
     	i++;
     	boost::this_thread::sleep(boost::posix_time::milliseconds(ms_sample_time));
     }

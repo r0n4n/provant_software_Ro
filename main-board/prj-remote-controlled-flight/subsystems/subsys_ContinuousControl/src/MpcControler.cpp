@@ -202,7 +202,7 @@ Eigen::MatrixXf MpcControler::Controler(Eigen::MatrixXf states){
 
 	auto end = std::chrono::steady_clock::now();
 	auto elapsed = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
-	std::cout << "It took me " << (float)(elapsed.count()/1000) << " miliseconds." << std::endl;
+	std::cout << "Controll " << (float)(elapsed.count()/1000) << " miliseconds." << std::endl;
 	std::cout<<"xOpt=";
 	for(int i=0;i<4;i++){
 		std::cout<<xOpt[i]<<" ";
