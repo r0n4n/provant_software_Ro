@@ -161,9 +161,7 @@ void module_in_run()
     #ifdef ENABLE_IMU
 	/*----------------------Tratamento da IMU---------------------*/
     /* Pega e trata os valores da imu */
-    //c_io_imu_getBarometerRaw(&pressure,&temperature);
-    //temperature=c_io_imu_getTemperature();
-    oInputData.imuOutput.pressure=c_io_imu_getPressure();
+
     c_io_imu_getRaw(oInputData.imuOutput.accRaw, oInputData.imuOutput.gyrRaw, oInputData.imuOutput.magRaw,sample_time_gyro_us);
 	c_datapr_MahonyAHRSupdate(attitude_quaternion,oInputData.imuOutput.gyrRaw[0],oInputData.imuOutput.gyrRaw[1],oInputData.imuOutput.gyrRaw[2],oInputData.imuOutput.accRaw[0],oInputData.imuOutput.accRaw[1],oInputData.imuOutput.accRaw[2],oInputData.imuOutput.magRaw[0],oInputData.imuOutput.magRaw[1],oInputData.imuOutput.magRaw[2],sample_time_gyro_us[0]);
 	c_io_imu_Quaternion2Euler(attitude_quaternion, rpy);
@@ -230,19 +228,24 @@ void module_in_run()
 	else
 		oInputData.enableintegration = false;
 
-    #ifdef ENABLE_SONAR
+    #ifdef ENABLE_ALTURA
 	/*----------------------Tratamento do Sonar---------------------*/
 	/* Executa a leitura do sonar */
-	sonar_raw_real  =c_io_sonar_read();
-	sonar_raw= sonar_raw_real/100;
+//	sonar_raw_real  =c_io_sonar_read();
+//	sonar_raw= sonar_raw_real/100;
+	/////////////////////////////////
 
-	#ifdef LIMIT_SONAR_VAR
-		if ( ( (oInputData.position_refrence.z-SONAR_MAX_VAR)<sonar_raw && (oInputData.position_refrence.z+SONAR_MAX_VAR)>sonar_raw ) || oInputData.init){
-			sonar_corrected = (sonar_raw+DSB)*cos(oInputData.attitude.roll)*cos(oInputData.attitude.pitch);//the altitude must be in meters
-		}
-	#else
-		sonar_corrected = (sonar_raw)*cos(oInputData.attitude.roll)*cos(oInputData.attitude.pitch);;
-	#endif
+	/* Executa a leitura do barometro*/
+	if (oInputData.init){
+		sonar_raw_real=c_io_imu_getAltitude();
+	}else{
+		sonar_raw=sonar_raw_real-c_io_imu_getAltitude();
+	}
+	/////////////////////////////////////
+
+	//sonar_corrected = (sonar_raw)*cos(oInputData.attitude.roll)*cos(oInputData.attitude.pitch);
+	sonar_corrected=sonar_raw;
+
 	/*Filtrajem das amostras do sonar*/
 	#ifdef SONAR_FILTER_1_ORDER_10HZ
 		//1st order filter with fc=10Hz
@@ -271,8 +274,8 @@ void module_in_run()
 	dotZ_k_minus_1 = dotZ;
 
 	//Filtered measurements
-	//oInputData.position.z = sonar_filtered;
-	oInputData.position.z=sonar_raw_real;
+	oInputData.position.z = sonar_filtered;
+	//oInputData.position.z=sonar_raw_real;
 	oInputData.position.dotZ = dotZ_filtered;
     #endif
 

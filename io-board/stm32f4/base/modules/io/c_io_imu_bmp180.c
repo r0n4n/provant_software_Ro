@@ -89,11 +89,13 @@ long c_io_imu_bmp180_ReadUP()
 
 	// Write 0x34+(OSS<<6) into register 0xF4
 	// Request a pressure reading w/ oversampling setting
-	//c_common_i2c_writeByte(I2Cx_bmp180, BMP180_ADDR, BMP180_CTRL_MEAS, (0x34 + (OSS<<6))); <- Ja é colocado no init
+	//c_common_i2c_writeByte(I2Cx_bmp180, BMP180_ADDR, BMP180_CTRL_MEAS, (0x34 + (OSS<<6))); //<- Ja é colocado no init
 	// Wait for conversion, delay time dependent on OSS
-	//c_common_utils_delayms(OSS_TIME);<- a Thread roda mais tempo nao precisa
+	//c_common_utils_delayms(OSS_TIME);//<- a Thread roda mais tempo nao precisa
 	// Read register 0xF6 (MSB), 0xF7 (LSB), and 0xF8 (XLSB)
 	c_common_i2c_readBytes(I2Cx_bmp180, BMP180_ADDR, BMP180_OUT_MSB, 3, buffer);
+
+	c_common_i2c_writeByte(I2Cx_bmp180, BMP180_ADDR, BMP180_CTRL_MEAS, (0x34 + (OSS<<6))); //<- Ja é colocado no init
 
 	up = (((long) buffer[0] << 16) | ((long) buffer[1] << 8) | (long) buffer[2]) >> (8-OSS);
 
@@ -147,8 +149,9 @@ float c_io_imu_bmp180_getTemperature()
 // calibration values must be known
 // b5 is also required so bmp085GetTemperature(...) must be called first.
 // Value returned will be pressure in units of Pa.
-long c_io_imu_bmp180_getPressure()
+float c_io_imu_bmp180_getPressure()
 {
+	float pressure;
 	long x1, x2, x3, b3, b6, p;
 	unsigned long b4, b7;
 	long up = c_io_imu_bmp180_ReadUP();
@@ -176,13 +179,14 @@ long c_io_imu_bmp180_getPressure()
 	x2 = (-7357 * p)>>16;
 	p += (x1 + x2 + 3791)>>4;
 
-	return p;
+	pressure=p*0.01;
+	return pressure;
 }
 
 //Uncompensated caculation - in Meters
-float c_io_imu_bmp180_calcAltitude(float pressure)
+float c_io_imu_bmp180_Altitude(float pressure)
 {
-  float A = pressure/101325;
+  float A = pressure/1013.25;
   float B = 1/5.25588;
   float C = pow(A,B);
   C = 1 - C;

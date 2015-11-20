@@ -65,7 +65,7 @@
 void  c_io_imu_bmp180_int(I2C_TypeDef* I2Cx);
 void  c_io_imu_bmp180_Calibration();
 float c_io_imu_bmp180_getTemperature();
-long  c_io_imu_bmp180_getPressure();
+float  c_io_imu_bmp180_getPressure();
 float c_io_imu_bmp180_Altitude(float pressure);
 
 #ifdef __cplusplus

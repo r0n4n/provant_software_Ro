@@ -25,7 +25,7 @@
     */
 #define ENABLE_IMU
 #define ENABLE_SERVO
-//#define ENABLE_SONAR
+#define ENABLE_ALTURA
 #define ENALBE_DEBUG
 
  /*Def da IMU*/

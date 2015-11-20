@@ -85,7 +85,7 @@ void c_datapr_MahonyAHRSupdate(float * q, float gx, float gy, float gz, float ax
 
 	// Use IMU algorithm if magnetometer measurement invalid (avoids NaN in magnetometer normalisation)
 	if((mx == 0.0f) && (my == 0.0f) && (mz == 0.0f)) {
-		c_datapr_MahonyAHRSupdateIMU(q, gx, gy, gz, ax, ay, az);
+		c_datapr_MahonyAHRSupdateIMU(q, gx, gy, gz, ax, ay, az,sample_time_gyro);
 		return;
 	}
 
@@ -197,7 +197,7 @@ void c_datapr_MahonyAHRSupdate(float * q, float gx, float gy, float gz, float ax
  * @param az medida acelerometro eixo Z
  */
 
-void c_datapr_MahonyAHRSupdateIMU(float * q, float gx, float gy, float gz, float ax, float ay, float az) {
+void c_datapr_MahonyAHRSupdateIMU(float * q, float gx, float gy, float gz, float ax, float ay, float az, long sample_time_gyro_us) {
 	float recipNorm;
 	float halfvx, halfvy, halfvz;
 	float halfex, halfey, halfez;
@@ -227,9 +227,9 @@ void c_datapr_MahonyAHRSupdateIMU(float * q, float gx, float gy, float gz, float
 
 		// Compute and apply integral feedback if enabled
 		if(twoKi > 0.0f) {
-			integralFBx += twoKi * halfex * (1.0f / sampleFreq);	// integral error scaled by Ki
-			integralFBy += twoKi * halfey * (1.0f / sampleFreq);
-			integralFBz += twoKi * halfez * (1.0f / sampleFreq);
+			integralFBx += twoKi * halfex * (1.0f * sample_time_gyro_us);	// integral error scaled by Ki
+			integralFBy += twoKi * halfey * (1.0f * sample_time_gyro_us);
+			integralFBz += twoKi * halfez * (1.0f * sample_time_gyro_us);
 			gx += integralFBx;	// apply integral feedback
 			gy += integralFBy;
 			gz += integralFBz;
@@ -248,9 +248,9 @@ void c_datapr_MahonyAHRSupdateIMU(float * q, float gx, float gy, float gz, float
 	
 	// Integrate rate of change of quaternion
 	//The other funtion have sampleTime like a parameter this not have.
-	gx *= (0.5f * (1.0f / sampleFreq));		// pre-multiply common factors
-	gy *= (0.5f * (1.0f / sampleFreq));
-	gz *= (0.5f * (1.0f / sampleFreq));
+	gx *= (0.5f * (1.0f * sample_time_gyro_us));		// pre-multiply common factors
+	gy *= (0.5f * (1.0f * sample_time_gyro_us));
+	gz *= (0.5f * (1.0f * sample_time_gyro_us));
 	qa = q0;
 	qb = q1;
 	qc = q2;

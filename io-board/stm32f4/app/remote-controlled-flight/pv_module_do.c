@@ -143,11 +143,11 @@ void module_do_run()
 
 		position[0]=7.7;
 		position[1]=8.8;
-		position[2]=9.9;
+		position[2]=iInputData.position.z;
 
 		velocity[0]=10.10;
 		velocity[1]=11.11;
-		velocity[2]=12.12;
+		velocity[2]=iInputData.position.dotZ;
 
 		alpha[0]=iInputData.servosOutput.servo.alphal;
 		alpha[1]=iInputData.servosOutput.servo.alphar;

@@ -542,11 +542,21 @@ float c_io_imu_getTemperature(){
 	return temperature;
 #endif
 }
-int c_io_imu_getPressure(){
+long c_io_imu_getPressure(){
 #ifdef C_IO_IMU_USE_GY_87
 	/*Read pressure*/
-	int pressure=(int)c_io_imu_bmp180_getPressure();
+	long pressure=c_io_imu_bmp180_getPressure();
 	return pressure;
+#endif
+}
+
+float c_io_imu_getAltitude(){
+#ifdef C_IO_IMU_USE_GY_87
+	/*Read pressure*/
+	float pressure=c_io_imu_bmp180_getPressure();
+	/*Calculate altitude*/
+	float altitude=c_io_imu_bmp180_Altitude(pressure);
+	return altitude;
 #endif
 }
 float abs2(float num){

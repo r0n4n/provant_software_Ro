@@ -29,7 +29,7 @@ using namespace std;
 CommLowLevelManager::CommLowLevelManager(std::string name) :
     interface(new CommLowLevelInterface("CommLowLevel:Interface")),
     // sm1(new SubModule1), // talvez fosse mais interessante construir os submodulos no init
-    ms_sample_time(5),
+    ms_sample_time(15),
     name_(name)
 {
 
