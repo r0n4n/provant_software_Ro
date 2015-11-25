@@ -239,7 +239,7 @@ void module_in_run()
 	if (oInputData.init){
 		sonar_raw_real=c_io_imu_getAltitude();
 	}else{
-		sonar_raw=sonar_raw_real-c_io_imu_getAltitude();
+		sonar_raw=c_io_imu_getAltitude()-sonar_raw_real;
 	}
 	/////////////////////////////////////
 
@@ -266,7 +266,7 @@ void module_in_run()
 	#endif
 
 	// Derivada = (dado_atual-dado_anterior )/(tempo entre medicoes) - fiz a derivada do sinal filtrado, REVER
-	dotZ = (sonar_filtered - oInputData.position.z)/0.005;
+	dotZ = (sonar_filtered - oInputData.position.z)/sample_time_gyro_us[0];
 	// 1st order filter with fc=10Hz
 	dotZ_filtered = k1_1o_10Hz*dotZ_filtered_k_minus_1 + k2_1o_10Hz*dotZ + k3_1o_10Hz*dotZ_k_minus_1;
 	// Filter memory
@@ -275,7 +275,7 @@ void module_in_run()
 
 	//Filtered measurements
 	oInputData.position.z = sonar_filtered;
-	//oInputData.position.z=sonar_raw_real;
+	oInputData.position.y= sonar_raw;
 	oInputData.position.dotZ = dotZ_filtered;
     #endif
 

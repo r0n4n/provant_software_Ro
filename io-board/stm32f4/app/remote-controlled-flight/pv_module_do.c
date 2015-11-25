@@ -141,12 +141,12 @@ void module_do_run()
 		drpy[1]=iInputData.attitude.dotPitch;
 		drpy[2]=iInputData.attitude.dotYaw;
 
-		position[0]=7.7;
-		position[1]=8.8;
+		position[0]=iInputData.position.x;
+		position[1]=iInputData.position.y;
 		position[2]=iInputData.position.z;
 
-		velocity[0]=10.10;
-		velocity[1]=11.11;
+		velocity[0]=iInputData.position.dotX;
+		velocity[1]=iInputData.position.dotY;
 		velocity[2]=iInputData.position.dotZ;
 
 		alpha[0]=iInputData.servosOutput.servo.alphal;

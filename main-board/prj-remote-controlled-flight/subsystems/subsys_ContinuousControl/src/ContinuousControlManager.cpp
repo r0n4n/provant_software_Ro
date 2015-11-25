@@ -34,7 +34,10 @@ ContinuousControlManager::ContinuousControlManager(std::string name) :
     name_(name)
 {
 	//mpc=new MPC::MpcControler();
-	lqr=new LQR::LQRControler();
+	//mpcload=new MPCLOAD::MpcLoad();
+	mpcbirotor=new MPCBirotor::MpcBirotor();
+	//mpc=new MPC::MpcControler();
+	//lqr=new LQR::LQRControler();
 	//test= new TEST::TESTActuator();
 }
 
@@ -129,10 +132,13 @@ void ContinuousControlManager::Run()
     	xs.setZero();
     	xs<<position.x,position.y,position.z,atitude.roll,atitude.pitch,atitude.yaw,servos.alphar,servos.alphal
     			,position.dotX,position.dotY,position.dotZ,atitude.dotRoll,atitude.dotPitch,atitude.dotYaw,servos.dotAlphar,servos.dotAlphal;
+
     	//u=mpc->Controler(xs);
-    	u=lqr->Controler(xs);
+    	//u=lqr->Controler(xs);
+    	//u=mpcload->Controler(xs);
+    	u=mpcbirotor->Controler(xs);
     	//u=test->Controler(channels);
-        cout<<u<<endl;
+    	std::cout<<u<<std::endl;
     	actuation.escRightNewtons=u(0,0);
     	actuation.escLeftNewtons=u(1,0);
     	actuation.servoRight=u(2,0);
@@ -140,7 +146,7 @@ void ContinuousControlManager::Run()
     	actuation.escLeftSpeed=0;
     	actuation.escRightSpeed=0;
 
-//    	cout<<"C-sample:"<<ms_sample_time<<endl;
+    	//    	cout<<"C-sample:"<<ms_sample_time<<endl;
 
     	interface->push(actuation, interface->q_actuation_out_);
     	interface->push(actuation, interface->q_actuation2_out_);

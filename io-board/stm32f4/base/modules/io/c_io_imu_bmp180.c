@@ -89,13 +89,11 @@ long c_io_imu_bmp180_ReadUP()
 
 	// Write 0x34+(OSS<<6) into register 0xF4
 	// Request a pressure reading w/ oversampling setting
-	//c_common_i2c_writeByte(I2Cx_bmp180, BMP180_ADDR, BMP180_CTRL_MEAS, (0x34 + (OSS<<6))); //<- Ja é colocado no init
+	c_common_i2c_writeByte(I2Cx_bmp180, BMP180_ADDR, BMP180_CTRL_MEAS, (0x34 + (OSS<<6))); //<- Ja é colocado no init
 	// Wait for conversion, delay time dependent on OSS
-	//c_common_utils_delayms(OSS_TIME);//<- a Thread roda mais tempo nao precisa
+	c_common_utils_delayms(OSS_TIME);//<- a Thread roda mais tempo nao precisa
 	// Read register 0xF6 (MSB), 0xF7 (LSB), and 0xF8 (XLSB)
 	c_common_i2c_readBytes(I2Cx_bmp180, BMP180_ADDR, BMP180_OUT_MSB, 3, buffer);
-
-	c_common_i2c_writeByte(I2Cx_bmp180, BMP180_ADDR, BMP180_CTRL_MEAS, (0x34 + (OSS<<6))); //<- Ja é colocado no init
 
 	up = (((long) buffer[0] << 16) | ((long) buffer[1] << 8) | (long) buffer[2]) >> (8-OSS);
 

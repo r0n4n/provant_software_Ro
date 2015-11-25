@@ -21,13 +21,15 @@
 //Common Father
 #include "AbstractModuleManager.h"
 #include "Eigen/Dense"
-#include "MpcControler.h"
 #include "LQRControler.h"
 #include "TESTActuator.h"
 #include "math.h"
 
 //Interface
 #include "ContinuousControlInterface.h"
+#include "MpcControler.h"
+#include "MpcBirotor.h"
+#include "MpcLoad.h"
 
 //Modulos (nao precisa, mas pode incluir todos os headers dos submodulos)
 
@@ -62,6 +64,8 @@ private:
     // Tempo de amostragem para loop principal
     int ms_sample_time;
     MPC::MpcControler * mpc;
+    MPCLOAD::MpcLoad * mpcload;
+    MPCBirotor::MpcBirotor * mpcbirotor;
     LQR::LQRControler * lqr;
     TEST::TESTActuator * test;
     // Nome do modulo

@@ -13,6 +13,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "Eigen/Dense"
 #include "LoadTranportationModel.h"
+#include "AircraftModel.h"
 #include "math.h"
 #include <iostream>
 #include <chrono>
@@ -20,6 +21,7 @@
 /* Exported types ------------------------------------------------------------*/
 /* Exported constants --------------------------------------------------------*/
 /* Exported macro ------------------------------------------------------------*/
+
 namespace MPC {
 
 class MpcControler {
