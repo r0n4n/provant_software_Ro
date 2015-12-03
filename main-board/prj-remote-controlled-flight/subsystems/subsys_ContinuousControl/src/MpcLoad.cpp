@@ -126,10 +126,11 @@ MpcLoad::~MpcLoad() {
 }
 
 Eigen::MatrixXf MpcLoad::Controler(Eigen::MatrixXf states){
+	Eigen::MatrixXf u(4,1);
 	k=0;
 	auto start = std::chrono::steady_clock::now();
 	//Vector of states
-	xs<<0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1;
+	xs<<0,0,3,states.block(3,0,7,1),0,0,0,states.block(13,0,7,1);
 	//Vectors of reference trajectory and control
     xr=TrajetoryReference(k).block(0,0,q,1);
     as=AcelerationReference(k);
@@ -200,17 +201,17 @@ Eigen::MatrixXf MpcLoad::Controler(Eigen::MatrixXf states){
 	qp.init(Hq,ftq,Arq,0,0,lbrq,ubrq,nWSR);
 	qp.getPrimalSolution(xOpt);
 
+	u(0,0)=(ur(0,0)+xOpt[0])/1000;
+	u(1,0)=(ur(1,0)+xOpt[1])/1000;
+	u(2,0)=(ur(2,0)+xOpt[2])/1000;
+	u(3,0)=(ur(3,0)+xOpt[3])/1000;
+	qp.reset();
 
 	auto end = std::chrono::steady_clock::now();
 	auto elapsed = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
 	std::cout << "Controll " << (float)(elapsed.count()/1000) << " miliseconds." << std::endl;
-	std::cout<<"xOpt=";
-	for(int i=0;i<4;i++){
-		std::cout<<xOpt[i]<<" ";
-	}
-	std::cout<<std::endl;
-	qp.reset();
-	return ur;
+
+	return u;
 }
 /* Private functions ------------------------------------------------------- */
 Eigen::MatrixXf MpcLoad::TrajetoryReference(int k){

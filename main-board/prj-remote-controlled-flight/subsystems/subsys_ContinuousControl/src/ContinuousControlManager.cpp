@@ -35,9 +35,9 @@ ContinuousControlManager::ContinuousControlManager(std::string name) :
 {
 	//mpc=new MPC::MpcControler();
 	//mpcload=new MPCLOAD::MpcLoad();
-	mpcbirotor=new MPCBirotor::MpcBirotor();
+	//mpcbirotor=new MPCBirotor::MpcBirotor();
 	//mpc=new MPC::MpcControler();
-	//lqr=new LQR::LQRControler();
+	lqr=new LQR::LQRControler();
 	//test= new TEST::TESTActuator();
 }
 
@@ -80,6 +80,7 @@ void ContinuousControlManager::Run()
     MatrixXf channels(4,1);
     MatrixXf u(4,1);
     cout<<"init"<<endl;
+
     for (int j=0;j<7;j++)
     	rcNormalize.normChannels[j]=0;
     // Loop principal!
@@ -134,10 +135,15 @@ void ContinuousControlManager::Run()
     			,position.dotX,position.dotY,position.dotZ,atitude.dotRoll,atitude.dotPitch,atitude.dotYaw,servos.dotAlphar,servos.dotAlphal;
 
     	//u=mpc->Controler(xs);
-    	//u=lqr->Controler(xs);
+    	u=lqr->Controler(xs);
     	//u=mpcload->Controler(xs);
-    	u=mpcbirotor->Controler(xs);
+    	//u=mpcbirotor->Controler(xs);
     	//u=test->Controler(channels);
+    	//dead zone treatment
+
+
+
+    	/////////////////////////////////
     	std::cout<<u<<std::endl;
     	actuation.escRightNewtons=u(0,0);
     	actuation.escLeftNewtons=u(1,0);

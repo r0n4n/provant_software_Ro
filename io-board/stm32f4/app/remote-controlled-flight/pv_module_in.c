@@ -95,7 +95,8 @@ void module_in_run()
   	float rpy[6] = {0}, attitude_yaw_initial=0.0f, last_valid_sonar_raw=0.35f, position_reference_initial=0.0f;
   	int iterations=1, channel_flight_mode=0, sample=0;
   	float sonar_raw=0.0f, sonar_raw_real=0.0f, sonar_raw_filter=0.0f, sonar_corrected_debug=0.0f, sonar_corrected=0.0f, sonar_filtered=0.0f, dotZ=0.0f, dotZ_filtered=0.0f;
-   	int n_valid_samples=0;
+   	float servo_filter_right=0, servo_filter_left=0;
+  	int n_valid_samples=0;
   	long sample_time_gyro_us[1] ={0};
   	int16_t torq;
   	float barometer[2];
@@ -110,6 +111,22 @@ void module_in_run()
   	float dotZ_filtered_k_minus_1=0.0f, dotZ_k_minus_1=0.0f;
   	float last_reference_z=0;
 	int valid_sonar_measurements=0;
+
+	/*Dados usados na filtragem dos servos*/
+	pv_type_datapr_servos servo_real, servo_filtered;
+	float servo_r_raw_k_minus_1=0.0f, servo_r_raw_k_minus_2=0.0f, servo_r_filtered_k_minus_1=0.0f, servo_r_filtered_k_minus_2=0.0f;
+	float servo_l_raw_k_minus_1=0.0f, servo_l_raw_k_minus_2=0.0f, servo_l_filtered_k_minus_1=0.0f, servo_l_filtered_k_minus_2=0.0f;
+
+	/* Inicializa os dados dos servos*/
+	servo_real.alphal=0;
+	servo_real.alphar=0;
+	servo_real.dotAlphal=0;
+	servo_real.dotAlphar=0;
+
+	servo_filtered.alphal=0;
+	servo_filtered.alphar=0;
+	servo_filtered.dotAlphal=0;
+	servo_filtered.dotAlphar=0;
 
 	/* Inicializa os dados da attitude*/
   	oInputData.attitude.roll  = 0;
@@ -232,14 +249,15 @@ void module_in_run()
 	/*----------------------Tratamento do Sonar---------------------*/
 	/* Executa a leitura do sonar */
 //	sonar_raw_real  =c_io_sonar_read();
-//	sonar_raw= sonar_raw_real/100;
+	sonar_raw_real  =0;
+	sonar_raw= sonar_raw_real/100;
 	/////////////////////////////////
 
 	/* Executa a leitura do barometro*/
 	if (oInputData.init){
-		sonar_raw_real=c_io_imu_getAltitude();
+	//	sonar_raw_real=c_io_imu_getAltitude();
 	}else{
-		sonar_raw=c_io_imu_getAltitude()-sonar_raw_real;
+	//	sonar_raw=c_io_imu_getAltitude()-sonar_raw_real;
 	}
 	/////////////////////////////////////
 
@@ -283,8 +301,30 @@ void module_in_run()
 	/*----------------------Tratamento dos servos---------------------*/
 	//Leitura da posicao e velocidade atual dos servo motores
 	if (!oInputData.init){
-		oInputData.servosOutput.servo=c_io_servos_read();
+		servo_real=c_io_servos_read();
+
+		// Derivada = (dado_atual-dado_anterior )/(tempo entre medicoes) - fiz a derivada do sinal filtrado, REVER
+		servo_real.dotAlphal = (servo_real.alphal - oInputData.servosOutput.servo.alphal)/sample_time_gyro_us[0];
+		servo_real.dotAlphar = (servo_real.alphar - oInputData.servosOutput.servo.alphar)/sample_time_gyro_us[0];
+
+		/*Left servo filter*/
+		//1st order filter with fc=10Hz
+		servo_filtered.dotAlphal = k1_1o_10Hz*servo_l_filtered_k_minus_1 + k2_1o_10Hz*servo_real.dotAlphal + k3_1o_10Hz*servo_l_raw_k_minus_1;
+		// Filter memory
+		servo_l_raw_k_minus_1 = servo_real.dotAlphal;
+		servo_l_filtered_k_minus_1 = servo_filtered.dotAlphal;
+
+		/*Right servo filter*/
+		//1st order filter with fc=10Hz
+		servo_filtered.dotAlphar = k1_1o_10Hz*servo_r_filtered_k_minus_1 + k2_1o_10Hz*servo_real.dotAlphar + k3_1o_10Hz*servo_r_raw_k_minus_1;
+		// Filter memory
+		servo_r_raw_k_minus_1 = servo_real.dotAlphar;
+		servo_r_filtered_k_minus_1 = servo_filtered.dotAlphar;
 	}
+	oInputData.servosOutput.servo.alphal=servo_real.alphal;
+	oInputData.servosOutput.servo.alphar=servo_real.alphar;
+	oInputData.servosOutput.servo.dotAlphal=servo_filtered.dotAlphal;
+	oInputData.servosOutput.servo.dotAlphar=servo_filtered.dotAlphar;
 	#endif
 
 	/*----------------------Seguranças-------------------------------------*/

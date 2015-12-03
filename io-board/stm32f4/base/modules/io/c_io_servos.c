@@ -88,7 +88,7 @@ void c_io_servos_init()
 		c_io_herkulex_config(idServoLeft);
 		c_io_herkulex_setPosition(idServoRight,0);
 		c_io_herkulex_setPosition(idServoLeft,0);
-		c_common_utils_delayms(100);
+		c_common_utils_delayms(2000);
 	#endif
 }
 
