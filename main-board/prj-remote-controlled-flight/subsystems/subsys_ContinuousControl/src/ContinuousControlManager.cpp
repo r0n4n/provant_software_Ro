@@ -79,7 +79,6 @@ void ContinuousControlManager::Run()
     MatrixXf xs(16,1);
     MatrixXf channels(4,1);
     MatrixXf u(4,1);
-    cout<<"init"<<endl;
 
     for (int j=0;j<7;j++)
     	rcNormalize.normChannels[j]=0;
@@ -144,7 +143,7 @@ void ContinuousControlManager::Run()
 
 
     	/////////////////////////////////
-    	std::cout<<u<<std::endl;
+    	//std::cout<<u<<std::endl;
     	actuation.escRightNewtons=u(0,0);
     	actuation.escLeftNewtons=u(1,0);
     	actuation.servoRight=u(2,0);

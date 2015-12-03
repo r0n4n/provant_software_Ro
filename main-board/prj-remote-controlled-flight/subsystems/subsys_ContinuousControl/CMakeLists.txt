@@ -56,6 +56,7 @@ set(SRCS
 	${PROJECT_SOURCE_DIR}/MpcBirotor.cpp
 	${PROJECT_SOURCE_DIR}/LQRControler.cpp
 	${PROJECT_SOURCE_DIR}/TESTActuator.cpp
+	${PROJECT_SOURCE_DIR}/ReferenceTrajectory.cpp
 	${PROJECT_COMMON_DIR}/src/AbstractMessageInterface.cpp
 	${PROJECT_COMMON_DIR}/src/AbstractModuleManager.cpp
 )

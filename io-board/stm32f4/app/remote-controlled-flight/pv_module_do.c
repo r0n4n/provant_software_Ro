@@ -42,6 +42,7 @@ float position[3];
 float velocity[3];
 float alpha[2];
 float dalpha[2];
+float data1[2],data2[2],data3[2];
 int aux[2];
 float aux2[3];
 float servoTorque[2];
@@ -163,9 +164,16 @@ void module_do_run()
 		channel[5]=iInputData.receiverOutput.bButton;
 		channel[6]=0;
 
+		data1[0]= iControlOutputData.actuation.servoLeft;
+		data1[1]= iControlOutputData.actuation.servoRight;
+		data3[0]= iControlOutputData.actuation.escLeftNewtons;
+		data3[1]= iControlOutputData.actuation.escLeftSpeed;
+		data2[0]= iControlOutputData.actuation.escRightNewtons;
+		data2[1]= iControlOutputData.actuation.escRightSpeed;
+
 		c_common_datapr_multwii2_sendControldatain(rpy,drpy,position,velocity);
 		c_common_datapr_multwii2_sendEscdata(aux,alpha,dalpha);
-		//c_common_datapr_multwii_debug(iControlOutputData.actuation.escLeftSpeed,iControlOutputData.actuation.escRightSpeed,3,4);
+		c_common_datapr_multwii2_sendControldataout(data1,data3,data2);
 		c_common_datapr_multwii_debug(channel[0],channel[1],channel[2],channel[3]);
 		c_common_datapr_multwii2_rcNormalize(channel);
 		c_common_datapr_multwii_sendstack(USART2);

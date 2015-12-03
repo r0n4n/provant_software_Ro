@@ -71,6 +71,7 @@ void CommLowLevelManager::Run()
     proVant::controlOutput actuation;
     proVant::controlOutput actuation2;
 
+
     float data1[2]={};
     float data2[2]={};
     float data3[2]={};
@@ -90,17 +91,17 @@ void CommLowLevelManager::Run()
     	atitude = PROVANT.getVantData().getAtitude();
     	position= PROVANT.getVantData().getPosition();
     	servos= PROVANT.getVantData().getServoState();    //Function made to save current as alpha and voltage as dotalpha
-    	//debug= PROVANT.getVantData().getDebug2();
+    	actuation2=PROVANT.getVantData().getActuation();
     	rc= PROVANT.getVantData().getNormChannels();
-
+    	std::cout<<actuation.escRightNewtons<<std::endl;
     	//Send Control to Discovery
     	if(interface->pop(actuation, &interface->q_actuation_in)){
     		/*Control*/
     		data1[0]= actuation.servoLeft;
     		data1[1]= actuation.servoRight;
     		data3[0]= actuation.escLeftNewtons;
-    		data3[1]= actuation.escRightNewtons;
-    		data2[0]= actuation.escLeftSpeed;
+    		data3[1]= actuation.escLeftSpeed;
+    		data2[0]= actuation.escRightNewtons;
     		data2[1]= actuation.escRightSpeed;
     		PROVANT.multwii2_sendControldataout(data1,data3,data2);
     		PROVANT.multwii_sendstack();
@@ -127,6 +128,7 @@ void CommLowLevelManager::Run()
     	interface->push(servos, interface->q_servos2_out_);
     	interface->push(debug, interface->q_debug2_out_);
     	interface->push(rc, interface->q_rc2_out_);
+    	interface->push(actuation2, interface->q_actuation2_out_);
 
     	//Elapsed time code
 //    	auto end = std::chrono::steady_clock::now();

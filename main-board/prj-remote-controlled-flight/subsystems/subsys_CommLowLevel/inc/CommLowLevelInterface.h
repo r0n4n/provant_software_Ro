@@ -67,7 +67,7 @@ public:
     MsgQueue<proVant::servos_state>* q_servos2_out_;
     MsgQueue<proVant::debug2>* q_debug2_out_;
     MsgQueue<proVant::rcNormalize>* q_rc2_out_;
-
+    MsgQueue<proVant::controlOutput>* q_actuation2_out_;
 
 
     //MsgQueue<proVant::position>* q_position_;

@@ -131,8 +131,6 @@ void module_co_run()
 	#ifdef ENABLE_SERVO
 	/* Escrita dos servos */
 
-	float torqueRightcomp=0;//-0.200*9.8*0.05784*sin(iInputData.servosOutput.servo.alphar+iInputData.attitude.pitch);
-	float torqueLeftcomp=0;//-0.200*9.8*0.05784*sin(iInputData.servosOutput.servo.alphal+iInputData.attitude.pitch);
 
 	if (iInputData.securityStop){
 		//c_io_servos_writePosition(0,0);
@@ -142,11 +140,11 @@ void module_co_run()
 		// inicializacao
 		if (iInputData.init){
 			//c_io_servos_writePosition(0,0);
-			c_io_servos_writeTorque(torqueRightcomp,torqueLeftcomp);
+			c_io_servos_writeTorque(0,0);
 		}
 		else{
 			//c_io_servos_writePosition(iActuation.servoRight,iActuation.servoLeft);
-			c_io_servos_writeTorque(torqueRightcomp+iActuation.servoRight,torqueLeftcomp+iActuation.servoLeft);
+			c_io_servos_writeTorque(iActuation.servoRight,iActuation.servoLeft);
 		}
 	}
 	#endif
@@ -159,27 +157,29 @@ void module_co_run()
 	sp_left = setPointESC_Forca(iActuation.escLeftNewtons );
 
 	if (iInputData.securityStop){
-		//c_io_blctrl_setSpeed(1, 0 );//sp_right
+		c_io_blctrl_setSpeed(1, 0 );//sp_right
 		c_common_utils_delayus(10);
-		//c_io_blctrl_setSpeed(0, 0 );//sp_left
+		c_io_blctrl_setSpeed(0, 0 );//sp_left
 	}
 	else{
 		//inicializacao
 		if (iInputData.init){
-			//c_io_blctrl_setSpeed(1, ESC_MINIMUM_VELOCITY);
+			c_io_blctrl_setSpeed(1, ESC_MINIMUM_VELOCITY);
 			c_common_utils_delayus(10);
-			//c_io_blctrl_setSpeed(0, ESC_MINIMUM_VELOCITY);
+			c_io_blctrl_setSpeed(0, ESC_MINIMUM_VELOCITY);
 		}
 		else{
-			//c_io_blctrl_setSpeed(1, sp_right );//sp_right
+			c_io_blctrl_setSpeed(1, sp_right );//sp_right
 			c_common_utils_delayus(10);
-			//c_io_blctrl_setSpeed(0, sp_left );//sp_left
+			c_io_blctrl_setSpeed(0, sp_left );//sp_left
 		}
 	}
 	#endif
 
-	oControlOutputData.actuation.escLeftSpeed=iActuation.escLeftSpeed;
-	oControlOutputData.actuation.escRightSpeed=iActuation.escRightSpeed;
+	oControlOutputData.actuation.escLeftSpeed=sp_left;
+	oControlOutputData.actuation.escRightSpeed=sp_right;
+	oControlOutputData.actuation.escLeftNewtons=iActuation.escLeftNewtons;
+	oControlOutputData.actuation.escRightNewtons=iActuation.escRightNewtons;
 	oControlOutputData.actuation.servoLeft=iActuation.servoLeft;
 	oControlOutputData.actuation.servoRight=iActuation.servoRight;
 

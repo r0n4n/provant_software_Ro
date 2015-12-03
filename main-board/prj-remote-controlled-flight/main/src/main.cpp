@@ -50,7 +50,7 @@ int main(int argc, char ** argv) {
     CommLowLevel.interface->q_servos2_out_ = &DataProcessing.interface->q_servos_in; //Aqui
     CommLowLevel.interface->q_debug2_out_= &DataProcessing.interface->q_debug_in; //Aqui
     CommLowLevel.interface->q_rc2_out_= &DataProcessing.interface->q_rc_in; //Aqui
-    ContinuousControl.interface->q_actuation2_out_ = &DataProcessing.interface->q_actuation_in; //Aqui
+    CommLowLevel.interface->q_actuation2_out_ = &DataProcessing.interface->q_actuation_in; //Aqui
 
     boost::thread th1( boost::bind( &CommLowLevelManager::Run, CommLowLevel) ); //AQUI
     boost::thread th2( boost::bind( &ContinuousControlManager::Run, ContinuousControl) ); //AQUI

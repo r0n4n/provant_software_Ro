@@ -190,8 +190,8 @@ void module_in_run()
     	oInputData.attitude.roll= rpy[PV_IMU_ROLL];
     if (abs2(rpy[PV_IMU_PITCH]-oInputData.attitude.pitch)>ATTITUDE_MINIMUM_STEP)
     	oInputData.attitude.pitch= rpy[PV_IMU_PITCH];
-    if (abs2(rpy[PV_IMU_YAW]-oInputData.attitude.yaw)>ATTITUDE_MINIMUM_STEP)
-    	oInputData.attitude.yaw= rpy[PV_IMU_YAW];
+    if (abs2((attitude_yaw_initial-rpy[PV_IMU_YAW])-oInputData.attitude.yaw)>ATTITUDE_MINIMUM_STEP)
+    	oInputData.attitude.yaw= attitude_yaw_initial-rpy[PV_IMU_YAW];
 
     /* Saida dos dados da velocidade angular*/
     oInputData.attitude.dotRoll  = rpy[PV_IMU_DROLL];

@@ -1,38 +1,36 @@
 /**
   ******************************************************************************
-  * @file    subsystems/subsys_ContinousContorl/inc/MpcControle.h
+  * @file    subsystems/subsys_ContinousContorl/inc/ReferenceTrajectory.h
   * @author  Richard Andrade
   * @version V1.0.0
   * @date    17-Nov-2015
-  * @brief   LQR Controler estabilization.
+  * @brief   Reference Generator.
   *****************************************************************************/
 
 /* Define to prevent recursive inclusion -------------------------------------*/
-#ifndef LQRCONTORLER_H_
-#define LQRCONTORLER_H_
+#ifndef REFERENCETRAJECTORY_H_
+#define REFERENCETRAJECTORY_H_
 /* Includes ------------------------------------------------------------------*/
 #include "Eigen/Dense"
 #include "math.h"
 #include <iostream>
 #include <chrono>
-#include "ReferenceTrajectory.h"
 /* Exported types ------------------------------------------------------------*/
 /* Exported constants --------------------------------------------------------*/
 /* Exported macro ------------------------------------------------------------*/
-namespace LQR {
+namespace TRAJECTORY {
 
-class LQRControler {
+class ReferenceTrajectory {
 /* Exported functions ------------------------------------------------------- */
 public:
-	LQRControler();
-	virtual ~LQRControler();
-	Eigen::MatrixXf Controler(Eigen::MatrixXf states);
+	ReferenceTrajectory();
+	virtual ~ReferenceTrajectory();
+	Eigen::MatrixXf TrajetoryReference_LQR();
 /* Private functions ------------------------------------------------------- */
 private:
-	Eigen::MatrixXf Gain(int a);
-	TRAJECTORY::ReferenceTrajectory * trajectory;
+
 };
 
-} /* namespace mpc */
+} /* namespace TRAJECTORY */
 
-#endif /* LQRCONTORLER_H_ */
+#endif /* REFERENCETRAJECTORY_H_ */

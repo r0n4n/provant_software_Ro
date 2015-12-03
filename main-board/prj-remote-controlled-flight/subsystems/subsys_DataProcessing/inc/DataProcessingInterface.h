@@ -45,6 +45,7 @@ public:
     MsgQueue<proVant::debug2> q_debug_in;
     MsgQueue<proVant::rcNormalize> q_rc_in;
 
+
     // Outboxes (ponteiros para inboxes alheios)
 
 
