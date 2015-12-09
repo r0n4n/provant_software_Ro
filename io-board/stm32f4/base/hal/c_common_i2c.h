@@ -15,7 +15,7 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f4xx_conf.h"
-
+#include "c_common_gpio.h"
 #include "c_common_utils.h"
 
 /* FreeRTOS kernel includes */
@@ -31,7 +31,7 @@
 /* Exported types ------------------------------------------------------------*/
 /* Exported constants --------------------------------------------------------*/
 /* Exported macro ------------------------------------------------------------*/
-
+#define I2C_BITBANG_DELAY_US	5
 /* Exported functions ------------------------------------------------------- */
 void c_common_i2c_init(I2C_TypeDef* I2Cx);
 void c_common_i2c_start(I2C_TypeDef* I2Cx, uint8_t address, uint8_t direction);
@@ -46,6 +46,7 @@ uint8_t c_common_i2c_readNack(I2C_TypeDef* I2Cx);
 void c_common_i2c_readBytes(I2C_TypeDef* I2Cx, uint8_t device, uint8_t address, char bytesToRead, uint8_t * recvBuffer);
 void c_common_i2c_writeByte(I2C_TypeDef* I2Cx, uint8_t device, uint8_t address, uint8_t byteToWrite);
 int c_common_i2c_timeoutAck();
+void c_common_i2c_busReset(I2C_TypeDef* I2Cx);
 
 /* Header-defined wrapper functions ----------------------------------------- */
 

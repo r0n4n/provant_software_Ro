@@ -211,9 +211,9 @@ void module_in_run()
     #endif
 
     if (c_common_i2c_timeoutAck()==1){
-    	c_common_i2c_init(I2C1);
+    	c_common_i2c_busReset(I2C1);
     }else if(c_common_i2c_timeoutAck()==2)
-    	c_common_i2c_init(I2C2);
+    	c_common_i2c_busReset(I2C2);
 
     /*----------------------Tratamento da Referencia---------------------*/
     /* Realiza a leitura dos canais do radio-controle */

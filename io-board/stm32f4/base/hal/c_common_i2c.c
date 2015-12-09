@@ -57,6 +57,8 @@
 long whileTimeoutCounter = 0;
 long timeoutCounter = 0;
 int lastTimeoutExpired  = 0;
+GPIOPin sda;
+GPIOPin scl;
 
 /* Private define ------------------------------------------------------------*/
 #define TIMEOUT_MS 1
@@ -403,6 +405,119 @@ void c_common_i2c_writeBit(I2C_TypeDef* I2Cx ,uint8_t device, uint8_t address, u
 
 int c_common_i2c_timeoutAck(){
 	return lastTimeoutExpired;
+}
+
+/*
+ * Unwedge the i2c bus for the given port.
+ *
+ * Some devices on our i2c busses keep power even if we get a reset.  That
+ * means that they could be partway through a transaction and could be
+ * driving the bus in a way that makes it hard for us to talk on the bus.
+ * ...or they might listen to the next transaction and interpret it in a
+ * weird way.
+ *
+ * Note that devices could be in one of several states:
+ * - If a device got interrupted in a write transaction it will be watching
+ *   for additional data to finish its write.  It will probably be looking to
+ *   ack the data (drive the data line low) after it gets everything.  Ideally
+ *   we'd like to abort right away so we don't write bogus data.
+ * - If a device got interrupted while responding to a register read, it will
+ *   be watching for clocks and will drive data out when it sees clocks.  At
+ *   the moment it might be trying to send out a 1 (so both clock and data
+ *   may be high) or it might be trying to send out a 0 (so it's driving data
+ *   low). Ideally we want to finish reading the current byte and then nak to
+ *   abort everything.
+ *
+ * We attempt to unwedge the bus by doing:
+ * - If possible, send a pseudo-"stop" bit.  We can only do this if nobody
+ *   else is driving the clock or data lines, since that's the only way we
+ *   have enough control.  The idea here is to abort any writes that might
+ *   be in progress.  Note that a real "stop" bit would actually be a "low to
+ *   high transition of SDA while SCL is high".  ...but both must be high for
+ *   us to be in control of the bus.  Thus we _first_ drive SDA low so we can
+ *   transition it high.  This first transition looks like a start bit.  In any
+ *   case, the hope here is that it will look enough like an error condition
+ *   that slaves will abort.
+ * - If we failed to send the pseudo-stop bit, try one clock and try again.
+ *   I've seen a reset happen while the device was waiting for us to clock out
+ *   its ack of the address.  That should be the only time that the other side
+ *   is driving things in the case of a write, so only 1 clock is enough.
+ * - Try to clock 9 times, if we can.  This should finish reading out any data
+ *   and then should nak.
+ * - Send one last pseudo-stop bit, just for good measure.
+ *
+ * @param  port  The i2c port to unwedge.
+ */
+void c_common_i2c_busReset(I2C_TypeDef* I2Cx)
+{
+	enum gpio_signal;
+	int i;
+
+	//ASSERT(port == I2C1 || port == I2C2);
+	if (I2Cx == I2C1) {
+		sda = c_common_gpio_init(GPIOB, GPIO_Pin_8, GPIO_Mode_OUT);
+		scl = c_common_gpio_init(GPIOB, GPIO_Pin_9, GPIO_Mode_OUT);
+	} else {
+		sda = c_common_gpio_init(GPIOF, GPIO_Pin_0, GPIO_Mode_OUT);
+		scl = c_common_gpio_init(GPIOF, GPIO_Pin_1, GPIO_Mode_OUT);
+	}
+	/*
+	 * Reconfigure ports as general purpose open-drain outputs, initted
+	 * to high.
+	 *
+	 * We manually set the level first in addition to using GPIO_HIGH
+	 * since gpio_set_flags() behaves strangely in the case of a warm boot.
+	 */
+	c_common_gpio_set(scl);
+	c_common_gpio_set(sda);
+	//gpio_set_flags(scl, GPIO_OUTPUT | GPIO_OPEN_DRAIN | GPIO_HIGH);
+	//gpio_set_flags(sda, GPIO_OUTPUT | GPIO_OPEN_DRAIN | GPIO_HIGH);
+	/* Try to send out pseudo-stop bit.  See function description */
+	if (GPIO_ReadOutputDataBit(GPIOB,GPIO_Pin_9) && GPIO_ReadOutputDataBit(GPIOB,GPIO_Pin_8)) {
+		c_common_gpio_reset(sda);
+		c_common_utils_delayus(I2C_BITBANG_DELAY_US);
+		c_common_gpio_set(sda);
+		c_common_utils_delayus(I2C_BITBANG_DELAY_US);
+	} else {
+		/* One more clock in case it was trying to ack its address */
+		c_common_gpio_reset(scl);
+		c_common_utils_delayus(I2C_BITBANG_DELAY_US);
+		c_common_gpio_set(scl);
+		c_common_utils_delayus(I2C_BITBANG_DELAY_US);
+		if (GPIO_ReadOutputDataBit(GPIOB,GPIO_Pin_9) && GPIO_ReadOutputDataBit(GPIOB,GPIO_Pin_8)) {
+			c_common_gpio_reset(sda);
+			c_common_utils_delayus(I2C_BITBANG_DELAY_US);
+			c_common_gpio_set(sda);
+			c_common_utils_delayus(I2C_BITBANG_DELAY_US);
+		}
+	}
+	/*
+	 * Now clock 9 to read pending data; one of these will be a NAK.
+	 *
+	 * Don't bother even checking if scl is high--we can't do anything about
+	 * it anyway.
+	 */
+	for (i = 0; i < 9; i++) {
+		c_common_gpio_reset(scl);
+		c_common_utils_delayus(I2C_BITBANG_DELAY_US);
+		c_common_gpio_set(scl);
+		c_common_utils_delayus(I2C_BITBANG_DELAY_US);
+	}
+	/* One last try at a pseudo-stop bit */
+	if (GPIO_ReadOutputDataBit(GPIOB,GPIO_Pin_9) && GPIO_ReadOutputDataBit(GPIOB,GPIO_Pin_8)) {
+		c_common_gpio_reset(sda);
+		c_common_utils_delayus(I2C_BITBANG_DELAY_US);
+		c_common_gpio_set(sda);
+		c_common_utils_delayus(I2C_BITBANG_DELAY_US);
+	}
+	/*
+	 * Set things back to quiescent.
+	 *
+	 * We rely on board_i2c_post_init() to actually reconfigure pins to
+	 * be special function.
+	 */
+	c_common_gpio_set(scl);
+	c_common_gpio_set(sda);
 }
 
 /* IRQ handlers ------------------------------------------------------------- */
