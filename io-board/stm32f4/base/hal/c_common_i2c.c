@@ -56,7 +56,7 @@
 //#define I2Cx 	I2C1 
 long whileTimeoutCounter = 0;
 long timeoutCounter = 0;
-bool lastTimeoutExpired  = 0;
+int lastTimeoutExpired  = 0;
 
 /* Private define ------------------------------------------------------------*/
 #define TIMEOUT_MS 1
@@ -75,14 +75,23 @@ bool lastTimeoutExpired  = 0;
  * @todo existe alguns problemas onde nunca si dessa funcao , resolver
  */
 
-bool while_timeout(bool cond, long startime) {
+bool while_timeout(I2C_TypeDef* I2Cx,bool cond, long startime) {
   long unsigned int time_diff1 = c_common_utils_millis();
 //  long unsigned int time_diff1 = c_common_utils_micros();
   long unsigned int time_diff = time_diff1 - startime ;
-  if(time_diff > TIMEOUT_MS)
-    { lastTimeoutExpired = 1; return 0; }
-  else
-    { lastTimeoutExpired = 0; return cond; }
+  if(time_diff > TIMEOUT_MS){
+	  if (I2Cx==I2C1){
+		  	  lastTimeoutExpired = 1;
+	  }else if (I2Cx==I2C2){
+	  		lastTimeoutExpired = 2;
+	  }else{
+	  		lastTimeoutExpired = 3;
+	  }
+	  return 0;
+  }else{
+	lastTimeoutExpired = 0;
+	return cond;
+  }
 }
 
 
@@ -236,7 +245,7 @@ void c_common_i2c_start(I2C_TypeDef* I2Cx, uint8_t address, uint8_t direction)
         // wait until I2C1 is not busy anymore
 		timeoutCounter = c_common_utils_millis();
 //		timeoutCounter = c_common_utils_micros();
-        while(while_timeout(I2C_GetFlagStatus(I2Cx, I2C_FLAG_BUSY), timeoutCounter));
+        while(while_timeout(I2Cx,I2C_GetFlagStatus(I2Cx, I2C_FLAG_BUSY), timeoutCounter));
 
         // Send I2C1 START condition
         I2C_GenerateSTART(I2Cx, ENABLE);
@@ -244,7 +253,7 @@ void c_common_i2c_start(I2C_TypeDef* I2Cx, uint8_t address, uint8_t direction)
         // wait for I2C1 EV5 --> Slave has acknowledged start condition
         timeoutCounter = c_common_utils_millis();
 //        timeoutCounter = c_common_utils_micros();
-        while(while_timeout(!I2C_CheckEvent(I2Cx, I2C_EVENT_MASTER_MODE_SELECT), timeoutCounter));
+        while(while_timeout(I2Cx,!I2C_CheckEvent(I2Cx, I2C_EVENT_MASTER_MODE_SELECT), timeoutCounter));
 
         if(!lastTimeoutExpired) {
 			// Send slave Address for write
@@ -258,12 +267,12 @@ void c_common_i2c_start(I2C_TypeDef* I2Cx, uint8_t address, uint8_t direction)
 			if(direction == I2C_Direction_Transmitter){
 					timeoutCounter = c_common_utils_millis();
 //					timeoutCounter = c_common_utils_micros();
-					while(while_timeout(!I2C_CheckEvent(I2Cx, I2C_EVENT_MASTER_TRANSMITTER_MODE_SELECTED), timeoutCounter));
+					while(while_timeout(I2Cx,!I2C_CheckEvent(I2Cx, I2C_EVENT_MASTER_TRANSMITTER_MODE_SELECTED), timeoutCounter));
 			}
 			else if(direction == I2C_Direction_Receiver){
 					timeoutCounter = c_common_utils_millis();
 //					timeoutCounter = c_common_utils_micros();
-					while(while_timeout(!I2C_CheckEvent(I2Cx, I2C_EVENT_MASTER_RECEIVER_MODE_SELECTED), timeoutCounter));
+					while(while_timeout(I2Cx,!I2C_CheckEvent(I2Cx, I2C_EVENT_MASTER_RECEIVER_MODE_SELECTED), timeoutCounter));
 			}
         }
 }
@@ -278,7 +287,7 @@ void c_common_i2c_write(I2C_TypeDef* I2Cx, uint8_t data) {
         // wait for I2C1 EV8_2 --> byte has been transmitted
         timeoutCounter = c_common_utils_millis();
 //        timeoutCounter = c_common_utils_micros();
-        while(while_timeout(!I2C_CheckEvent(I2Cx, I2C_EVENT_MASTER_BYTE_TRANSMITTED), timeoutCounter));
+        while(while_timeout(I2Cx,!I2C_CheckEvent(I2Cx, I2C_EVENT_MASTER_BYTE_TRANSMITTED), timeoutCounter));
 }
 
 /** \brief Lê um byte do escravo e confima (acknowledges) o byte (requisita um próximo).
@@ -293,7 +302,7 @@ uint8_t c_common_i2c_readAck(I2C_TypeDef* I2Cx) {
         // wait until one byte has been received
         timeoutCounter = c_common_utils_millis();
 //        timeoutCounter = c_common_utils_micros();
-        while(while_timeout(!I2C_CheckEvent(I2Cx, I2C_EVENT_MASTER_BYTE_RECEIVED), timeoutCounter));
+        while(while_timeout(I2Cx,!I2C_CheckEvent(I2Cx, I2C_EVENT_MASTER_BYTE_RECEIVED), timeoutCounter));
         // read data from I2C data register and return data byte
         if(!lastTimeoutExpired)
         	data = I2C_ReceiveData(I2Cx);
@@ -315,7 +324,7 @@ uint8_t c_common_i2c_readNack(I2C_TypeDef* I2Cx) {
         // wait until one byte has been received
         timeoutCounter = c_common_utils_millis();
 //        timeoutCounter = c_common_utils_micros();
-        while(while_timeout(!I2C_CheckEvent(I2Cx, I2C_EVENT_MASTER_BYTE_RECEIVED), timeoutCounter));
+        while(while_timeout(I2Cx,!I2C_CheckEvent(I2Cx, I2C_EVENT_MASTER_BYTE_RECEIVED), timeoutCounter));
         // read data from I2C data register and return data byte
         if(!lastTimeoutExpired)
         	data = I2C_ReceiveData(I2Cx);
@@ -347,6 +356,7 @@ void c_common_i2c_stop(I2C_TypeDef* I2Cx) {
  *
  */
 void c_common_i2c_readBytes(I2C_TypeDef* I2Cx, uint8_t device, uint8_t address, char bytesToRead, uint8_t * recvBuffer) {
+	//taskENTER_CRITICAL();
 	c_common_i2c_start(I2Cx, device<<1, I2C_Direction_Transmitter);
 	c_common_i2c_write(I2Cx, address);
 	c_common_i2c_stop(I2Cx);
@@ -357,6 +367,7 @@ void c_common_i2c_readBytes(I2C_TypeDef* I2Cx, uint8_t device, uint8_t address, 
 
 	recvBuffer[bytesToRead-1] = c_common_i2c_readNack(I2Cx);
 	c_common_i2c_stop(I2Cx);
+	//taskEXIT_CRITICAL();
 }
 
 /** \brief Escreve um byte num dispositivo com um dado endereço.
@@ -367,10 +378,12 @@ void c_common_i2c_readBytes(I2C_TypeDef* I2Cx, uint8_t device, uint8_t address, 
  * @param byteToWrite Byte a ser escrito.
  */
 void c_common_i2c_writeByte(I2C_TypeDef* I2Cx, uint8_t device, uint8_t address, uint8_t byteToWrite) {
+	taskENTER_CRITICAL();
 	c_common_i2c_start(I2Cx, device<<1, I2C_Direction_Transmitter);
 	c_common_i2c_write(I2Cx, address);
 	c_common_i2c_write(I2Cx, byteToWrite);
 	c_common_i2c_stop(I2Cx);
+	taskEXIT_CRITICAL();
 }
 
 /** \brief Escreve apenas um bit em um dado endereço de um dispositivo.
@@ -386,6 +399,10 @@ void c_common_i2c_writeBit(I2C_TypeDef* I2Cx ,uint8_t device, uint8_t address, u
 	c_common_i2c_readBytes(I2Cx, device, address, 1, &byteBuffer);
 	byteBuffer = (value == 0)? (byteBuffer & (1<<bit)) : (byteBuffer | (1<<bit));
 	c_common_i2c_writeByte(I2Cx, device, address,byteBuffer);
+}
+
+int c_common_i2c_timeoutAck(){
+	return lastTimeoutExpired;
 }
 
 /* IRQ handlers ------------------------------------------------------------- */

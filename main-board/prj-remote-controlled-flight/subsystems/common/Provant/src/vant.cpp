@@ -95,6 +95,7 @@ vant::vant() {
 	multitype = 0;
 	mspVersion = 0;
 	capability = 0;
+	stop=1;
 
 	//Motor Pins
 	for(i = 0; i < 8; i++){
@@ -268,7 +269,7 @@ float vant::getEscRightSpeed(){
 	return this->escRightSpeed;
 }
 
-void vant::setRpm(int pos, float rpm){
+void vant::setRpm(int pos, int rpm){
 	this->rpm[pos] = rpm;
 }
 
@@ -605,7 +606,15 @@ proVant::atitude vant::getAtitude(){
 
 	return atd;
 }
-
+proVant::status vant::getStatus(){
+	proVant::status aux;
+	aux.cycleTime=0;
+	aux.flag=0;
+	aux.i2cErrorsCount=0;
+	aux.sensor=0;
+	aux.stop=this->rpm[0];
+	return aux;
+}
 proVant::position vant::getPosition(){
 	proVant::position position;
 	position.x=this->getX();

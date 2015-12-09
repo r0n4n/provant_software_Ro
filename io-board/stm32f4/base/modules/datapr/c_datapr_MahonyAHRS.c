@@ -81,7 +81,7 @@ void c_datapr_MahonyAHRSupdate(float * q, float gx, float gy, float gz, float ax
 	float sample_time_gyro;
 
 	//Transform the sample time in us to s
-	sample_time_gyro = (float)(sample_time_gyro_us)/1000000;
+	sample_time_gyro = (float)(sample_time_gyro_us)*1E-6;
 
 	// Use IMU algorithm if magnetometer measurement invalid (avoids NaN in magnetometer normalisation)
 	if((mx == 0.0f) && (my == 0.0f) && (mz == 0.0f)) {

@@ -248,9 +248,10 @@ void c_io_herkulex_serializeIjog(pv_ijog_herkulex ijog[], uint8_t numIjogs)
 void c_io_herkulex_send(void)
 {
 	int i;
-
+	taskENTER_CRITICAL();
 	for (i = 0; i < BUFFER[2] ; ++i)
 		c_common_usart_putchar(usartx, BUFFER[i]);
+	taskEXIT_CRITICAL();
 }
 
 /** \brief Recebe um pacote de dados do servo.
@@ -265,6 +266,7 @@ uint8_t c_io_herkulex_receive(void)
 
 	now = c_common_utils_millis();
 	timeOut = 3 + now;
+	taskENTER_CRITICAL();
 	while ((long)(now - timeOut) <= 0 && i < size) {
 		while (!c_common_usart_available(usartx) && (long)(now - timeOut) <= 0)
 			now = c_common_utils_millis();
@@ -282,8 +284,11 @@ uint8_t c_io_herkulex_receive(void)
 			i++;
 		}
 	}
-	if (now >= timeOut)
+	if (now >= timeOut){
+		taskEXIT_CRITICAL();
 		return 0;
+	}
+	taskEXIT_CRITICAL();
 	return 1;
 }
 

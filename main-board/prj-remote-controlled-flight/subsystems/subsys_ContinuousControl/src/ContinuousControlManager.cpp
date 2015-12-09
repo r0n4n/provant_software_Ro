@@ -72,8 +72,9 @@ void ContinuousControlManager::Run()
     proVant::position position;
     proVant::servos_state servos;
     proVant::controlOutput actuation;
-    proVant::debug2 debug;
+    proVant::debug debug;
     proVant::rcNormalize rcNormalize;
+    proVant::status status;
     int i=0;
     // Matrix class
     MatrixXf xs(16,1);
@@ -127,6 +128,13 @@ void ContinuousControlManager::Run()
     	//  cout<<"dotAlphal= "<<servos.dotAlphal<<endl;
     	//  cout<<"dotAlphar= "<<servos.dotAlphar<<endl;
     	}
+    	if(interface->pop(status, &interface->q_status_in)){
+    	/*Servos*/
+    	//	cout<<"channel[1]"<<rcNormalize.normChannels[1]<<endl;
+    	//	cout<<"Alphar= "<<servos.alphar<<endl;
+    	//  cout<<"dotAlphal= "<<servos.dotAlphal<<endl;
+    	//  cout<<"dotAlphar= "<<servos.dotAlphar<<endl;
+    	}
     	channels.setZero();
     	channels<<rcNormalize.normChannels[0],rcNormalize.normChannels[1],rcNormalize.normChannels[2],rcNormalize.normChannels[3];
     	xs.setZero();
@@ -134,12 +142,12 @@ void ContinuousControlManager::Run()
     			,position.dotX,position.dotY,position.dotZ,atitude.dotRoll,atitude.dotPitch,atitude.dotYaw,servos.dotAlphar,servos.dotAlphal;
 
     	//u=mpc->Controler(xs);
-    	u=lqr->Controler(xs);
+    	u=lqr->Controler(xs,status.stop);
     	//u=mpcload->Controler(xs);
     	//u=mpcbirotor->Controler(xs);
     	//u=test->Controler(channels);
     	//dead zone treatment
-
+    	std::cout<<u<<std::endl;
 
 
     	/////////////////////////////////

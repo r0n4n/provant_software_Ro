@@ -56,17 +56,20 @@ public:
     MsgQueue<proVant::atitude>* q_atitude_out_;
     MsgQueue<proVant::position>* q_position_out_;
     MsgQueue<proVant::servos_state>* q_servos_out_;
-    MsgQueue<proVant::debug2>* q_debug_out_;
+    MsgQueue<proVant::debug>* q_debug_out_;
     MsgQueue<proVant::rcNormalize>* q_rc_out_;
+    MsgQueue<proVant::status>* q_status_out_;
     // CommLowLevelManager consuming
     MsgQueue<proVant::controlOutput> q_actuation_in;
+
 
     //Dataprocesing Producing
     MsgQueue<proVant::atitude>* q_atitude2_out_;
     MsgQueue<proVant::position>* q_position2_out_;
     MsgQueue<proVant::servos_state>* q_servos2_out_;
-    MsgQueue<proVant::debug2>* q_debug2_out_;
+    MsgQueue<proVant::debug>* q_debug2_out_;
     MsgQueue<proVant::rcNormalize>* q_rc2_out_;
+    MsgQueue<proVant::status>* q_status2_out_;
     MsgQueue<proVant::controlOutput>* q_actuation2_out_;
 
 

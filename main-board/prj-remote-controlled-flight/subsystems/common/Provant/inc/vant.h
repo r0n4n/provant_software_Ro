@@ -50,7 +50,7 @@ class vant {
 	float escRightSpeed;
 	
 	//Esc data:
-	float rpm[2];
+	int rpm[2];
 	float current[2];
 	float voltage[2];
 
@@ -95,6 +95,7 @@ class vant {
 	uint8_t multitype;
 	uint8_t mspVersion;
 	uint32_t capability;
+	bool stop;
 	
 	//Motor Pins
 	uint8_t pwmPin[8];
@@ -162,7 +163,7 @@ public:
 	float getEscRightNewtons();
 	void setEscRightSpeed(float escRightSpeed);
 	float getEscRightSpeed();
-	void setRpm(int pos, float rpm);
+	void setRpm(int pos, int rpm);
 	float getRpm(int pos);
 	void setCurrent(int pos,float current);
 	float getCurrent(int pos);
@@ -243,6 +244,7 @@ public:
 	proVant::debug getDebug();
 	proVant::debug2 getDebug2();
 	proVant::rcNormalize getNormChannels();
+	proVant::status getStatus();
 };
 
 #endif /* VANT_H_ */

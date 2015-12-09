@@ -317,7 +317,6 @@ void c_common_usart1_init(int baudrate)
   * @retval s String a ser enviada.
   */
 void c_common_usart_puts(USART_TypeDef* USARTx, volatile char *s){
-
 	while(*s){
 		// wait until data register is empty
 		while( !(USARTx->SR & 0x00000040) );
@@ -402,7 +401,9 @@ unsigned char c_common_usart_read(USART_TypeDef* USARTx) {
 		if(usart6_rb_in == usart6_rb_out) usart6_available_flag = false;
 		return ret;
 	}
-	else return 0;
+	else{
+		return 0;
+	}
 }
 
 

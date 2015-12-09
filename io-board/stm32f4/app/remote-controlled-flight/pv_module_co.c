@@ -96,6 +96,10 @@ void module_co_run()
 
   while(1) 
   {
+
+	/* Leitura do numero de ciclos atuais */
+	lastWakeTime = xTaskGetTickCount();
+
 	/* Variavel para debug */
 	heartBeat+=1;
 
@@ -103,11 +107,13 @@ void module_co_run()
 	//c_common_gpio_toggle(LED_builtin_io);
 
     /* Passa os valores davariavel compartilha para a variavel iInputData */
-    xQueueReceive(pv_interface_co.iInputData, &iInputData, 0);
-    xQueueReceive(pv_interface_co.iControlBeagleData, &iControlBeagleData, 0);
+	if (uxQueueMessagesWaiting(pv_interface_co.iInputData)!=0){
+		xQueueReceive(pv_interface_co.iInputData, &iInputData, 0);
+	}
 
-    /* Leitura do numero de ciclos atuais */
-	lastWakeTime = xTaskGetTickCount();
+	if (uxQueueMessagesWaiting(pv_interface_co.iControlBeagleData)!=0){
+		xQueueReceive(pv_interface_co.iControlBeagleData, &iControlBeagleData, 0);
+	}
 
     /*Calculo do controle*/
 	/*No antigo codigo de rodrigo a validaçao do canal B esta mal feitra e sempre esta ligado o enableintegration
@@ -133,14 +139,14 @@ void module_co_run()
 
 
 	if (iInputData.securityStop){
-		//c_io_servos_writePosition(0,0);
-		c_io_servos_writeTorque(0,0);
+		c_io_servos_writePosition(0,0);
+		//c_io_servos_writeTorque(0,0);
 	}
 	else{
 		// inicializacao
 		if (iInputData.init){
-			//c_io_servos_writePosition(0,0);
-			c_io_servos_writeTorque(0,0);
+			c_io_servos_writePosition(0,0);
+			//c_io_servos_writeTorque(0,0);
 		}
 		else{
 			//c_io_servos_writePosition(iActuation.servoRight,iActuation.servoLeft);
@@ -153,8 +159,9 @@ void module_co_run()
 	/* Escrita dos esc */
 	unsigned char sp_right;
 	unsigned char sp_left;
-	sp_right = setPointESC_Forca(iActuation.escRightNewtons);
-	sp_left = setPointESC_Forca(iActuation.escLeftNewtons );
+
+	sp_right = 166;//setPointESC_Forca(iActuation.escRightNewtons);
+	sp_left = 166;//setPointESC_Forca(iActuation.escLeftNewtons );
 
 	if (iInputData.securityStop){
 		c_io_blctrl_setSpeed(1, 0 );//sp_right
@@ -162,16 +169,18 @@ void module_co_run()
 		c_io_blctrl_setSpeed(0, 0 );//sp_left
 	}
 	else{
-		//inicializacao
-		if (iInputData.init){
-			c_io_blctrl_setSpeed(1, ESC_MINIMUM_VELOCITY);
-			c_common_utils_delayus(10);
-			c_io_blctrl_setSpeed(0, ESC_MINIMUM_VELOCITY);
-		}
-		else{
-			c_io_blctrl_setSpeed(1, sp_right );//sp_right
-			c_common_utils_delayus(10);
-			c_io_blctrl_setSpeed(0, sp_left );//sp_left
+		if (iInputData.receiverOutput.joystick[0]>50){
+			//inicializacao
+			if (iInputData.init){
+				c_io_blctrl_setSpeed(1, ESC_MINIMUM_VELOCITY);
+				c_common_utils_delayus(10);
+				c_io_blctrl_setSpeed(0, ESC_MINIMUM_VELOCITY);
+			}
+			else{
+				c_io_blctrl_setSpeed(1, sp_right );//sp_right
+				c_common_utils_delayus(10);
+				c_io_blctrl_setSpeed(0, sp_left );//sp_left
+			}
 		}
 	}
 	#endif

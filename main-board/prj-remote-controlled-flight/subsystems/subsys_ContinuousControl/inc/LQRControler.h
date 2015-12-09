@@ -26,7 +26,7 @@ class LQRControler {
 public:
 	LQRControler();
 	virtual ~LQRControler();
-	Eigen::MatrixXf Controler(Eigen::MatrixXf states);
+	Eigen::MatrixXf Controler(Eigen::MatrixXf states,bool stop);
 /* Private functions ------------------------------------------------------- */
 private:
 	Eigen::MatrixXf Gain(int a);

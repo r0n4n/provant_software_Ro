@@ -172,10 +172,7 @@ float  c_io_sonar_read()
     	while(c_common_usart_read(SONAR_USART)!='R'){}
         for(;dist[0]==0;)
           dist[0]=c_common_usart_read(SONAR_USART);
-        if(dist[0]=='R')
-        	c_io_last_sonar=c_io_last_sonar;
-        else
-        	c_io_last_sonar=(float)dist[0];
+       	c_io_last_sonar=(float)dist[0];
       }
       return c_io_last_sonar;
     #endif

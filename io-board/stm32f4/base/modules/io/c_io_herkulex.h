@@ -19,6 +19,7 @@
 #include "stm32f4xx_conf.h"
 #include "c_common_utils.h"
 #include "pv_typedefs.h"
+#include "task.h"
 
 
 /* Includes ------------------------------------------------------------------*/

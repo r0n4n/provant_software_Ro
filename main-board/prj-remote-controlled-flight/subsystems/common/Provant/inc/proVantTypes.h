@@ -102,6 +102,7 @@ namespace proVant{
 		uint16_t i2cErrorsCount;
 		uint16_t sensor;
 		uint32_t flag;
+		bool stop;
 	} status;
 
 	typedef struct {

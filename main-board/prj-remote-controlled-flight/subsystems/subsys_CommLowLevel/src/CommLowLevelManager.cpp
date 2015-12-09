@@ -66,10 +66,11 @@ void CommLowLevelManager::Run()
     proVant::atitude atitude;
     proVant::position position;
     proVant::servos_state servos;
-    proVant::debug2 debug;
+    proVant::debug debug;
     proVant::rcNormalize rc;
     proVant::controlOutput actuation;
     proVant::controlOutput actuation2;
+    proVant::status status;
 
 
     float data1[2]={};
@@ -93,7 +94,9 @@ void CommLowLevelManager::Run()
     	servos= PROVANT.getVantData().getServoState();    //Function made to save current as alpha and voltage as dotalpha
     	actuation2=PROVANT.getVantData().getActuation();
     	rc= PROVANT.getVantData().getNormChannels();
-    	std::cout<<actuation.escRightNewtons<<std::endl;
+    	status=PROVANT.getVantData().getStatus();
+    	debug=PROVANT.getVantData().getDebug();
+
     	//Send Control to Discovery
     	if(interface->pop(actuation, &interface->q_actuation_in)){
     		/*Control*/
@@ -116,12 +119,13 @@ void CommLowLevelManager::Run()
     	std::cout << "It took me " << (float)(elapsed.count()/1000) << " miliseconds." << std::endl;
 
 
-    	debug.debug[0]=elapsed.count();
+
     	interface->push(position, interface->q_position_out_);
     	interface->push(atitude, interface->q_atitude_out_);
     	interface->push(servos, interface->q_servos_out_);
     	interface->push(debug, interface->q_debug_out_);
     	interface->push(rc, interface->q_rc_out_);
+    	interface->push(status,interface->q_status_out_);
 
     	interface->push(position, interface->q_position2_out_);
     	interface->push(atitude, interface->q_atitude2_out_);
@@ -129,6 +133,7 @@ void CommLowLevelManager::Run()
     	interface->push(debug, interface->q_debug2_out_);
     	interface->push(rc, interface->q_rc2_out_);
     	interface->push(actuation2, interface->q_actuation2_out_);
+    	interface->push(status,interface->q_status2_out_);
 
     	//Elapsed time code
 //    	auto end = std::chrono::steady_clock::now();

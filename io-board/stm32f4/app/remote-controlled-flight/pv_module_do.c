@@ -32,6 +32,7 @@
 /* Private variables ---------------------------------------------------------*/
 portTickType lastWakeTime;
 unsigned int heartBeat=0;
+unsigned int cicleTime=0;
 pv_msg_input iInputData;
 pv_msg_gps iGpsData;
 pv_msg_controlOutput iControlOutputData;
@@ -94,8 +95,12 @@ void module_do_run()
 		lastWakeTime = xTaskGetTickCount();
 		heartBeat++;
 
-		xQueueReceive(pv_interface_do.iInputData, &iInputData, 0);
-		xQueueReceive(pv_interface_do.iControlOutputData, &iControlOutputData, 0);
+		if (uxQueueMessagesWaiting(pv_interface_do.iInputData)!=0){
+			xQueueReceive(pv_interface_do.iInputData, &iInputData, 0);
+		}
+		if (uxQueueMessagesWaiting(pv_interface_do.iControlOutputData)!=0){
+			xQueueReceive(pv_interface_do.iControlOutputData, &iControlOutputData, 0);
+		}
 		//xQueueReceive(pv_interface_do.iGpsData, &iGpsData, 0);
 
 
@@ -127,7 +132,7 @@ void module_do_run()
 		//c_common_datapr_multwii2_sendControldataout(data1,data3,data2);
 		//c_common_datapr_multwii_sendstack(USART2);
 		#else
-		aux[0]=(float)iInputData.imuOutput.pressure;
+		aux[0]=iInputData.securityStop;
 		aux[1]=0;
 
 		aux2[0]=0;
@@ -174,16 +179,22 @@ void module_do_run()
 		c_common_datapr_multwii2_sendControldatain(rpy,drpy,position,velocity);
 		c_common_datapr_multwii2_sendEscdata(aux,alpha,dalpha);
 		c_common_datapr_multwii2_sendControldataout(data1,data3,data2);
-		c_common_datapr_multwii_debug(channel[0],channel[1],channel[2],channel[3]);
-		c_common_datapr_multwii2_rcNormalize(channel);
+		c_common_datapr_multwii_debug((float)cicleTime,iControlOutputData.cicleTime,iInputData.cicleTime,(float)(2*heartBeat-iInputData.heartBeat-iControlOutputData.heartBeat));
+		//c_common_datapr_multwii2_rcNormalize(channel);
 		c_common_datapr_multwii_sendstack(USART2);
 
 		c_common_datapr_multiwii_receivestack(USART2);
 		pv_type_actuation  actuation=c_common_datapr_multwii_getattitude();
 
 		oControlBeagleData.actuation=actuation;
-		xQueueOverwrite(pv_interface_do.oControlBeagleData, &oControlBeagleData);
+		if(pv_interface_do.oControlBeagleData != 0)
+			xQueueOverwrite(pv_interface_do.oControlBeagleData, &oControlBeagleData);
+
 		#endif
+
+		unsigned int timeNow=xTaskGetTickCount();
+		cicleTime = timeNow - lastWakeTime;
+
 		/* toggle pin for debug */
 		c_common_gpio_toggle(LED3);
 

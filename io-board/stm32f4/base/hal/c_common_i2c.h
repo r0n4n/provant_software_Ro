@@ -45,7 +45,7 @@ uint8_t c_common_i2c_readNack(I2C_TypeDef* I2Cx);
 
 void c_common_i2c_readBytes(I2C_TypeDef* I2Cx, uint8_t device, uint8_t address, char bytesToRead, uint8_t * recvBuffer);
 void c_common_i2c_writeByte(I2C_TypeDef* I2Cx, uint8_t device, uint8_t address, uint8_t byteToWrite);
-
+int c_common_i2c_timeoutAck();
 
 /* Header-defined wrapper functions ----------------------------------------- */
 

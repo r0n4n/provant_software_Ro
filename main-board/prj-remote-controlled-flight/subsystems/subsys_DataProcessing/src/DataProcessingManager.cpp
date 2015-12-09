@@ -64,7 +64,7 @@ void DataProcessingManager::Run()
     proVant::position position;
     proVant::servos_state servos;
     proVant::controlOutput actuation;
-    proVant::debug2 debug;
+    proVant::debug debug;
     proVant::rcNormalize rc;
 
     float rpy[3]={};
@@ -113,7 +113,7 @@ void DataProcessingManager::Run()
     	}
     	if(interface->pop(actuation, &interface->q_actuation_in)){
     		/*Control*/
-    		servoTorque[0]=actuation.servoLeft;
+    		servoTorque[0]=-actuation.servoLeft;
     		servoTorque[1]=actuation.servoRight;
     		escForce[0]=actuation.escLeftNewtons;
     		escForce[1]=actuation.escRightNewtons;

@@ -537,7 +537,7 @@ void c_common_datapr_multwii_motor(float forca_esquerdo,float forca_direito)
  */
 void c_common_datapr_multwii_debug(float debug1,float  debug2,float  debug3,float debug4)
 {
-  headSerialResponse(8, MSP_DEBUG2);
+  headSerialResponse(8, MSP_DEBUG);
   serialize32_as16((int)((debug1)));
   serialize32_as16((int)((debug2)));
   serialize32_as16((int)((debug3)));
@@ -631,7 +631,6 @@ void c_common_datapr_multwii_sendstack(USART_TypeDef* USARTx)
 int c_common_datapr_multiwii_receivestack(USART_TypeDef* USARTx){
 	unsigned char byte;
 	uint8_t tam, msg;
-
 	byte=c_common_usart_read(USARTx);
 	while(byte != '$' && c_common_usart_available2(USARTx) > 0){
 		byte=c_common_usart_read(USARTx);

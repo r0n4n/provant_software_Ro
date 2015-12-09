@@ -92,7 +92,7 @@ void module_in_run()
 	unsigned int heartBeat=0;
 	/////////////////
 	bool lock_increment_roll=false, lock_increment_pitch=false, lock_increment_yaw=false, lock_increment_z=false;
-  	float rpy[6] = {0}, attitude_yaw_initial=0.0f, last_valid_sonar_raw=0.35f, position_reference_initial=0.0f;
+  	float rpy[6] = {0}, last_valid_sonar_raw=0.35f, position_reference_initial=0.0f;
   	int iterations=1, channel_flight_mode=0, sample=0;
   	float sonar_raw=0.0f, sonar_raw_real=0.0f, sonar_raw_filter=0.0f, sonar_corrected_debug=0.0f, sonar_corrected=0.0f, sonar_filtered=0.0f, dotZ=0.0f, dotZ_filtered=0.0f;
    	float servo_filter_right=0, servo_filter_left=0;
@@ -104,6 +104,9 @@ void module_in_run()
   	long pressure;
   	////////////////
 
+  	/*Calibrar dados*/
+  	float  attitude_yaw_initial=0.0f, attitude_pitch_initial=0.0f,attitude_roll_initial=0.0f;
+  	float  yaw_aux;
   	/*Dados usados no sonar*/
   	float k1_1o_10Hz=0.7265, k2_1o_10Hz=0.1367, k3_1o_10Hz=0.1367;
   	float k1_2o_10Hz=1.56102, k2_2o_10Hz=-0.64135, k3_2o_10Hz=0.02008, k4_2o_10Hz=0.04017, k5_2o_10Hz=0.02008;
@@ -190,8 +193,9 @@ void module_in_run()
     	oInputData.attitude.roll= rpy[PV_IMU_ROLL];
     if (abs2(rpy[PV_IMU_PITCH]-oInputData.attitude.pitch)>ATTITUDE_MINIMUM_STEP)
     	oInputData.attitude.pitch= rpy[PV_IMU_PITCH];
-    if (abs2((attitude_yaw_initial-rpy[PV_IMU_YAW])-oInputData.attitude.yaw)>ATTITUDE_MINIMUM_STEP)
-    	oInputData.attitude.yaw= attitude_yaw_initial-rpy[PV_IMU_YAW];
+    if (abs2(rpy[PV_IMU_YAW]-oInputData.attitude.yaw)>ATTITUDE_MINIMUM_STEP){
+    	oInputData.attitude.yaw= rpy[PV_IMU_YAW];
+    }
 
     /* Saida dos dados da velocidade angular*/
     oInputData.attitude.dotRoll  = rpy[PV_IMU_DROLL];
@@ -199,9 +203,17 @@ void module_in_run()
     oInputData.attitude.dotYaw   = rpy[PV_IMU_DYAW ];
 
     // A referencia é a orientacao que o UAV é iniciado
-    if (oInputData.init)
+    if (oInputData.init){
+    	attitude_roll_initial = rpy[PV_IMU_ROLL];
+    	attitude_pitch_initial = rpy[PV_IMU_PITCH];
     	attitude_yaw_initial = rpy[PV_IMU_YAW];
+    }
     #endif
+
+    if (c_common_i2c_timeoutAck()==1){
+    	c_common_i2c_init(I2C1);
+    }else if(c_common_i2c_timeoutAck()==2)
+    	c_common_i2c_init(I2C2);
 
     /*----------------------Tratamento da Referencia---------------------*/
     /* Realiza a leitura dos canais do radio-controle */
@@ -211,6 +223,7 @@ void module_in_run()
 	oInputData.receiverOutput.joystick[3]=c_rc_receiver_getChannel(C_RC_CHANNEL_YAW);
 	oInputData.receiverOutput.aButton	 =c_rc_receiver_getChannel(C_RC_CHANNEL_A);
 	oInputData.receiverOutput.bButton    =c_rc_receiver_getChannel(C_RC_CHANNEL_B);
+	//int aux=c_rc_receiver_getChannel(6);
 
 //	if (oInputData.receiverOutput.joystick[0] < 0)
 //			oInputData.receiverOutput.joystick[0] = 0;
@@ -340,6 +353,9 @@ void module_in_run()
 
 	if (oInputData.init)
 		iterations++;
+
+	 unsigned int timeNow=xTaskGetTickCount();
+	 oInputData.cicleTime = timeNow - lastWakeTime;
 
     /* toggle pin for debug */
     c_common_gpio_toggle(LED4);

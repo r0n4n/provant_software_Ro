@@ -228,7 +228,7 @@ void proVantProtocol::decodeMessage(uint8_t tam, uint8_t msg){
 				vantData.setDebug(2, (int16_t)deserialize16(4));
 				vantData.setDebug(3, (int16_t)deserialize16(6));
 				vantData.setDebug(4, (int16_t)deserialize16(8));
-
+				std::cout<<"d1"<<vantData.getDebug(1);
 				//printf("D1 %d\nD2 %d\nD3 %d\nD4 %d\n", vantData.getDebug(1), vantData.getDebug(2), vantData.getDebug(3), vantData.getDebug(4));
 			break;
 			case MSP_RAW_IMU:
@@ -278,13 +278,12 @@ void proVantProtocol::decodeMessage(uint8_t tam, uint8_t msg){
 			break;
 			case MSP_ESCDATA:
 				//printf("ESC Data message with %d bytes \n", tam);
-				vantData.setRpm(0, (int16_t)deserialize16(2));
+				vantData.setRpm(0, (int)deserialize16(2));
 				vantData.setCurrent(0, decodeFloat(4));
 				vantData.setVoltage(0, decodeFloat(8));
-				vantData.setRpm(1, (int16_t)deserialize16(12));
+				vantData.setRpm(1, (int)deserialize16(12));
 				vantData.setCurrent(1, decodeFloat(14));
 				vantData.setVoltage(1, decodeFloat(18));
-
 				//printf("RPM1 %f\nCurrent1 %f\nVoltage1 %f\nRPM2 %f\nCurrent2 %f\nVoltage2 %f\n", vantData.getRpm(0), vantData.getCurrent(0), vantData.getVoltage(0), vantData.getRpm(1), vantData.getCurrent(1), vantData.getVoltage(1));
 			break;
 			case MSP_DEBUG2:
@@ -293,7 +292,7 @@ void proVantProtocol::decodeMessage(uint8_t tam, uint8_t msg){
 				vantData.setDebug2(1, decodeFloat(6));
 				vantData.setDebug2(2, decodeFloat(10));
 				vantData.setDebug2(3, decodeFloat(14));
-
+				std::cout<<"d1"<<vantData.getDebug(1);
 				//printf("RPM1 %f\nCurrent1 %f\nVoltage1 %f\nRPM2 %f\nCurrent2 %f\nVoltage2 %f\n", vantData.getRpm(0), vantData.getCurrent(0), vantData.getVoltage(0), vantData.getRpm(1), vantData.getCurrent(1), vantData.getVoltage(1));
 			break;
 		}
