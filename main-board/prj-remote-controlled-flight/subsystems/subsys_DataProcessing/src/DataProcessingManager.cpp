@@ -66,6 +66,7 @@ void DataProcessingManager::Run()
     proVant::controlOutput actuation;
     proVant::debug debug;
     proVant::rcNormalize rc;
+    proVant::status status;
 
     float rpy[3]={};
     float drpy[3]={};
@@ -138,6 +139,10 @@ void DataProcessingManager::Run()
     		normChannels[6]=rc.normChannels[6];
     	}
 
+    	if(interface->pop(status, &interface->q_status_in)){
+
+    	}
+
     	PROVANT2.multwii_attitude(rpy[0]*RAD_TO_DEG,rpy[1]*RAD_TO_DEG,rpy[2]*RAD_TO_DEG);
     	PROVANT2.multwii2_sendControldatain(rpy,drpy,trajectory,velocity);
     	PROVANT2.multwii_sendstack();
@@ -145,7 +150,8 @@ void DataProcessingManager::Run()
     	PROVANT2.multwii2_sendControldataout(servoTorque,escForce,aux2);
     	PROVANT2.multwii_sendstack();
     	//PROVANT2.multwii2_rcNormalize(normChannels);
-    	PROVANT2.multwii_debug((float)debugv[0],(float)debugv[1],(float)debugv[2],(float)debugv[3]);
+ //   	PROVANT2.multwii_debug((float)debugv[0],(float)debugv[1],(float)debugv[2],(float)debugv[3]);
+    	PROVANT2.multwii_debug((float)debugv[0],(float)debugv[1],(float)debugv[2],(float)status.stop);
     	PROVANT2.multwii_sendstack();
 //    	auto end2 = std::chrono::steady_clock::now();
 //    	auto elapsed2 = std::chrono::duration_cast<std::chrono::microseconds>(end2 - start2);

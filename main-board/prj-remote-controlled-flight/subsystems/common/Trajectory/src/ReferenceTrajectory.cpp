@@ -50,7 +50,6 @@ Eigen::MatrixXf ReferenceTrajectory::TrajetoryReference_LQR(){
 	dot_psi=0;
 	dot_alphar=0;
 	dot_alphal=0;
-
 	R<<x,y,z,phi,theta,psi,alphal,alphar,dot_x,dot_y,dot_z,dot_phi,
 			dot_theta,dot_psi,dot_alphal,dot_alphar;
 	return R;

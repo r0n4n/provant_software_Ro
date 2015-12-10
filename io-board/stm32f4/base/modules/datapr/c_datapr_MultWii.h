@@ -106,11 +106,11 @@ float decodeFloat(int posInit);
 int  c_common_datapr_multiwii_receivestack(USART_TypeDef* USARTx);
 void decodeMessage(USART_TypeDef* USARTx,uint8_t tam, uint8_t msg);
 bool confirmCheckSum(USART_TypeDef* USARTx,uint8_t tam);
-/*********************End of serial comm************************************/
+/*********************End of deserial comm************************************/
 
 /* Exported functions ------------------------------------------------------- */
 /*********************Begin of ... something************************************/
-pv_type_actuation  c_common_datapr_multwii_getattitude();
+pv_type_actuation  c_common_datapr_multwii_getactuation();
 
 void c_common_datapr_multwii_attitude(float x,float y,float z);
 void c_common_datapr_multwii_raw_imu(float* acc,float* gyr, float* mag);

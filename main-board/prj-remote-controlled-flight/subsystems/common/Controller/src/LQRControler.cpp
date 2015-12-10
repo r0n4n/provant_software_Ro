@@ -109,6 +109,7 @@ Eigen::MatrixXf LQRControler::Controler(Eigen::MatrixXf states,bool stop){
 	u(1,0)=auxu(1,0)/1000;
 	u(2,0)=auxu(2,0)/1000;
 	u(3,0)=auxu(3,0)/1000;
+
 	return u;
 }
 /* Private functions ------------------------------------------------------- */

@@ -24,15 +24,21 @@
 #include <string>
 #include <chrono>
 
+using namespace Eigen;
 using namespace std;
 
 CommLowLevelManager::CommLowLevelManager(std::string name) :
     interface(new CommLowLevelInterface("CommLowLevel:Interface")),
     // sm1(new SubModule1), // talvez fosse mais interessante construir os submodulos no init
-    ms_sample_time(15),
+    ms_sample_time(12),
     name_(name)
 {
-
+	//mpc=new MPC::MpcControler();
+	//mpcload=new MPCLOAD::MpcLoad();
+	//mpcbirotor=new MPCBirotor::MpcBirotor();
+	//mpc=new MPC::MpcControler();
+	lqr=new LQR::LQRControler();
+	//test= new TEST::TESTActuator();
 }
 
 CommLowLevelManager::~CommLowLevelManager()
@@ -67,7 +73,7 @@ void CommLowLevelManager::Run()
     proVant::position position;
     proVant::servos_state servos;
     proVant::debug debug;
-    proVant::rcNormalize rc;
+    proVant::rcNormalize rcNormalize;
     proVant::controlOutput actuation;
     proVant::controlOutput actuation2;
     proVant::status status;
@@ -78,67 +84,80 @@ void CommLowLevelManager::Run()
     float data3[2]={};
     int i = 0;
 
+    /*Initialization of actuation*/
     actuation.servoLeft=0;
     actuation.servoRight=0;
     actuation.escLeftNewtons=0;
     actuation.escRightNewtons=0;
     actuation.escLeftSpeed=0;
     actuation.escRightSpeed=0;
-    // Loop principal!
+
+    /* Matrix class*/
+    MatrixXf xs(16,1);
+    MatrixXf channels(4,1);
+    MatrixXf u(4,1);
+
+    for (int j=0;j<7;j++)
+    	rcNormalize.normChannels[j]=0;
+
     while(1) {
     	auto start = std::chrono::steady_clock::now();
-    	//Recive states from Discovery
+    	/*Recive states from Discovery*/
     	PROVANT.updateData();
     	atitude = PROVANT.getVantData().getAtitude();
     	position= PROVANT.getVantData().getPosition();
-    	servos= PROVANT.getVantData().getServoState();    //Function made to save current as alpha and voltage as dotalpha
     	actuation2=PROVANT.getVantData().getActuation();
-    	rc= PROVANT.getVantData().getNormChannels();
+    	servos= PROVANT.getVantData().getServoState();    //Function made to save current as alpha and voltage as dotalpha
+    	rcNormalize= PROVANT.getVantData().getNormChannels();
     	status=PROVANT.getVantData().getStatus();
     	debug=PROVANT.getVantData().getDebug();
 
-    	//Send Control to Discovery
-    	if(interface->pop(actuation, &interface->q_actuation_in)){
-    		/*Control*/
-    		data1[0]= actuation.servoLeft;
-    		data1[1]= actuation.servoRight;
-    		data3[0]= actuation.escLeftNewtons;
-    		data3[1]= actuation.escLeftSpeed;
-    		data2[0]= actuation.escRightNewtons;
-    		data2[1]= actuation.escRightSpeed;
-    		PROVANT.multwii2_sendControldataout(data1,data3,data2);
-    		PROVANT.multwii_sendstack();
-    	}
+    	/*Control calculation*/
+    	channels.setZero();
+    	channels<<rcNormalize.normChannels[0],rcNormalize.normChannels[1],rcNormalize.normChannels[2],rcNormalize.normChannels[3];
+    	xs.setZero();
+    	xs<<position.x,position.y,position.z,atitude.roll,atitude.pitch,atitude.yaw,servos.alphar,servos.alphal
+    			,position.dotX,position.dotY,position.dotZ,atitude.dotRoll,atitude.dotPitch,atitude.dotYaw,servos.dotAlphar,servos.dotAlphal;
 
-//    	//Test: receives control sent to discovery from discovery
-//		PROVANT.updateData();
-//		actuation2=PROVANT.getVantData().getActuation();
-    	//Elapsed time code
+
+    	//u=mpc->Controler(xs);
+    	u=lqr->Controler(xs,status.stop);
+    	//u=mpcload->Controler(xs);
+    	//u=mpcbirotor->Controler(xs);
+    	//u=test->Controler(channels);
+
+    	actuation.escRightNewtons=u(0,0);
+    	actuation.escLeftNewtons=u(1,0);
+    	actuation.servoRight=u(2,0);
+    	actuation.servoLeft=u(3,0);
+    	actuation.escLeftSpeed=0;
+    	actuation.escRightSpeed=0;
+
+    	/*Send Control to Discovery*/
+
+    	data1[0]= actuation.servoLeft;
+   		data1[1]= actuation.servoRight;
+   		data3[0]= actuation.escLeftNewtons;
+   		data3[1]= actuation.escLeftSpeed;
+   		data2[0]= actuation.escRightNewtons;
+   		data2[1]= actuation.escRightSpeed;
+
+   		PROVANT.multwii2_sendControldataout(data1,data3,data2);
+   		PROVANT.multwii_sendstack();
+
+
+    	/*Elapsed time code*/
     	auto end = std::chrono::steady_clock::now();
     	auto elapsed = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
     	std::cout << "It took me " << (float)(elapsed.count()/1000) << " miliseconds." << std::endl;
-
-
-
-    	interface->push(position, interface->q_position_out_);
-    	interface->push(atitude, interface->q_atitude_out_);
-    	interface->push(servos, interface->q_servos_out_);
-    	interface->push(debug, interface->q_debug_out_);
-    	interface->push(rc, interface->q_rc_out_);
-    	interface->push(status,interface->q_status_out_);
 
     	interface->push(position, interface->q_position2_out_);
     	interface->push(atitude, interface->q_atitude2_out_);
     	interface->push(servos, interface->q_servos2_out_);
     	interface->push(debug, interface->q_debug2_out_);
-    	interface->push(rc, interface->q_rc2_out_);
+    	interface->push(rcNormalize, interface->q_rc2_out_);
     	interface->push(actuation2, interface->q_actuation2_out_);
     	interface->push(status,interface->q_status2_out_);
-
-    	//Elapsed time code
-//    	auto end = std::chrono::steady_clock::now();
-//    	auto elapsed = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
-//    	std::cout << "It took me " << (float)(elapsed.count()/1000) << " miliseconds." << std::endl;
 
     	i++;
     	boost::this_thread::sleep(boost::posix_time::milliseconds(ms_sample_time));

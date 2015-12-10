@@ -25,7 +25,7 @@
 
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
-#define MODULE_PERIOD	   15//ms
+#define MODULE_PERIOD	   5//ms
 
 //
 /* Private macro -------------------------------------------------------------*/
@@ -274,8 +274,8 @@ void module_in_run()
 	}
 	/////////////////////////////////////
 
-	//sonar_corrected = (sonar_raw)*cos(oInputData.attitude.roll)*cos(oInputData.attitude.pitch);
-	sonar_corrected=sonar_raw;
+	sonar_corrected = (sonar_raw)*cos(oInputData.attitude.roll)*cos(oInputData.attitude.pitch);
+	//sonar_corrected=sonar_raw;
 
 	/*Filtrajem das amostras do sonar*/
 	#ifdef SONAR_FILTER_1_ORDER_10HZ
@@ -297,7 +297,7 @@ void module_in_run()
 	#endif
 
 	// Derivada = (dado_atual-dado_anterior )/(tempo entre medicoes) - fiz a derivada do sinal filtrado, REVER
-	dotZ = (sonar_filtered - oInputData.position.z)/sample_time_gyro_us[0];
+	dotZ = (sonar_filtered - oInputData.position.z)/0.005;
 	// 1st order filter with fc=10Hz
 	dotZ_filtered = k1_1o_10Hz*dotZ_filtered_k_minus_1 + k2_1o_10Hz*dotZ + k3_1o_10Hz*dotZ_k_minus_1;
 	// Filter memory

@@ -184,7 +184,7 @@ void module_do_run()
 		c_common_datapr_multwii_sendstack(USART2);
 
 		c_common_datapr_multiwii_receivestack(USART2);
-		pv_type_actuation  actuation=c_common_datapr_multwii_getattitude();
+		pv_type_actuation  actuation=c_common_datapr_multwii_getactuation();
 
 		oControlBeagleData.actuation=actuation;
 		if(pv_interface_do.oControlBeagleData != 0)

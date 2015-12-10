@@ -373,7 +373,7 @@ void decodeMessage(USART_TypeDef* USARTx,uint8_t tam, uint8_t msg){
 	}
 }
 
-pv_type_actuation  c_common_datapr_multwii_getattitude(){
+pv_type_actuation  c_common_datapr_multwii_getactuation(){
 	return actuation;
 }
 

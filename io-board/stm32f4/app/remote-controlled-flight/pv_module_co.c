@@ -23,16 +23,18 @@
 
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
-#define MODULE_PERIOD	 15//ms
+#define MODULE_PERIOD	 12//ms
 #define ESC_ON           1
 #define SERVO_ON         1
 
 /* Private macro -------------------------------------------------------------*/
+#define USART_BAUDRATE     921600 //<-Beaglebone
 /* Private variables ---------------------------------------------------------*/
 portTickType lastWakeTime;
 pv_msg_input iInputData;
 pv_msg_controlOutput iControlBeagleData;
 pv_msg_controlOutput oControlOutputData; 
+pv_type_actuation  actuation;
 GPIOPin LED5;
 
 /* Inboxes buffers */
@@ -59,6 +61,9 @@ void module_co_init()
 
   /* Inicializar os servos */
   //feito no module in
+
+  /*USART initialization for beagle comunication*/
+  c_common_usart2_init(USART_BAUDRATE);
 
   /*Inicializar o tipo de controlador*/
   c_rc_BS_control_init();
@@ -88,6 +93,19 @@ void module_co_run()
   unsigned int heartBeat=0;
   bool a=0;
   unsigned char sp_right=0;
+
+  float rpy[3];
+  float drpy[3];
+  float position[3];
+  float velocity[3];
+  float alpha[2];
+  float dalpha[2];
+  float data1[2],data2[2],data3[2];
+  int aux[2];
+  float aux2[3];
+  float servoTorque[2];
+  float escForce[2];
+  int channel[7];
   /* Inicializa os dados da attitude*/
   oControlOutputData.actuation.servoRight = 0;
   oControlOutputData.actuation.servoLeft  = 0;
@@ -102,6 +120,7 @@ void module_co_run()
 
 	/* Variavel para debug */
 	heartBeat+=1;
+	oControlOutputData.heartBeat = heartBeat;
 
 	/* toggle pin for debug */
 	//c_common_gpio_toggle(LED_builtin_io);
@@ -110,13 +129,13 @@ void module_co_run()
 	if (uxQueueMessagesWaiting(pv_interface_co.iInputData)!=0){
 		xQueueReceive(pv_interface_co.iInputData, &iInputData, 0);
 	}
-
+/*
 	if (uxQueueMessagesWaiting(pv_interface_co.iControlBeagleData)!=0){
 		xQueueReceive(pv_interface_co.iControlBeagleData, &iControlBeagleData, 0);
 	}
-
+*/
     /*Calculo do controle*/
-	/*No antigo codigo de rodrigo a validaçao do canal B esta mal feitra e sempre esta ligado o enableintegration
+	/*No antigo codigo de rodrigo a validaçao do canal B esta mal feita e sempre esta ligado o enableintegration
 	 * Neste codigo ja esta corregido mas deijo esse bit sempre ligado no contorle
 	 * */
 	#ifdef LQR_ATTITUDE_HEIGHT_CONTROL
@@ -128,29 +147,67 @@ void module_co_run()
 		// Ajusta o eixo de referencia do servo (montado ao contrario)
 		iActuation.servoLeft = -iActuation.servoLeft;
 	#elif defined TORQUE_CONTROL
-		iActuation.servoRight=iControlBeagleData.actuation.servoRight;//((float)iInputData.receiverOutput.joystick[1]/84)*1023;//
-		iActuation.servoLeft=iControlBeagleData.actuation.servoLeft;//((float)iInputData.receiverOutput.joystick[1]/84)*1023;
-		iActuation.escLeftNewtons=iControlBeagleData.actuation.escLeftNewtons;
-		iActuation.escRightNewtons=iControlBeagleData.actuation.escRightNewtons;
+		aux[0]=iInputData.securityStop;
+		aux[1]=0;
+
+		aux2[0]=0;
+		aux2[1]=0;
+		aux2[2]=0;
+
+		rpy[0]=iInputData.attitude.roll;
+		rpy[1]=iInputData.attitude.pitch;
+		rpy[2]=iInputData.attitude.yaw;
+
+		drpy[0]=iInputData.attitude.dotRoll;
+		drpy[1]=iInputData.attitude.dotPitch;
+		drpy[2]=iInputData.attitude.dotYaw;
+
+		position[0]=0;//iInputData.position.x;
+		position[1]=0;//iInputData.position.y;
+		position[2]=0;//iInputData.position.z;
+
+		velocity[0]=iInputData.position.dotX;
+		velocity[1]=iInputData.position.dotY;
+		velocity[2]=iInputData.position.dotZ;
+
+		alpha[0]=iInputData.servosOutput.servo.alphal;
+		alpha[1]=iInputData.servosOutput.servo.alphar;
+
+		dalpha[0]=iInputData.servosOutput.servo.dotAlphal;
+		dalpha[1]=iInputData.servosOutput.servo.dotAlphar;
+
+		data1[0]= oControlOutputData.actuation.servoLeft;
+		data1[1]= oControlOutputData.actuation.servoRight;
+		data3[0]= oControlOutputData.actuation.escLeftNewtons;
+		data3[1]= oControlOutputData.actuation.escLeftSpeed;
+		data2[0]= oControlOutputData.actuation.escRightNewtons;
+		data2[1]= oControlOutputData.actuation.escRightSpeed;
+
+		/*Send Data to the BeagleBone Black */
+		c_common_datapr_multwii2_sendControldatain(rpy,drpy,position,velocity);
+		c_common_datapr_multwii2_sendEscdata(aux,alpha,dalpha);
+		c_common_datapr_multwii2_sendControldataout(data1,data3,data2);
+		c_common_datapr_multwii_debug(oControlOutputData.cicleTime,iInputData.cicleTime,(float)oControlOutputData.heartBeat,(float)iInputData.heartBeat);
+		c_common_datapr_multwii_sendstack(USART2);
+		/*Receives control input data from the beaglebone*/
+		c_common_datapr_multiwii_receivestack(USART2);
+		oControlOutputData.actuation=c_common_datapr_multwii_getactuation();
 	#endif
 
 	#ifdef ENABLE_SERVO
 	/* Escrita dos servos */
 
-
 	if (iInputData.securityStop){
 		c_io_servos_writePosition(0,0);
-		//c_io_servos_writeTorque(0,0);
 	}
 	else{
 		// inicializacao
 		if (iInputData.init){
 			c_io_servos_writePosition(0,0);
-			//c_io_servos_writeTorque(0,0);
 		}
 		else{
 			//c_io_servos_writePosition(iActuation.servoRight,iActuation.servoLeft);
-			c_io_servos_writeTorque(iActuation.servoRight,iActuation.servoLeft);
+			c_io_servos_writeTorque(oControlOutputData.actuation.servoRight,oControlOutputData.actuation.servoLeft);
 		}
 	}
 	#endif
@@ -160,8 +217,8 @@ void module_co_run()
 	unsigned char sp_right;
 	unsigned char sp_left;
 
-	sp_right = 166;//setPointESC_Forca(iActuation.escRightNewtons);
-	sp_left = 166;//setPointESC_Forca(iActuation.escLeftNewtons );
+	sp_right = setPointESC_Forca(oControlOutputData.actuation.escRightNewtons);
+	sp_left = setPointESC_Forca(oControlOutputData.actuation.escLeftNewtons );
 
 	if (iInputData.securityStop){
 		c_io_blctrl_setSpeed(1, 0 );//sp_right
@@ -185,24 +242,16 @@ void module_co_run()
 	}
 	#endif
 
-	oControlOutputData.actuation.escLeftSpeed=sp_left;
-	oControlOutputData.actuation.escRightSpeed=sp_right;
-	oControlOutputData.actuation.escLeftNewtons=iActuation.escLeftNewtons;
-	oControlOutputData.actuation.escRightNewtons=iActuation.escRightNewtons;
-	oControlOutputData.actuation.servoLeft=iActuation.servoLeft;
-	oControlOutputData.actuation.servoRight=iActuation.servoRight;
-
-	oControlOutputData.heartBeat = heartBeat;
-
-    unsigned int timeNow=xTaskGetTickCount();
+	/*Time Code Execution*/
+	unsigned int timeNow=xTaskGetTickCount();
     oControlOutputData.cicleTime = timeNow - lastWakeTime;
 
     /* toggle pin for debug */
     c_common_gpio_toggle(LED5);
-
+/*
     if(pv_interface_co.oControlOutputData != 0)
       xQueueOverwrite(pv_interface_co.oControlOutputData, &oControlOutputData);
-
+*/
     /* A thread dorme ate o tempo final ser atingido */
     vTaskDelayUntil( &lastWakeTime, MODULE_PERIOD / portTICK_RATE_MS);
 	}

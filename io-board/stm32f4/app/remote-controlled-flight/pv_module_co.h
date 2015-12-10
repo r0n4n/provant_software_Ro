@@ -27,12 +27,15 @@
 #include "c_common_i2c.h"
 #include "c_io_blctrl.h"
 #include "c_io_servos.h"
+#include "c_common_uart.h"
+#include "c_common_utils.h"
 
 /*Control includes*/
 #include "c_rc_BS_control.h"
 #include "c_rc_LQR_control.h"
 
 #include "pv_typedefs.h"
+#include "c_datapr_MultWii.h"
 
 /* Exported types ------------------------------------------------------------*/
 struct pv_interface_co 

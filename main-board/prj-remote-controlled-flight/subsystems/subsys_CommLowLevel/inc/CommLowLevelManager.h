@@ -25,6 +25,14 @@
 //Interface
 #include "CommLowLevelInterface.h"
 
+//
+#include "Eigen/Dense"
+#include "LQRControler.h"
+#include "TESTActuator.h"
+#include "MpcControler.h"
+#include "MpcBirotor.h"
+#include "MpcLoad.h"
+
 //Modulos (nao precisa, mas pode incluir todos os headers dos submodulos)
 //#include "uart.h"
 #include "proVantProtocol.h"
@@ -61,6 +69,12 @@ private:
 
     // Tempo de amostragem para loop principal
     int ms_sample_time;
+    /*Variable initialization*/
+    MPC::MpcControler * mpc;
+    MPCLOAD::MpcLoad * mpcload;
+    MPCBirotor::MpcBirotor * mpcbirotor;
+    LQR::LQRControler * lqr;
+    TEST::TESTActuator * test;
 
     // Nome do modulo
     std::string name_;
