@@ -37,10 +37,10 @@ float ts;
 
 LQRControler::LQRControler() {
 	trajectory=new ReferenceTrajectory();
-	Ke=Gain(2);
+	Ke=Gain(1);
 	deltaxsiant.setZero();
 	xsiant.setZero();
-	ts=0.015;
+	ts=0.012;
 }
 
 LQRControler::~LQRControler() {

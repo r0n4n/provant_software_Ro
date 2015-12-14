@@ -13,6 +13,7 @@
 using namespace model;
 using namespace Eigen;
 using namespace qpOASES;
+using namespace TRAJECTORY;
 
 namespace MPCBirotor {
 /* Private define ------------------------------------------------------------*/
@@ -73,6 +74,8 @@ int nWSR;
 /* Exported functions definitions --------------------------------------------*/
 
 MpcBirotor::MpcBirotor() {
+	/*Trajetoria*/
+	trajectory=new ReferenceTrajectory();
 	/*Initialization of all MPC variable*/
 	s=16;
 	p=4;
@@ -130,7 +133,7 @@ Eigen::MatrixXf MpcBirotor::Controler(Eigen::MatrixXf states){
 	k=0;
 	auto start = std::chrono::steady_clock::now();
 	//Vector of states
-		xs<<0,0,3,states.block(3,0,5,1),0,0,0,states.block(11,0,5,1);
+	xs<<0,0,3,states.block(3,0,5,1),0,0,0,states.block(11,0,5,1);
 	//Vectors of reference trajectory and control
     xr=TrajetoryReference(k).block(0,0,q,1);
     as=AcelerationReference(k);

@@ -142,6 +142,7 @@ void ContinuousControlManager::Run()
     			,position.dotX,position.dotY,position.dotZ,atitude.dotRoll,atitude.dotPitch,atitude.dotYaw,servos.dotAlphar,servos.dotAlphal;
 
     	//u=mpc->Controler(xs);
+    	std::cout<<xs<<std::endl;
     	u=lqr->Controler(xs,status.stop);
     	//u=mpcload->Controler(xs);
     	//u=mpcbirotor->Controler(xs);

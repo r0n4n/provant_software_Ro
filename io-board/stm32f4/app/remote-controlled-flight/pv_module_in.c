@@ -30,9 +30,9 @@
 //
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
-portTickType lastWakeTime;
+portTickType pv_module_in_lastWakeTime;
 char str[256];
-GPIOPin LED4;
+GPIOPin pv_module_in_LED4;
 
 float attitude_quaternion[4]={1,0,0,0};
 
@@ -55,7 +55,7 @@ pv_msg_input oInputData;
 void module_in_init() 
 {
 	/* Inicialização do hardware do módulo */
-	LED4 = c_common_gpio_init(GPIOD, GPIO_Pin_12, GPIO_Mode_OUT); //LED4
+	pv_module_in_LED4 = c_common_gpio_init(GPIOD, GPIO_Pin_12, GPIO_Mode_OUT); //LED4
 
 	/* Inicialização da imu */
 	c_common_i2c_init(I2C1);
@@ -102,6 +102,8 @@ void module_in_run()
   	float barometer[2];
   	float temperature;
   	long pressure;
+  	bool pv_module_in_aButton_ant=0;
+  	int pv_module_cont=0;
   	////////////////
 
   	/*Calibrar dados*/
@@ -166,7 +168,7 @@ void module_in_run()
 	{
 
   	/* Leitura do numero de ciclos atuais */
-  	lastWakeTime = xTaskGetTickCount();
+  	pv_module_in_lastWakeTime = xTaskGetTickCount();
 
   	oInputData.heartBeat=heartBeat+=1;
 
@@ -186,7 +188,7 @@ void module_in_run()
 	c_datapr_MahonyAHRSupdate(attitude_quaternion,oInputData.imuOutput.gyrRaw[0],oInputData.imuOutput.gyrRaw[1],oInputData.imuOutput.gyrRaw[2],oInputData.imuOutput.accRaw[0],oInputData.imuOutput.accRaw[1],oInputData.imuOutput.accRaw[2],oInputData.imuOutput.magRaw[0],oInputData.imuOutput.magRaw[1],oInputData.imuOutput.magRaw[2],sample_time_gyro_us[0]);
 	c_io_imu_Quaternion2Euler(attitude_quaternion, rpy);
 	c_io_imu_EulerMatrix(rpy,oInputData.imuOutput.gyrRaw);
-	oInputData.imuOutput.sampleTime =xTaskGetTickCount() -lastWakeTime;
+	oInputData.imuOutput.sampleTime =xTaskGetTickCount() -pv_module_in_lastWakeTime;
 
     /* Saida dos dados de posição limitada a uma variaçao minima */
     if (abs2(rpy[PV_IMU_ROLL]-oInputData.attitude.roll)>ATTITUDE_MINIMUM_STEP)
@@ -297,7 +299,7 @@ void module_in_run()
 	#endif
 
 	// Derivada = (dado_atual-dado_anterior )/(tempo entre medicoes) - fiz a derivada do sinal filtrado, REVER
-	dotZ = (sonar_filtered - oInputData.position.z)/0.005;
+	dotZ = (sonar_filtered - oInputData.position.z)*200.0;
 	// 1st order filter with fc=10Hz
 	dotZ_filtered = k1_1o_10Hz*dotZ_filtered_k_minus_1 + k2_1o_10Hz*dotZ + k3_1o_10Hz*dotZ_k_minus_1;
 	// Filter memory
@@ -317,8 +319,8 @@ void module_in_run()
 		servo_real=c_io_servos_read();
 
 		// Derivada = (dado_atual-dado_anterior )/(tempo entre medicoes) - fiz a derivada do sinal filtrado, REVER
-		servo_real.dotAlphal = (servo_real.alphal - oInputData.servosOutput.servo.alphal)/sample_time_gyro_us[0];
-		servo_real.dotAlphar = (servo_real.alphar - oInputData.servosOutput.servo.alphar)/sample_time_gyro_us[0];
+		//servo_real.dotAlphal = (servo_real.alphal - oInputData.servosOutput.servo.alphal)*200;
+		//servo_real.dotAlphar = (servo_real.alphar - oInputData.servosOutput.servo.alphar)*200;
 
 		/*Left servo filter*/
 		//1st order filter with fc=10Hz
@@ -345,27 +347,38 @@ void module_in_run()
 	if ( (rpy[PV_IMU_YAW]*RAD_TO_DEG < -160) || (rpy[PV_IMU_YAW]*RAD_TO_DEG > 160) )
 		oInputData.securityStop=1;
 
-	if (!oInputData.receiverOutput.aButton && !oInputData.init)
-		oInputData.securityStop = 1;
-	else
-		if (oInputData.receiverOutput.aButton)
+	if (!oInputData.receiverOutput.aButton && !oInputData.init){
+		if(pv_module_in_aButton_ant==oInputData.receiverOutput.aButton){
+			pv_module_cont++;
+		}
+		if(pv_module_cont>=10){
+			oInputData.securityStop = 1;
+			pv_module_cont=0;
+		}
+		pv_module_in_aButton_ant=oInputData.receiverOutput.aButton;
+	}
+	else{
+		if (oInputData.receiverOutput.aButton){
 			oInputData.securityStop = 0;
-
+			pv_module_cont=0;
+			pv_module_in_aButton_ant=oInputData.receiverOutput.aButton;
+		}
+	}
 	if (oInputData.init)
 		iterations++;
 
 	 unsigned int timeNow=xTaskGetTickCount();
-	 oInputData.cicleTime = timeNow - lastWakeTime;
+	 oInputData.cicleTime = timeNow - pv_module_in_lastWakeTime;
 
     /* toggle pin for debug */
-    c_common_gpio_toggle(LED4);
+    c_common_gpio_toggle(pv_module_in_LED4);
 
     /* Realiza o trabalho de mutex */
 	if(pv_interface_in.oInputData != 0)
 		xQueueOverwrite(pv_interface_in.oInputData, &oInputData);
 
     /* A thread dorme ate o tempo final ser atingido */
-	vTaskDelayUntil( &lastWakeTime, (MODULE_PERIOD / portTICK_RATE_MS));
+	vTaskDelayUntil( &pv_module_in_lastWakeTime, (MODULE_PERIOD / portTICK_RATE_MS));
 	}
 }
 /* IRQ handlers ------------------------------------------------------------- */

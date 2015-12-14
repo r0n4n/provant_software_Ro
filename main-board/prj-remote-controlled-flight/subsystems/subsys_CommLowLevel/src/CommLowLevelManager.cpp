@@ -69,20 +69,41 @@ void CommLowLevelManager::Run()
 {
     Init();
     // Algumas variaveis... 
-    proVant::atitude atitude;
-    proVant::position position;
-    proVant::servos_state servos;
-    proVant::debug debug;
-    proVant::rcNormalize rcNormalize;
+    proVant::atitude atitude, atitude_aux;
+    proVant::position position, position_aux;
+    proVant::servos_state servos, servos_aux;
+    proVant::debug debug, debug_aux;
+    proVant::rcNormalize rcNormalize, rcNormalize_aux;
     proVant::controlOutput actuation;
-    proVant::controlOutput actuation2;
+    proVant::controlOutput actuation2, actuation2_aux;
     proVant::status status;
 
+    atitude.dotPitch=0;
+    atitude.dotRoll=0;
+    atitude.dotYaw=0;
+    atitude.pitch=0;
+    atitude.roll=0;
+    atitude.yaw=0;
 
+    position.x=0;
+    position.y=0;
+    position.z=0;
+    position.dotX=0;
+    position.dotY=0;
+    position.dotZ=0;
+
+    servos.alphal=0;
+    servos.alphar=0;
+    servos.dotAlphal=0;
+    servos.dotAlphar=0;
+
+    atitude_aux=atitude;
+    position_aux=position;
+    servos_aux=servos;
     float data1[2]={};
     float data2[2]={};
     float data3[2]={};
-    int i = 0;
+    int i = 0, flag=0;
 
     /*Initialization of actuation*/
     actuation.servoLeft=0;
@@ -91,6 +112,8 @@ void CommLowLevelManager::Run()
     actuation.escRightNewtons=0;
     actuation.escLeftSpeed=0;
     actuation.escRightSpeed=0;
+    actuation2=actuation;
+    actuation2_aux=actuation;
 
     /* Matrix class*/
     MatrixXf xs(16,1);
@@ -103,12 +126,26 @@ void CommLowLevelManager::Run()
     while(1) {
     	auto start = std::chrono::steady_clock::now();
     	/*Recive states from Discovery*/
-    	PROVANT.updateData();
-    	atitude = PROVANT.getVantData().getAtitude();
-    	position= PROVANT.getVantData().getPosition();
-    	actuation2=PROVANT.getVantData().getActuation();
-    	servos= PROVANT.getVantData().getServoState();    //Function made to save current as alpha and voltage as dotalpha
-    	rcNormalize= PROVANT.getVantData().getNormChannels();
+    	flag=PROVANT.updateData();
+
+    	atitude_aux = PROVANT.getVantData().getAtitude();
+    	if (atitude_aux.dotPitch!=0 || atitude_aux.dotRoll!=0 || atitude_aux.dotYaw!=0 || atitude_aux.pitch!=0 || atitude_aux.roll!=0 || atitude_aux.yaw!=0){
+    		atitude=atitude_aux;
+    	}
+    	position_aux= PROVANT.getVantData().getPosition();
+    	if(position_aux.dotX!=0 || position_aux.dotY!=0 || position_aux.dotZ!=0 || position_aux.x!=0 || position_aux.y!=0 || position_aux.z!=0){
+    		position=position_aux;
+    	}
+    	actuation2_aux=PROVANT.getVantData().getActuation();
+    	if (actuation2_aux.escLeftNewtons!=0 || actuation2_aux.escRightNewtons!=0 || actuation2_aux.servoLeft!=0 || actuation2_aux.servoRight!=0){
+    		actuation2=actuation2_aux;
+    	}
+    	servos_aux= PROVANT.getVantData().getServoState();    //Function made to save current as alpha and voltage as dotalpha
+    	if(servos_aux.alphal!=0 || servos_aux.alphar!=0 || servos_aux.dotAlphal!=0 || servos_aux.dotAlphar!=0){
+    		servos=servos_aux;
+    	}
+
+    	//rcNormalize= PROVANT.getVantData().getNormChannels();
     	status=PROVANT.getVantData().getStatus();
     	debug=PROVANT.getVantData().getDebug();
 
@@ -119,11 +156,10 @@ void CommLowLevelManager::Run()
     	xs<<position.x,position.y,position.z,atitude.roll,atitude.pitch,atitude.yaw,servos.alphar,servos.alphal
     			,position.dotX,position.dotY,position.dotZ,atitude.dotRoll,atitude.dotPitch,atitude.dotYaw,servos.dotAlphar,servos.dotAlphal;
 
-
     	//u=mpc->Controler(xs);
     	u=lqr->Controler(xs,status.stop);
     	//u=mpcload->Controler(xs);
-    	//u=mpcbirotor->Controler(xs);
+    	u=mpcbirotor->Controler(xs);
     	//u=test->Controler(channels);
 
     	actuation.escRightNewtons=u(0,0);

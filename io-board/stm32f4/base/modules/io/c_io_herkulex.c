@@ -248,10 +248,8 @@ void c_io_herkulex_serializeIjog(pv_ijog_herkulex ijog[], uint8_t numIjogs)
 void c_io_herkulex_send(void)
 {
 	int i;
-	taskENTER_CRITICAL();
 	for (i = 0; i < BUFFER[2] ; ++i)
 		c_common_usart_putchar(usartx, BUFFER[i]);
-	taskEXIT_CRITICAL();
 }
 
 /** \brief Recebe um pacote de dados do servo.

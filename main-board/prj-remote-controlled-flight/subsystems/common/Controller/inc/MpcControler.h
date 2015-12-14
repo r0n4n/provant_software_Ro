@@ -35,6 +35,7 @@ private:
 	Eigen::MatrixXf TrajetoryReference(int k);
 	Eigen::MatrixXf AcelerationReference(int k);
 	Eigen::MatrixXf Pow(Eigen::MatrixXf matrix, int power);
+	TRAJECTORY::ReferenceTrajectory * trajectory;
 
 };
 

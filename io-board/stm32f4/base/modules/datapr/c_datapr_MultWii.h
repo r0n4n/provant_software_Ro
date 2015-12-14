@@ -14,6 +14,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f4xx_conf.h"
 #include "c_common_uart.h"
+#include "c_common_utils.h"
 #include <math.h>
 #include "pv_typedefs.h"
 

@@ -30,12 +30,13 @@
 /* Private macro -------------------------------------------------------------*/
 #define USART_BAUDRATE     921600 //<-Beaglebone
 /* Private variables ---------------------------------------------------------*/
-portTickType lastWakeTime;
+portTickType pv_module_co_lastWakeTime;
 pv_msg_input iInputData;
 pv_msg_controlOutput iControlBeagleData;
 pv_msg_controlOutput oControlOutputData; 
-pv_type_actuation  actuation;
-GPIOPin LED5;
+pv_type_actuation  pv_module_co_actuation;
+int pv_module_co_flag;
+GPIOPin pv_module_co_LED5;
 
 /* Inboxes buffers */
 pv_type_actuation    iActuation;
@@ -69,7 +70,7 @@ void module_co_init()
   c_rc_BS_control_init();
 
   /* Pin for debug */
-  LED5 = c_common_gpio_init(GPIOD, GPIO_Pin_14, GPIO_Mode_OUT); //LD5
+  pv_module_co_LED5 = c_common_gpio_init(GPIOD, GPIO_Pin_14, GPIO_Mode_OUT); //LD5
   /*Data consumed by the thread*/
   pv_interface_co.iInputData          = xQueueCreate(1, sizeof(pv_msg_input));
   pv_interface_co.iControlBeagleData  = xQueueCreate(1, sizeof(pv_msg_controlOutput));
@@ -93,7 +94,7 @@ void module_co_run()
   unsigned int heartBeat=0;
   bool a=0;
   unsigned char sp_right=0;
-
+  pv_module_co_flag=0;
   float rpy[3];
   float drpy[3];
   float position[3];
@@ -116,7 +117,7 @@ void module_co_run()
   {
 
 	/* Leitura do numero de ciclos atuais */
-	lastWakeTime = xTaskGetTickCount();
+	  pv_module_co_lastWakeTime = xTaskGetTickCount();
 
 	/* Variavel para debug */
 	heartBeat+=1;
@@ -187,11 +188,17 @@ void module_co_run()
 		c_common_datapr_multwii2_sendControldatain(rpy,drpy,position,velocity);
 		c_common_datapr_multwii2_sendEscdata(aux,alpha,dalpha);
 		c_common_datapr_multwii2_sendControldataout(data1,data3,data2);
-		c_common_datapr_multwii_debug(oControlOutputData.cicleTime,iInputData.cicleTime,(float)oControlOutputData.heartBeat,(float)iInputData.heartBeat);
+		c_common_datapr_multwii_debug((float)oControlOutputData.cicleTime,(float)iInputData.cicleTime,(float)oControlOutputData.heartBeat,(float)iInputData.heartBeat);
 		c_common_datapr_multwii_sendstack(USART2);
+
 		/*Receives control input data from the beaglebone*/
-		c_common_datapr_multiwii_receivestack(USART2);
-		oControlOutputData.actuation=c_common_datapr_multwii_getactuation();
+		pv_module_co_flag=c_common_datapr_multiwii_receivestack(USART2);
+		pv_module_co_actuation=c_common_datapr_multwii_getactuation();
+
+		if(pv_module_co_actuation.escLeftNewtons!=0 || pv_module_co_actuation.escRightNewtons!=0 || pv_module_co_actuation.servoLeft!=0 || pv_module_co_actuation.servoRight!=0){
+			oControlOutputData.actuation=pv_module_co_actuation;
+		}
+
 	#endif
 
 	#ifdef ENABLE_SERVO
@@ -244,16 +251,16 @@ void module_co_run()
 
 	/*Time Code Execution*/
 	unsigned int timeNow=xTaskGetTickCount();
-    oControlOutputData.cicleTime = timeNow - lastWakeTime;
+    oControlOutputData.cicleTime = timeNow - pv_module_co_lastWakeTime;
 
     /* toggle pin for debug */
-    c_common_gpio_toggle(LED5);
+    c_common_gpio_toggle(pv_module_co_LED5);
 /*
     if(pv_interface_co.oControlOutputData != 0)
       xQueueOverwrite(pv_interface_co.oControlOutputData, &oControlOutputData);
 */
     /* A thread dorme ate o tempo final ser atingido */
-    vTaskDelayUntil( &lastWakeTime, MODULE_PERIOD / portTICK_RATE_MS);
+    vTaskDelayUntil( &pv_module_co_lastWakeTime, MODULE_PERIOD / portTICK_RATE_MS);
 	}
 }
 
