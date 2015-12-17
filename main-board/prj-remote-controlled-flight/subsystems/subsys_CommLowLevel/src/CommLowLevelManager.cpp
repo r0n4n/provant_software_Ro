@@ -159,7 +159,7 @@ void CommLowLevelManager::Run()
     	//u=mpc->Controler(xs);
     	u=lqr->Controler(xs,status.stop);
     	//u=mpcload->Controler(xs);
-    	u=mpcbirotor->Controler(xs);
+    	//u=mpcbirotor->Controler(xs);
     	//u=test->Controler(channels);
 
     	actuation.escRightNewtons=u(0,0);

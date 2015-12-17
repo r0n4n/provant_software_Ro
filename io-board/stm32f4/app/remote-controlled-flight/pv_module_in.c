@@ -195,8 +195,8 @@ void module_in_run()
     	oInputData.attitude.roll= rpy[PV_IMU_ROLL];
     if (abs2(rpy[PV_IMU_PITCH]-oInputData.attitude.pitch)>ATTITUDE_MINIMUM_STEP)
     	oInputData.attitude.pitch= rpy[PV_IMU_PITCH];
-    if (abs2(rpy[PV_IMU_YAW]-oInputData.attitude.yaw)>ATTITUDE_MINIMUM_STEP){
-    	oInputData.attitude.yaw= rpy[PV_IMU_YAW];
+    if (abs2((rpy[PV_IMU_YAW]-attitude_yaw_initial)-oInputData.attitude.yaw)>ATTITUDE_MINIMUM_STEP){
+    	oInputData.attitude.yaw= rpy[PV_IMU_YAW]-attitude_yaw_initial;
     }
 
     /* Saida dos dados da velocidade angular*/
@@ -263,8 +263,8 @@ void module_in_run()
     #ifdef ENABLE_ALTURA
 	/*----------------------Tratamento do Sonar---------------------*/
 	/* Executa a leitura do sonar */
-//	sonar_raw_real  =c_io_sonar_read();
-	sonar_raw_real  =0;
+	sonar_raw_real  =c_io_sonar_read();
+//	sonar_raw_real  =0;
 	sonar_raw= sonar_raw_real/100;
 	/////////////////////////////////
 

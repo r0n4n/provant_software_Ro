@@ -17,6 +17,7 @@
 #include <iostream>
 #include <chrono>
 #include "qpOASES.hpp"
+#include "ReferenceTrajectory.h"
 /* Exported types ------------------------------------------------------------*/
 /* Exported constants --------------------------------------------------------*/
 /* Exported macro ------------------------------------------------------------*/

@@ -30,22 +30,22 @@ long k; // discret time
 float frequency;
 int lastTime;
 double f;
-MatrixXf Az(16,16);
-MatrixXf Bz(16,4);
+MatrixXf Az(18,18);
+MatrixXf Bz(18,4);
 MatrixXf Wy; // Output weighting
 MatrixXf Wu; //Control weighting
-MatrixXf R(16*5,1);
+MatrixXf R(18*5,1);
 MatrixXf Ur(4*1,1);
-MatrixXf G(16*5,4*1);
-MatrixXf Q(16*5,16);
-MatrixXf xs(16,1);
-MatrixXf deltaxs(16,1);
+MatrixXf G(18*5,4*1);
+MatrixXf Q(18*5,16);
+MatrixXf xs(18,1);
+MatrixXf deltaxs(18,1);
 MatrixXf DeltaU(4*1,1);
-MatrixXf xr(16,1);
+MatrixXf xr(18,1);
 MatrixXf as(4,1);
 MatrixXf ur(4,1);
-MatrixXf Ymax(16*5,1);
-MatrixXf Ymin(16*5,1);
+MatrixXf Ymax(18*5,1);
+MatrixXf Ymin(18*5,1);
 //quadprog
 QProblem qp(4,104);
 Options options;
@@ -58,7 +58,7 @@ MatrixXf dYmax;
 MatrixXf dYmin;
 MatrixXf dUmax(4*1,1);
 MatrixXf dUmin(4*1,1);
-MatrixXf Yr(16*5,1);
+MatrixXf Yr(18*5,1);
 MatrixXf Ar(4*1,104);
 MatrixXf lbr(104,1);
 MatrixXf ubr(104,1);
@@ -77,14 +77,14 @@ MpcBirotor::MpcBirotor() {
 	/*Trajetoria*/
 	trajectory=new ReferenceTrajectory();
 	/*Initialization of all MPC variable*/
-	s=16;
+	s=18;
 	p=4;
-	q=16;
+	q=18;
 	N=5;
 	M=1;
 	k=0;
 	frequency=M_PI/20;
-	ts=0.01;
+	ts=0.015;
 	//Initialize the mathematics model
 	Model=new AircraftModel();
 	MatrixXf SumRho(2,2);
