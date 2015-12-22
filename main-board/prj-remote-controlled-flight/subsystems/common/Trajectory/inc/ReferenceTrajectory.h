@@ -26,6 +26,8 @@ public:
 	ReferenceTrajectory();
 	virtual ~ReferenceTrajectory();
 	Eigen::MatrixXf TrajetoryReference_LQR();
+	Eigen::MatrixXf TrajetoryReference_MPC(int k);
+	Eigen::MatrixXf AcelerationReference(int k);
 /* Private functions ------------------------------------------------------- */
 private:
 

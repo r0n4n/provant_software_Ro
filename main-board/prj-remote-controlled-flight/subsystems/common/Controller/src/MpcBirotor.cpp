@@ -30,6 +30,7 @@ long k; // discret time
 float frequency;
 int lastTime;
 double f;
+/*MPC variable*/
 MatrixXf Az(18,18);
 MatrixXf Bz(18,4);
 MatrixXf Wy; // Output weighting
@@ -37,16 +38,21 @@ MatrixXf Wu; //Control weighting
 MatrixXf R(18*5,1);
 MatrixXf Ur(4*1,1);
 MatrixXf G(18*5,4*1);
-MatrixXf Q(18*5,16);
-MatrixXf xs(18,1);
-MatrixXf deltaxs(18,1);
+MatrixXf Q(18*5,18);
 MatrixXf DeltaU(4*1,1);
-MatrixXf xr(18,1);
-MatrixXf as(4,1);
+MatrixXf ar(4,1);
 MatrixXf ur(4,1);
-MatrixXf Ymax(18*5,1);
-MatrixXf Ymin(18*5,1);
-//quadprog
+/*State variables*/
+MatrixXf xs(16,1);
+MatrixXf deltaxs(16,1);
+MatrixXf xr(16,1);
+MatrixXf xs_aumented(18,1);
+/*Integrator variable*/
+MatrixXf xsi(2,1);
+MatrixXf xsiant(2,1);
+MatrixXf deltaxsi(2,1);
+MatrixXf deltaxsiant(2,1);
+/*Constraint Variable*/
 QProblem qp(4,104);
 Options options;
 MatrixXf H;
@@ -54,6 +60,8 @@ MatrixXf ft;
 VectorXf umax;
 VectorXf umin;
 MatrixXf Im(4*1,4*1);
+MatrixXf Ymax(18*5,1);
+MatrixXf Ymin(18*5,1);
 MatrixXf dYmax;
 MatrixXf dYmin;
 MatrixXf dUmax(4*1,1);
@@ -84,12 +92,12 @@ MpcBirotor::MpcBirotor() {
 	M=1;
 	k=0;
 	frequency=M_PI/20;
-	ts=0.015;
+	ts=0.012;
 	//Initialize the mathematics model
 	Model=new AircraftModel();
-	MatrixXf SumRho(2,2);
-	MatrixXf SumLambda(2,2);
-	MatrixXf TerminalCost(2,2);
+	MatrixXf SumRho(18,18);
+	MatrixXf SumLambda(4,4);
+	MatrixXf TerminalCost(18,18);
 	Wy.setZero(q*N,q*N); //Output weight matrix
 	Wu.setZero(p*M,p*M); //Input weight matrix
 	/*Output weight matrix creation*/
@@ -117,8 +125,9 @@ MpcBirotor::MpcBirotor() {
 	    Ymax.block(i,0,q,1)=ymax;
 	    Ymin.block(i,0,q,1)=ymin;
 	}
-	/*Matrix Bz calculation*/
-	Bz=Model->MatrixB(ts);
+
+	deltaxsiant.setZero();
+	xsiant.setZero();
 	options.printLevel=PL_NONE;
 	qp.setOptions( options );
 //	last=std::chrono::steady_clock::now();
@@ -131,33 +140,43 @@ MpcBirotor::~MpcBirotor() {
 Eigen::MatrixXf MpcBirotor::Controler(Eigen::MatrixXf states){
 	Eigen::MatrixXf u(4,1);
 	k=0;
-	auto start = std::chrono::steady_clock::now();
-	//Vector of states
-	xs<<0,0,3,states.block(3,0,5,1),0,0,0,states.block(11,0,5,1);
+
 	//Vectors of reference trajectory and control
-    xr=TrajetoryReference(k).block(0,0,q,1);
-    as=AcelerationReference(k);
-    ur=Model->RefrenceControl(AcelerationReference(k));
-    //Variation of estates
-    deltaxs=xs-xr;
+	xs<<0,0,3,states.block(3,0,5,1),0,0,0,states.block(11,0,5,1);
+	xr=trajectory->TrajetoryReference_MPC(k);
+	ar=trajectory->AcelerationReference(k);
+	ur=Model->RefrenceControl(ar);
+	//Variation of estates
+	deltaxs=xs-xr;
+	//Vector integration of error(Trapezoidal method)
+	deltaxsi<<xs(2,0)-xr(2,0),xs(5,0)-xr(5,0);
+	xsi=xsiant+ts*(deltaxsi+deltaxsiant)/2;
+	// Error state vector
+	deltaxs=xs-xr;
+	// augmented error state vector
+	xs_aumented<<deltaxs,xsi;
+
     //Refrence vector of future variation
 	R.setZero();
 	for (int i=0, Naux=1;i<N*q;i+=q, Naux++){
-		R.block(i,0,q,1)=TrajetoryReference(k+Naux).block(0,0,q,1)-
-				TrajetoryReference(k+Naux-1).block(0,0,q,1);
+		R.block(i,0,q-2,1)=trajectory->TrajetoryReference_MPC(k+Naux)-
+				trajectory->TrajetoryReference_MPC(k+Naux-1);
 	}
+
 //	//Refrence control of future variation
 	for(int i=0, Maux=1;i<M*p;i+=p, Maux++){
 		if (k==0){
-			Ur.block(i,0,p,1)=Model->RefrenceControl(AcelerationReference(k+Maux-1));
+			Ur.block(i,0,p,1)=Model->RefrenceControl(trajectory->AcelerationReference(k+Maux-1));
 		}else{
-			Ur.block(i,0,p,1)=Model->RefrenceControl(AcelerationReference(k+Maux-1))-
-					Model->RefrenceControl(AcelerationReference(k+Maux-2));
+			Ur.block(i,0,p,1)=Model->RefrenceControl(trajectory->AcelerationReference(k+Maux-1))-
+					Model->RefrenceControl(trajectory->AcelerationReference(k+Maux-2));
 		}
 	}
+
 	/*Low control calculation*/
-    Az=Model->MatrixA(as,ts);
+    Model->LinearModel(ar,ts,&Az,&Bz);
     G.setZero();
+
     for(int j=0, Maux=1;j<p*M;j+=p, Maux++){
 		for(int i=0, Naux=1;i<q*N;i+=q, Naux++){
 			if(Naux>=Maux){
@@ -165,31 +184,36 @@ Eigen::MatrixXf MpcBirotor::Controler(Eigen::MatrixXf states){
 			}
 		}
 	}
-	for(int i=0, Naux=1;i<q*N;i+=q, Naux++){
+
+    for(int i=0, Naux=1;i<q*N;i+=q, Naux++){
 		Q.block(i,0,q,s)=Pow(Az,Naux);
 	}
 
 	//DeltaU=((G.transpose()*Wy*G)+Wu).inverse()*(G.transpose()*Wy*(R-Q*deltaxs)+Wu*Ur);
 	H=(2*((G.transpose()*Wy*G)+Wu));
 	//H=(H*H.transpose())/2;
-	ft=(2*((Q*deltaxs-R).transpose()*Wy*G-Ur.transpose()*Wu));
+	ft=(2*((Q*xs_aumented-R).transpose()*Wy*G-Ur.transpose()*Wu));
+
 	/*----------- Contraints---------------*/
 	for(int i=0, Maux=1;i<M*p;i+=p, Maux++){
-		dUmax.block(i,0,p,1)=umax-Model->RefrenceControl(AcelerationReference(k+Maux-1));
-		dUmin.block(i,0,p,1)=Model->RefrenceControl(AcelerationReference(k+Maux-1))-umin;
+		dUmax.block(i,0,p,1)=umax-Model->RefrenceControl(trajectory->AcelerationReference(k+Maux-1));
+		dUmin.block(i,0,p,1)=Model->RefrenceControl(trajectory->AcelerationReference(k+Maux-1))-umin;
 	}
-	for (int i=0, Naux=1;i<N*q;i+=q, Naux++){
-		Yr.block(i,0,q,1)=TrajetoryReference(k+Naux).block(0,0,q,1);
-	}
-	dYmax=Ymax-(Q*deltaxs)-Yr;
-	dYmin=(Q*deltaxs)+Yr-Ymin;
-	Ar.block(0,0,4*1,4*1)=Im;
-	Ar.block(0,4,4*1,16*5)=G.transpose();
 
-	lbr.block(0,0,4*1,1)=-dUmin;
-	lbr.block(4,0,16*5,1)=-dYmin;
-	ubr.block(0,0,4*1,1)=dUmax;
-	ubr.block(4,0,16*5,1)=dYmax;
+	Yr.setZero();
+	for (int i=0, Naux=1;i<N*q;i+=q, Naux++){
+		Yr.block(i,0,q-2,1)=trajectory->TrajetoryReference_MPC(k+Naux);
+	}
+
+	dYmax=Ymax-(Q*xs_aumented)-Yr;
+	dYmin=(Q*xs_aumented)+Yr-Ymin;
+	Ar.block(0,0,p*M,p*M)=Im;
+	Ar.block(0,p,p*M,q*N)=G.transpose();
+
+	lbr.block(0,0,p*M,1)=-dUmin;
+	lbr.block(p,0,q*N,1)=-dYmin;
+	ubr.block(0,0,p*M,1)=dUmax;
+	ubr.block(p,0,q*N,1)=dYmax;
 
 	/*---------------------------------*/
 	std::copy(H.data(),H.data()+H.size(),Hq);
@@ -208,54 +232,16 @@ Eigen::MatrixXf MpcBirotor::Controler(Eigen::MatrixXf states){
 	u(1,0)=(ur(1,0)+xOpt[1])/1000;
 	u(2,0)=(ur(2,0)+xOpt[2])/1000;
 	u(3,0)=(ur(3,0)+xOpt[3])/1000;
-	qp.reset();
 
-	auto end = std::chrono::steady_clock::now();
-	auto elapsed = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
-	std::cout << "Controll " << (float)(elapsed.count()/1000) << " miliseconds." << std::endl;
+	//Variable update
+	xsiant=xsi;
+	deltaxsiant=deltaxsi;
+
+	qp.reset();
 
 	return u;
 }
 /* Private functions ------------------------------------------------------- */
-Eigen::MatrixXf MpcBirotor::TrajetoryReference(int k){
-	MatrixXf R(16,1);
-	double x,y,z,phi,theta,psi,alphal,alphar;
-	double dot_x,dot_y,dot_z,dot_phi,dot_theta,dot_psi,dot_alphal,dot_alphar;
-	R.setZero();
-	//x=0.5*cos(frequency*ts*k);
-	//y=0.5*sin(frequency*ts*k);
-	//z=3-2*cos(frequency*ts*k);
-	x=0;
-	y=0;
-	z=3;
-	phi=0.0000890176;
-	theta=0.0154833;
-	psi=0;
-	alphar=-0.0154821;
-	alphal=-0.0153665;
-	dot_x=-0.5*frequency*sin(frequency*ts*k);
-	dot_y=0.5*frequency*cos(frequency*ts*k);
-	dot_z=2*frequency*sin(frequency*ts*k);
-	dot_phi=0;
-	dot_theta=0;
-	dot_psi=0;
-	dot_alphar=0;
-	dot_alphal=0;
-
-	R<<x,y,z,phi,theta,psi,alphal,alphar,dot_x,dot_y,dot_z,dot_phi,
-			dot_theta,dot_psi,dot_alphal,dot_alphar;
-	return R;
-}
-Eigen::MatrixXf MpcBirotor::AcelerationReference(int k){
-	MatrixXf asr(4,1);
-	double dot2_x,dot2_y,dot2_z,dot2_psi;
-	dot2_x=-0.5*pow(frequency,2)*cos(frequency*ts*k);
-	dot2_y=-0.5*pow(frequency,2)*sin(frequency*ts*k);
-	dot2_z=2*pow(frequency,2)*cos(frequency*ts*k);
-	dot2_psi=0;
-	asr<<dot2_x, dot2_y, dot2_z, dot2_psi;
-	return asr;
-}
 Eigen::MatrixXf MpcBirotor::Pow(Eigen::MatrixXf matrix, int power){
 	MatrixXf aux;
 	if(power==0){

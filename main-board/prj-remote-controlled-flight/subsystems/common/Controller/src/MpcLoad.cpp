@@ -84,9 +84,9 @@ MpcLoad::MpcLoad() {
 	ts=0.01;
 	//Initialize the mathematics model
 	Model=new LoadTranportationModel();
-	MatrixXf SumRho(2,2);
-	MatrixXf SumLambda(2,2);
-	MatrixXf TerminalCost(2,2);
+	MatrixXf SumRho(20,20);
+	MatrixXf SumLambda(20,20);
+	MatrixXf TerminalCost(20,20);
 	Wy.setZero(q*N,q*N); //Output weight matrix
 	Wu.setZero(p*M,p*M); //Input weight matrix
 	/*Output weight matrix creation*/

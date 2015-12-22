@@ -35,9 +35,9 @@ CommLowLevelManager::CommLowLevelManager(std::string name) :
 {
 	//mpc=new MPC::MpcControler();
 	//mpcload=new MPCLOAD::MpcLoad();
-	//mpcbirotor=new MPCBirotor::MpcBirotor();
+	mpcbirotor=new MPCBirotor::MpcBirotor();
 	//mpc=new MPC::MpcControler();
-	lqr=new LQR::LQRControler();
+	//lqr=new LQR::LQRControler();
 	//test= new TEST::TESTActuator();
 }
 
@@ -145,6 +145,7 @@ void CommLowLevelManager::Run()
     		servos=servos_aux;
     	}
 
+
     	//rcNormalize= PROVANT.getVantData().getNormChannels();
     	status=PROVANT.getVantData().getStatus();
     	debug=PROVANT.getVantData().getDebug();
@@ -157,9 +158,9 @@ void CommLowLevelManager::Run()
     			,position.dotX,position.dotY,position.dotZ,atitude.dotRoll,atitude.dotPitch,atitude.dotYaw,servos.dotAlphar,servos.dotAlphal;
 
     	//u=mpc->Controler(xs);
-    	u=lqr->Controler(xs,status.stop);
+    	//u=lqr->Controler(xs,status.stop);
     	//u=mpcload->Controler(xs);
-    	//u=mpcbirotor->Controler(xs);
+    	u=mpcbirotor->Controler(xs);
     	//u=test->Controler(channels);
 
     	actuation.escRightNewtons=u(0,0);
@@ -181,11 +182,12 @@ void CommLowLevelManager::Run()
    		PROVANT.multwii2_sendControldataout(data1,data3,data2);
    		PROVANT.multwii_sendstack();
 
+   		auto end = std::chrono::steady_clock::now();
+   		auto elapsed = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
+   		std::cout << "It took me " << (float)(elapsed.count()/1000) << " miliseconds." << std::endl;
 
     	/*Elapsed time code*/
-    	auto end = std::chrono::steady_clock::now();
-    	auto elapsed = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
-    	std::cout << "It took me " << (float)(elapsed.count()/1000) << " miliseconds." << std::endl;
+
 
     	interface->push(position, interface->q_position2_out_);
     	interface->push(atitude, interface->q_atitude2_out_);

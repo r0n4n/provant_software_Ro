@@ -122,7 +122,6 @@ MpcControler::MpcControler() {
 	    Ymin.block(i,0,q,1)=ymin;
 	}
 	/*Matrix Bz calculation*/
-	Bz=Model->MatrixB(ts);
 	options.printLevel=PL_NONE;
 	qp.setOptions( options );
 //	last=std::chrono::steady_clock::now();
@@ -164,7 +163,7 @@ Eigen::MatrixXf MpcControler::Controler(Eigen::MatrixXf states){
 	}
 
 	/*Low control calculation*/
-    Az=Model->MatrixA(as,ts);
+	Model->LinearModel(as,ts,&Az,&Bz);
 
     G.setZero();
     for(int j=0, Maux=1;j<p*M;j+=p, Maux++){

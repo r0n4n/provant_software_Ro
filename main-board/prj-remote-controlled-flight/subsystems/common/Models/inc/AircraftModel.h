@@ -23,9 +23,7 @@ class AircraftModel {
 public:
 	AircraftModel();
 	virtual ~AircraftModel();
-	Eigen::MatrixXf MatrixA(Eigen::MatrixXf as, float ts);
-	Eigen::MatrixXf MatrixB(float ts);
-	Eigen::MatrixXf MatrixC();
+	void LinearModel(Eigen::MatrixXf as, float ts,Eigen::MatrixXf * Az, Eigen::MatrixXf * Bz);
 	Eigen::MatrixXf MatrixSumRho();
 	Eigen::MatrixXf MatrixSumLambda();
 	Eigen::MatrixXf RefrenceControl(Eigen::MatrixXf as);
