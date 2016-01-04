@@ -84,8 +84,7 @@ int nWSR;
 /* Exported functions definitions --------------------------------------------*/
 
 MpcBirotor::MpcBirotor() {
-	/*Trajetoria*/
-	trajectory=new ReferenceTrajectory();
+
 	/*Initialization of all MPC variable*/
 	s=18;
 	p=4;
@@ -95,6 +94,8 @@ MpcBirotor::MpcBirotor() {
 	k=0;
 	frequency=M_PI/20;
 	ts=0.012;
+	/*Trajetoria*/
+	trajectory=new ReferenceTrajectory(ts);
 	//Initialize the mathematics model
 	Model=new AircraftModel();
 	MatrixXf SumRho(18,18);
@@ -141,11 +142,11 @@ MpcBirotor::~MpcBirotor() {
 
 Eigen::MatrixXf MpcBirotor::Controler(Eigen::MatrixXf states){
 	Eigen::MatrixXf u(4,1);
-	k=0;
 
 	//Vectors of reference trajectory and control
 	xs<<0,0,3,states.block(3,0,5,1),0,0,0,states.block(11,0,5,1);
 	xr=trajectory->TrajetoryReference_MPC(k);
+	std::cout<<"z= "<<xr(2)<<std::endl;
 	ar=trajectory->AcelerationReference(k);
 	ur=Model->RefrenceControl(ar);
 	//Variation of estates
@@ -244,7 +245,7 @@ Eigen::MatrixXf MpcBirotor::Controler(Eigen::MatrixXf states){
 	deltaxsiant=deltaxsi;
 
 	qp.reset();
-
+	k++;
 	return u;
 }
 /* Private functions ------------------------------------------------------- */

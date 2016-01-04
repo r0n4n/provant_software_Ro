@@ -18,10 +18,14 @@ namespace TRAJECTORY {
 /* Private variables ---------------------------------------------------------*/
 int nWSR;
 float psi_r;
+float sample_time;
 /* Exported functions definitions --------------------------------------------*/
-
 ReferenceTrajectory::ReferenceTrajectory() {
 
+}
+
+ReferenceTrajectory::ReferenceTrajectory(float sample) {
+	sample_time=sample;
 }
 
 ReferenceTrajectory::~ReferenceTrajectory() {
@@ -55,7 +59,9 @@ Eigen::MatrixXf ReferenceTrajectory::TrajetoryReference_LQR(){
 	return R;
 }
 
-Eigen::MatrixXf ReferenceTrajectory::TrajetoryReference_MPC(int k){
+Eigen::MatrixXf ReferenceTrajectory::TrajetoryReference_MPC(long auxk){
+	float k;
+	k=auxk*sample_time;
 	MatrixXf R(16,1);
 	double x,y,z,phi,theta,psi,alphal,alphar;
 	double dot_x,dot_y,dot_z,dot_phi,dot_theta,dot_psi,dot_alphal,dot_alphar;
@@ -63,9 +69,10 @@ Eigen::MatrixXf ReferenceTrajectory::TrajetoryReference_MPC(int k){
 	x=0;
 	y=0;
 	z=3;
+	//z=3*(1-exp(-0.9*k));
 	phi=0.0000890176;
 	theta=0.0154833;
-	psi=0;
+	psi=0.4887;
 	//std::cout<<"->"<<psi<<std::endl;
 	alphar=-0.0154821;
 	alphal=-0.0153665;
@@ -81,7 +88,9 @@ Eigen::MatrixXf ReferenceTrajectory::TrajetoryReference_MPC(int k){
 			dot_theta,dot_psi,dot_alphal,dot_alphar;
 	return R;
 }
-Eigen::MatrixXf ReferenceTrajectory::AcelerationReference(int k){
+Eigen::MatrixXf ReferenceTrajectory::AcelerationReference(int auxk){
+	float k;
+	k=auxk*sample_time;
 	MatrixXf asr(4,1);
 	double dot2_x,dot2_y,dot2_z,dot2_psi;
 	dot2_x=0;

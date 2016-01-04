@@ -58,6 +58,8 @@
  /* kernel includes */
 #include "c_common_gpio.h"
 #include "c_common_i2c.h"
+#include "c_io_blctrl.h"
+#include "c_io_servos.h"
 #include "c_common_uart.h"
 #include "c_common_utils.h"
 

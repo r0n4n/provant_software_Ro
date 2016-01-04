@@ -107,12 +107,13 @@ void module_co_run()
   float servoTorque[2];
   float escForce[2];
   int channel[7];
+  pv_type_actuation    auxactuation;
   /* Inicializa os dados da attitude*/
   oControlOutputData.actuation.servoRight = 0;
   oControlOutputData.actuation.servoLeft  = 0;
   oControlOutputData.actuation.escRightSpeed = 0;
   oControlOutputData.actuation.escLeftSpeed  = 0;
-
+  auxactuation= oControlOutputData.actuation;
   while(1) 
   {
 
@@ -196,9 +197,16 @@ void module_co_run()
 		pv_module_co_actuation=c_common_datapr_multwii_getactuation();
 
 		if(pv_module_co_actuation.escLeftNewtons!=0 || pv_module_co_actuation.escRightNewtons!=0 || pv_module_co_actuation.servoLeft!=0 || pv_module_co_actuation.servoRight!=0){
-			oControlOutputData.actuation=pv_module_co_actuation;
+			auxactuation=pv_module_co_actuation;
 		}
+		if(auxactuation.servoLeft<=2 && auxactuation.servoLeft>=-2)
+			oControlOutputData.actuation.servoLeft=auxactuation.servoLeft;
 
+		if(auxactuation.servoRight<=2 && auxactuation.servoRight>=-2)
+			oControlOutputData.actuation.servoRight=auxactuation.servoRight;
+
+		oControlOutputData.actuation.escRightNewtons=auxactuation.escRightNewtons;
+		oControlOutputData.actuation.escLeftNewtons=auxactuation.escLeftNewtons;
 	#endif
 
 	#ifdef ENABLE_SERVO
