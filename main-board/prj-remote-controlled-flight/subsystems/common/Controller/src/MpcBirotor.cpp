@@ -18,6 +18,8 @@ using namespace TRAJECTORY;
 namespace MPCBirotor {
 /* Private define ------------------------------------------------------------*/
 /* Private macro -------------------------------------------------------------*/
+#define PRED_HOR 5
+#define PRED_CONT 1
 /* Private variables ---------------------------------------------------------*/
 AircraftModel * Model;
 int s; // Number of states
@@ -35,11 +37,11 @@ MatrixXf Az(18,18);
 MatrixXf Bz(18,4);
 MatrixXf Wy; // Output weighting
 MatrixXf Wu; //Control weighting
-MatrixXf R(18*5,1);
-MatrixXf Ur(4*1,1);
-MatrixXf G(18*5,4*1);
-MatrixXf Q(18*5,18);
-MatrixXf DeltaU(4*1,1);
+MatrixXf R(18*PRED_HOR,1);
+MatrixXf Ur(4*PRED_CONT,1);
+MatrixXf G(18*PRED_HOR,4*PRED_CONT);
+MatrixXf Q(18*PRED_HOR,18);
+MatrixXf DeltaU(4*PRED_CONT,1);
 MatrixXf ar(4,1);
 MatrixXf ur(4,1);
 /*State variables*/
@@ -53,28 +55,28 @@ MatrixXf xsiant(2,1);
 MatrixXf deltaxsi(2,1);
 MatrixXf deltaxsiant(2,1);
 /*Constraint Variable*/
-QProblem qp(4,104);
+QProblem qp(4,18*PRED_HOR+4*PRED_CONT);
 Options options;
 MatrixXf H;
 MatrixXf ft;
 VectorXf umax;
 VectorXf umin;
-MatrixXf Im(4*1,4*1);
-MatrixXf Ymax(18*5,1);
-MatrixXf Ymin(18*5,1);
+MatrixXf Im(4*PRED_CONT,4*PRED_CONT);
+MatrixXf Ymax(18*PRED_HOR,1);
+MatrixXf Ymin(18*PRED_HOR,1);
 MatrixXf dYmax;
 MatrixXf dYmin;
-MatrixXf dUmax(4*1,1);
-MatrixXf dUmin(4*1,1);
-MatrixXf Yr(18*5,1);
-MatrixXf Ar(4*1,104);
-MatrixXf lbr(104,1);
-MatrixXf ubr(104,1);
-real_t Hq[4*4];
-real_t ftq[1*4];
-real_t Arq[104*4];
-real_t ubrq[104*1];
-real_t lbrq[104*1];
+MatrixXf dUmax(4*PRED_CONT,1);
+MatrixXf dUmin(4*PRED_CONT,1);
+MatrixXf Yr(18*PRED_HOR,1);
+MatrixXf Ar(4*PRED_CONT,(18*PRED_HOR+4*PRED_CONT));
+MatrixXf lbr((18*PRED_HOR+4*PRED_CONT),1);
+MatrixXf ubr((18*PRED_HOR+4*PRED_CONT),1);
+real_t Hq[4*PRED_CONT*4*PRED_CONT];
+real_t ftq[PRED_CONT*4];
+real_t Arq[4*PRED_CONT*(18*PRED_HOR+4*PRED_CONT)];
+real_t ubrq[(18*PRED_HOR+4*PRED_CONT)];
+real_t lbrq[(18*PRED_HOR+4*PRED_CONT)];
 real_t xOpt[4];
 
 int nWSR;
@@ -88,8 +90,8 @@ MpcBirotor::MpcBirotor() {
 	s=18;
 	p=4;
 	q=18;
-	N=5;
-	M=1;
+	N=PRED_HOR;
+	M=PRED_CONT;
 	k=0;
 	frequency=M_PI/20;
 	ts=0.012;
@@ -214,6 +216,10 @@ Eigen::MatrixXf MpcBirotor::Controler(Eigen::MatrixXf states){
 	lbr.block(p,0,q*N,1)=-dYmin;
 	ubr.block(0,0,p*M,1)=dUmax;
 	ubr.block(p,0,q*N,1)=dYmax;
+
+	//std::cout<<"Ar= ("<<Ar.rows()<<","<<Ar.cols()<<")"<<std::endl;
+	//std::cout<<"lbr= ("<<lbr.rows()<<","<<lbr.cols()<<")"<<std::endl;
+	//std::cout<<"ubr= ("<<ubr.rows()<<","<<ubr.cols()<<")"<<std::endl;
 
 	/*---------------------------------*/
 	std::copy(H.data(),H.data()+H.size(),Hq);
