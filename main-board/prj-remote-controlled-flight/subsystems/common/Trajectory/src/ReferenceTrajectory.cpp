@@ -39,7 +39,7 @@ Eigen::MatrixXf ReferenceTrajectory::TrajetoryReference_LQR(){
 	R.setZero();
 	x=0;
 	y=0;
-	z=3;
+	z=1;
 	phi=0.0000890176;
 	theta=0.0154833;
 	psi=0;
@@ -68,7 +68,7 @@ Eigen::MatrixXf ReferenceTrajectory::TrajetoryReference_MPC(long auxk){
 	R.setZero();
 	x=0;
 	y=0;
-	z=3;
+	z=0.048;
 	//z=3*(1-exp(-0.9*k));
 	phi=0.0000890176;
 	theta=0.0154833;

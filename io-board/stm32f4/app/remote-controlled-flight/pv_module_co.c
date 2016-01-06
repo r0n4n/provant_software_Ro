@@ -166,7 +166,7 @@ void module_co_run()
 
 		position[0]=0;//iInputData.position.x;
 		position[1]=0;//iInputData.position.y;
-		position[2]=0;//iInputData.position.z;
+		position[2]=iInputData.position.z;//iInputData.position.z;
 
 		velocity[0]=iInputData.position.dotX;
 		velocity[1]=iInputData.position.dotY;
@@ -207,6 +207,16 @@ void module_co_run()
 
 		oControlOutputData.actuation.escRightNewtons=auxactuation.escRightNewtons;
 		oControlOutputData.actuation.escLeftNewtons=auxactuation.escLeftNewtons;
+
+		if (iInputData.securityStop){
+			oControlOutputData.actuation.servoLeft=0;
+			oControlOutputData.actuation.servoRight=0;
+			oControlOutputData.actuation.escRightNewtons=0;
+			oControlOutputData.actuation.escLeftNewtons=0;
+			auxactuation=oControlOutputData.actuation;
+			pv_module_co_actuation=oControlOutputData.actuation;
+		}
+
 	#endif
 
 	#ifdef ENABLE_SERVO

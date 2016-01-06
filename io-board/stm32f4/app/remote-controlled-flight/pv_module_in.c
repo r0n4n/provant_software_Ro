@@ -195,9 +195,11 @@ void module_in_run()
     	oInputData.attitude.roll= rpy[PV_IMU_ROLL];
     if (abs2(rpy[PV_IMU_PITCH]-oInputData.attitude.pitch)>ATTITUDE_MINIMUM_STEP)
     	oInputData.attitude.pitch= rpy[PV_IMU_PITCH];
-    if (abs2(rpy[PV_IMU_YAW]-oInputData.attitude.yaw)>ATTITUDE_MINIMUM_STEP){
-    	oInputData.attitude.yaw= rpy[PV_IMU_YAW];
+    if (abs2(rpy[PV_IMU_YAW]-yaw_aux)>ATTITUDE_MINIMUM_STEP){
+    	yaw_aux= rpy[PV_IMU_YAW];
     }
+
+    oInputData.attitude.yaw=yaw_aux-attitude_yaw_initial;
 
     /* Saida dos dados da velocidade angular*/
     oInputData.attitude.dotRoll  = rpy[PV_IMU_DROLL];
@@ -308,7 +310,6 @@ void module_in_run()
 
 	//Filtered measurements
 	oInputData.position.z = sonar_filtered;
-	oInputData.position.y= sonar_raw;
 	oInputData.position.dotZ = dotZ_filtered;
     #endif
 
@@ -347,7 +348,7 @@ void module_in_run()
 	if ( (rpy[PV_IMU_YAW]*RAD_TO_DEG < -160) || (rpy[PV_IMU_YAW]*RAD_TO_DEG > 160) )
 		oInputData.securityStop=1;
 
-	if (!oInputData.receiverOutput.aButton && !oInputData.init){
+	if (!oInputData.receiverOutput.aButton){
 		if(pv_module_in_aButton_ant==oInputData.receiverOutput.aButton){
 			pv_module_cont++;
 		}

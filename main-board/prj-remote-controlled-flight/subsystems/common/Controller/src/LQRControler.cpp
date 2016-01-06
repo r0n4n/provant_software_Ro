@@ -73,7 +73,7 @@ Eigen::MatrixXf LQRControler::Controler(Eigen::MatrixXf states,bool stop){
 		deltaxsi.setZero();
 	}else{
 		//Vectors of reference trajectory and control
-		xs<<0,0,3,states.block(3,0,5,1),0,0,0,states.block(11,0,5,1);
+		xs<<0,0,1,states.block(3,0,5,1),0,0,0,states.block(11,0,5,1);
 		xr=trajectory->TrajetoryReference_LQR();
 
 		//Vector integration of error(Trapezoidal method)

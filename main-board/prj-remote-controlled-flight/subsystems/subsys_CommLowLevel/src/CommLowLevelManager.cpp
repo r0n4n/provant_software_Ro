@@ -35,9 +35,9 @@ CommLowLevelManager::CommLowLevelManager(std::string name) :
 {
 	//mpc=new MPC::MpcControler();
 	//mpcload=new MPCLOAD::MpcLoad();
-	mpcbirotor=new MPCBirotor::MpcBirotor();
+	//mpcbirotor=new MPCBirotor::MpcBirotor();
 	//mpc=new MPC::MpcControler();
-	//lqr=new LQR::LQRControler();
+	lqr=new LQR::LQRControler();
 	//test= new TEST::TESTActuator();
 }
 
@@ -158,9 +158,9 @@ void CommLowLevelManager::Run()
     			,position.dotX,position.dotY,position.dotZ,atitude.dotRoll,atitude.dotPitch,atitude.dotYaw,servos.dotAlphar,servos.dotAlphal;
 
     	//u=mpc->Controler(xs);
-    	//u=lqr->Controler(xs,status.stop);
+    	u=lqr->Controler(xs,status.stop);
     	//u=mpcload->Controler(xs);
-    	u=mpcbirotor->Controler(xs);
+    	//u=mpcbirotor->Controler(xs,status.stop);
     	//u=test->Controler(channels);
 
     	actuation.escRightNewtons=u(0,0);

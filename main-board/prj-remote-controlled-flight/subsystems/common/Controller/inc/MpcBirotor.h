@@ -28,7 +28,7 @@ class MpcBirotor {
 public:
 	MpcBirotor();
 	virtual ~MpcBirotor();
-	Eigen::MatrixXf Controler(Eigen::MatrixXf states);
+	Eigen::MatrixXf Controler(Eigen::MatrixXf states,bool stop);
 /* Private functions ------------------------------------------------------- */
 private:
 	Eigen::MatrixXf Pow(Eigen::MatrixXf matrix, int power);
