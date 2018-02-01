@@ -1,0 +1,94 @@
+\hypertarget{pv__module__co_8h}{}\section{/home/provant/\+Documents/provant-\/software/io-\/board/stm32f4/app/remote-\/controlled-\/flight/pv\+\_\+module\+\_\+co.h File Reference}
+\label{pv__module__co_8h}\index{/home/provant/\+Documents/provant-\/software/io-\/board/stm32f4/app/remote-\/controlled-\/flight/pv\+\_\+module\+\_\+co.\+h@{/home/provant/\+Documents/provant-\/software/io-\/board/stm32f4/app/remote-\/controlled-\/flight/pv\+\_\+module\+\_\+co.\+h}}
+{\ttfamily \#include \char`\"{}Free\+R\+T\+O\+S.\+h\char`\"{}}\\*
+{\ttfamily \#include \char`\"{}queue.\+h\char`\"{}}\\*
+{\ttfamily \#include \char`\"{}task.\+h\char`\"{}}\\*
+{\ttfamily \#include \char`\"{}c\+\_\+common\+\_\+gpio.\+h\char`\"{}}\\*
+{\ttfamily \#include \char`\"{}c\+\_\+common\+\_\+i2c.\+h\char`\"{}}\\*
+{\ttfamily \#include \char`\"{}c\+\_\+io\+\_\+blctrl.\+h\char`\"{}}\\*
+{\ttfamily \#include \char`\"{}c\+\_\+io\+\_\+servos.\+h\char`\"{}}\\*
+{\ttfamily \#include \char`\"{}c\+\_\+common\+\_\+uart.\+h\char`\"{}}\\*
+{\ttfamily \#include \char`\"{}c\+\_\+common\+\_\+utils.\+h\char`\"{}}\\*
+{\ttfamily \#include \char`\"{}c\+\_\+rc\+\_\+\+B\+S\+\_\+control.\+h\char`\"{}}\\*
+{\ttfamily \#include \char`\"{}c\+\_\+rc\+\_\+\+L\+Q\+R\+\_\+control.\+h\char`\"{}}\\*
+{\ttfamily \#include \char`\"{}pv\+\_\+typedefs.\+h\char`\"{}}\\*
+{\ttfamily \#include \char`\"{}c\+\_\+datapr\+\_\+\+Mult\+Wii.\+h\char`\"{}}\\*
+Include dependency graph for pv\+\_\+module\+\_\+co.\+h\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{pv__module__co_8h__incl}
+\end{center}
+\end{figure}
+This graph shows which files directly or indirectly include this file\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{pv__module__co_8h__dep__incl}
+\end{center}
+\end{figure}
+\subsection*{Data Structures}
+\begin{DoxyCompactItemize}
+\item 
+struct \hyperlink{structpv__interface__co}{pv\+\_\+interface\+\_\+co}
+\end{DoxyCompactItemize}
+\subsection*{Macros}
+\begin{DoxyCompactItemize}
+\item 
+\#define \hyperlink{pv__module__co_8h_a09b2b07f1cc6f02982aaa2d3adf4f3ef}{E\+S\+C\+\_\+\+M\+I\+N\+I\+M\+U\+M\+\_\+\+V\+E\+L\+O\+C\+I\+TY}~10
+\item 
+\#define \hyperlink{pv__module__co_8h_ad825ce45a05b0e80e8d97f8cebd1ee76}{E\+N\+A\+B\+L\+E\+\_\+\+S\+E\+R\+VO}
+\item 
+\#define \hyperlink{pv__module__co_8h_ade5c6c2cf1e7345fdecaf5e74b3e945b}{A\+X\+I2826}
+\item 
+\#define \hyperlink{pv__module__co_8h_a2cce57def91019d83715f42bb8927241}{E\+N\+A\+B\+L\+E\+\_\+\+E\+SC}
+\end{DoxyCompactItemize}
+\subsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+void \hyperlink{group__app__co_gabedb9a5c3739466a359c93b3585a3640}{module\+\_\+co\+\_\+init} ()
+\begin{DoxyCompactList}\small\item\em Inicializacao do módulo de controle + output. \end{DoxyCompactList}\item 
+void \hyperlink{group__app__co_gaab8216fc955d01b47e3431aae288d9d3}{module\+\_\+co\+\_\+run} ()
+\begin{DoxyCompactList}\small\item\em Função principal do módulo de RC. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+struct \hyperlink{structpv__interface__co}{pv\+\_\+interface\+\_\+co} \hyperlink{pv__module__co_8h_a452c8dc095e980ad1742c4c282fa4297}{pv\+\_\+interface\+\_\+co}
+\end{DoxyCompactItemize}
+
+
+\subsection{Macro Definition Documentation}
+\index{pv\+\_\+module\+\_\+co.\+h@{pv\+\_\+module\+\_\+co.\+h}!A\+X\+I2826@{A\+X\+I2826}}
+\index{A\+X\+I2826@{A\+X\+I2826}!pv\+\_\+module\+\_\+co.\+h@{pv\+\_\+module\+\_\+co.\+h}}
+\subsubsection[{\texorpdfstring{A\+X\+I2826}{AXI2826}}]{\setlength{\rightskip}{0pt plus 5cm}\#define A\+X\+I2826}\hypertarget{pv__module__co_8h_ade5c6c2cf1e7345fdecaf5e74b3e945b}{}\label{pv__module__co_8h_ade5c6c2cf1e7345fdecaf5e74b3e945b}
+
+
+Definition at line 52 of file pv\+\_\+module\+\_\+co.\+h.
+
+\index{pv\+\_\+module\+\_\+co.\+h@{pv\+\_\+module\+\_\+co.\+h}!E\+N\+A\+B\+L\+E\+\_\+\+E\+SC@{E\+N\+A\+B\+L\+E\+\_\+\+E\+SC}}
+\index{E\+N\+A\+B\+L\+E\+\_\+\+E\+SC@{E\+N\+A\+B\+L\+E\+\_\+\+E\+SC}!pv\+\_\+module\+\_\+co.\+h@{pv\+\_\+module\+\_\+co.\+h}}
+\subsubsection[{\texorpdfstring{E\+N\+A\+B\+L\+E\+\_\+\+E\+SC}{ENABLE_ESC}}]{\setlength{\rightskip}{0pt plus 5cm}\#define E\+N\+A\+B\+L\+E\+\_\+\+E\+SC}\hypertarget{pv__module__co_8h_a2cce57def91019d83715f42bb8927241}{}\label{pv__module__co_8h_a2cce57def91019d83715f42bb8927241}
+
+
+Definition at line 54 of file pv\+\_\+module\+\_\+co.\+h.
+
+\index{pv\+\_\+module\+\_\+co.\+h@{pv\+\_\+module\+\_\+co.\+h}!E\+N\+A\+B\+L\+E\+\_\+\+S\+E\+R\+VO@{E\+N\+A\+B\+L\+E\+\_\+\+S\+E\+R\+VO}}
+\index{E\+N\+A\+B\+L\+E\+\_\+\+S\+E\+R\+VO@{E\+N\+A\+B\+L\+E\+\_\+\+S\+E\+R\+VO}!pv\+\_\+module\+\_\+co.\+h@{pv\+\_\+module\+\_\+co.\+h}}
+\subsubsection[{\texorpdfstring{E\+N\+A\+B\+L\+E\+\_\+\+S\+E\+R\+VO}{ENABLE_SERVO}}]{\setlength{\rightskip}{0pt plus 5cm}\#define E\+N\+A\+B\+L\+E\+\_\+\+S\+E\+R\+VO}\hypertarget{pv__module__co_8h_ad825ce45a05b0e80e8d97f8cebd1ee76}{}\label{pv__module__co_8h_ad825ce45a05b0e80e8d97f8cebd1ee76}
+
+
+Definition at line 51 of file pv\+\_\+module\+\_\+co.\+h.
+
+\index{pv\+\_\+module\+\_\+co.\+h@{pv\+\_\+module\+\_\+co.\+h}!E\+S\+C\+\_\+\+M\+I\+N\+I\+M\+U\+M\+\_\+\+V\+E\+L\+O\+C\+I\+TY@{E\+S\+C\+\_\+\+M\+I\+N\+I\+M\+U\+M\+\_\+\+V\+E\+L\+O\+C\+I\+TY}}
+\index{E\+S\+C\+\_\+\+M\+I\+N\+I\+M\+U\+M\+\_\+\+V\+E\+L\+O\+C\+I\+TY@{E\+S\+C\+\_\+\+M\+I\+N\+I\+M\+U\+M\+\_\+\+V\+E\+L\+O\+C\+I\+TY}!pv\+\_\+module\+\_\+co.\+h@{pv\+\_\+module\+\_\+co.\+h}}
+\subsubsection[{\texorpdfstring{E\+S\+C\+\_\+\+M\+I\+N\+I\+M\+U\+M\+\_\+\+V\+E\+L\+O\+C\+I\+TY}{ESC_MINIMUM_VELOCITY}}]{\setlength{\rightskip}{0pt plus 5cm}\#define E\+S\+C\+\_\+\+M\+I\+N\+I\+M\+U\+M\+\_\+\+V\+E\+L\+O\+C\+I\+TY~10}\hypertarget{pv__module__co_8h_a09b2b07f1cc6f02982aaa2d3adf4f3ef}{}\label{pv__module__co_8h_a09b2b07f1cc6f02982aaa2d3adf4f3ef}
+
+
+Definition at line 50 of file pv\+\_\+module\+\_\+co.\+h.
+
+
+
+\subsection{Variable Documentation}
+\index{pv\+\_\+module\+\_\+co.\+h@{pv\+\_\+module\+\_\+co.\+h}!pv\+\_\+interface\+\_\+co@{pv\+\_\+interface\+\_\+co}}
+\index{pv\+\_\+interface\+\_\+co@{pv\+\_\+interface\+\_\+co}!pv\+\_\+module\+\_\+co.\+h@{pv\+\_\+module\+\_\+co.\+h}}
+\subsubsection[{\texorpdfstring{pv\+\_\+interface\+\_\+co}{pv_interface_co}}]{\setlength{\rightskip}{0pt plus 5cm}struct {\bf pv\+\_\+interface\+\_\+co}  {\bf pv\+\_\+interface\+\_\+co}}\hypertarget{pv__module__co_8h_a452c8dc095e980ad1742c4c282fa4297}{}\label{pv__module__co_8h_a452c8dc095e980ad1742c4c282fa4297}

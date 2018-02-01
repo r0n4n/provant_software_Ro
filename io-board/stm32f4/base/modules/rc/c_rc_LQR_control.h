@@ -38,6 +38,16 @@ pv_type_actuation c_rc_LQR_AH_controller(pv_type_datapr_attitude attitude,
 				  float throttle_control,
 				  bool manual_height_control);
 
+//LQR Path Track (PT) controller.
+pv_type_actuation c_rc_LQR_PT_controller(pv_type_datapr_attitude attitude,
+          pv_type_datapr_attitude attitude_reference,
+          pv_type_datapr_position position,
+          pv_type_datapr_position position_reference,
+          pv_type_datapr_servos servo_state,
+          float throttle_control,
+          bool manual_height_control,
+          bool enable_integration) ;
+
 #ifdef __cplusplus
 }
 #endif

@@ -1,0 +1,155 @@
+\hypertarget{pv__module__in_8h}{}\section{/home/provant/\+Documents/provant-\/software/io-\/board/stm32f4/app/remote-\/controlled-\/flight/pv\+\_\+module\+\_\+in.h File Reference}
+\label{pv__module__in_8h}\index{/home/provant/\+Documents/provant-\/software/io-\/board/stm32f4/app/remote-\/controlled-\/flight/pv\+\_\+module\+\_\+in.\+h@{/home/provant/\+Documents/provant-\/software/io-\/board/stm32f4/app/remote-\/controlled-\/flight/pv\+\_\+module\+\_\+in.\+h}}
+{\ttfamily \#include \char`\"{}Free\+R\+T\+O\+S.\+h\char`\"{}}\\*
+{\ttfamily \#include \char`\"{}queue.\+h\char`\"{}}\\*
+{\ttfamily \#include \char`\"{}task.\+h\char`\"{}}\\*
+{\ttfamily \#include \char`\"{}c\+\_\+common\+\_\+gpio.\+h\char`\"{}}\\*
+{\ttfamily \#include \char`\"{}c\+\_\+common\+\_\+i2c.\+h\char`\"{}}\\*
+{\ttfamily \#include \char`\"{}c\+\_\+io\+\_\+blctrl.\+h\char`\"{}}\\*
+{\ttfamily \#include \char`\"{}c\+\_\+io\+\_\+servos.\+h\char`\"{}}\\*
+{\ttfamily \#include \char`\"{}c\+\_\+common\+\_\+uart.\+h\char`\"{}}\\*
+{\ttfamily \#include \char`\"{}c\+\_\+common\+\_\+utils.\+h\char`\"{}}\\*
+{\ttfamily \#include \char`\"{}c\+\_\+io\+\_\+imu.\+h\char`\"{}}\\*
+{\ttfamily \#include \char`\"{}c\+\_\+io\+\_\+sonar.\+h\char`\"{}}\\*
+{\ttfamily \#include \char`\"{}c\+\_\+rc\+\_\+receiver.\+h\char`\"{}}\\*
+{\ttfamily \#include \char`\"{}pv\+\_\+typedefs.\+h\char`\"{}}\\*
+{\ttfamily \#include \char`\"{}c\+\_\+datapr\+\_\+\+Mult\+Wii.\+h\char`\"{}}\\*
+{\ttfamily \#include \char`\"{}c\+\_\+datapr\+\_\+\+Mahony\+A\+H\+R\+S.\+h\char`\"{}}\\*
+{\ttfamily \#include \char`\"{}c\+\_\+datapr\+\_\+filter.\+h\char`\"{}}\\*
+Include dependency graph for pv\+\_\+module\+\_\+in.\+h\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{pv__module__in_8h__incl}
+\end{center}
+\end{figure}
+This graph shows which files directly or indirectly include this file\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{pv__module__in_8h__dep__incl}
+\end{center}
+\end{figure}
+\subsection*{Data Structures}
+\begin{DoxyCompactItemize}
+\item 
+struct \hyperlink{structpv__interface__in}{pv\+\_\+interface\+\_\+in}
+\end{DoxyCompactItemize}
+\subsection*{Macros}
+\begin{DoxyCompactItemize}
+\item 
+\#define \hyperlink{pv__module__in_8h_a652f732918751d421cd00672fbcf34e6}{E\+N\+A\+B\+L\+E\+\_\+\+I\+MU}
+\begin{DoxyCompactList}\small\item\em Define que modulos serao utilizados. \end{DoxyCompactList}\item 
+\#define \hyperlink{pv__module__in_8h_ad825ce45a05b0e80e8d97f8cebd1ee76}{E\+N\+A\+B\+L\+E\+\_\+\+S\+E\+R\+VO}
+\item 
+\#define \hyperlink{pv__module__in_8h_a2856395932810f0a84e0e5f8efe14720}{E\+N\+A\+B\+L\+E\+\_\+\+A\+L\+T\+U\+RA}
+\item 
+\#define \hyperlink{pv__module__in_8h_acd356bc5fafb6cf72fd434275f0026a6}{E\+N\+A\+L\+B\+E\+\_\+\+D\+E\+B\+UG}
+\item 
+\#define \hyperlink{pv__module__in_8h_aa357c745fd8342c0d3837614e8f66f58}{A\+T\+T\+I\+T\+U\+D\+E\+\_\+\+M\+I\+N\+I\+M\+U\+M\+\_\+\+S\+T\+EP}~0.\+01
+\item 
+\#define \hyperlink{pv__module__in_8h_ae4ea5b3f1cbc2d035c41b6109eed0be7}{L\+I\+M\+I\+T\+\_\+\+S\+O\+N\+A\+R\+\_\+\+V\+AR}
+\item 
+\#define \hyperlink{pv__module__in_8h_a488238590df7f864862ba53318248c21}{S\+O\+N\+A\+R\+\_\+\+M\+A\+X\+\_\+\+V\+AR}~0.\+5
+\item 
+\#define \hyperlink{pv__module__in_8h_ac222db61ccc923f24415d8085bef26df}{D\+SB}~0.\+21
+\item 
+\#define \hyperlink{pv__module__in_8h_a36e061088806ff253cf7c99acdd12a0a}{S\+O\+N\+A\+R\+\_\+\+F\+I\+L\+T\+E\+R\+\_\+1\+\_\+\+O\+R\+D\+E\+R\+\_\+10\+HZ}
+\item 
+\#define \hyperlink{pv__module__in_8h_ada7264418a41278b0690fb70277a2ffa}{I\+N\+I\+T\+\_\+\+I\+T\+E\+R\+A\+T\+I\+O\+NS}~1000
+\end{DoxyCompactItemize}
+\subsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+void \hyperlink{group__app__in_gaffe0980a750cbec13ebf241c933460dd}{module\+\_\+in\+\_\+init} ()
+\begin{DoxyCompactList}\small\item\em Inicializacao componentes de IO. \end{DoxyCompactList}\item 
+void \hyperlink{group__app__in_ga2b56089e4c5adb9ac8b7a41fc1a0b0b2}{module\+\_\+in\+\_\+run} ()
+\begin{DoxyCompactList}\small\item\em Função principal do módulo de IO. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+struct \hyperlink{structpv__interface__in}{pv\+\_\+interface\+\_\+in} \hyperlink{pv__module__in_8h_adb91b9002b5ee35e4d9c1b0a1eb2b6e3}{pv\+\_\+interface\+\_\+in}
+\end{DoxyCompactItemize}
+
+
+\subsection{Macro Definition Documentation}
+\index{pv\+\_\+module\+\_\+in.\+h@{pv\+\_\+module\+\_\+in.\+h}!A\+T\+T\+I\+T\+U\+D\+E\+\_\+\+M\+I\+N\+I\+M\+U\+M\+\_\+\+S\+T\+EP@{A\+T\+T\+I\+T\+U\+D\+E\+\_\+\+M\+I\+N\+I\+M\+U\+M\+\_\+\+S\+T\+EP}}
+\index{A\+T\+T\+I\+T\+U\+D\+E\+\_\+\+M\+I\+N\+I\+M\+U\+M\+\_\+\+S\+T\+EP@{A\+T\+T\+I\+T\+U\+D\+E\+\_\+\+M\+I\+N\+I\+M\+U\+M\+\_\+\+S\+T\+EP}!pv\+\_\+module\+\_\+in.\+h@{pv\+\_\+module\+\_\+in.\+h}}
+\subsubsection[{\texorpdfstring{A\+T\+T\+I\+T\+U\+D\+E\+\_\+\+M\+I\+N\+I\+M\+U\+M\+\_\+\+S\+T\+EP}{ATTITUDE_MINIMUM_STEP}}]{\setlength{\rightskip}{0pt plus 5cm}\#define A\+T\+T\+I\+T\+U\+D\+E\+\_\+\+M\+I\+N\+I\+M\+U\+M\+\_\+\+S\+T\+EP~0.\+01}\hypertarget{pv__module__in_8h_aa357c745fd8342c0d3837614e8f66f58}{}\label{pv__module__in_8h_aa357c745fd8342c0d3837614e8f66f58}
+
+
+Definition at line 32 of file pv\+\_\+module\+\_\+in.\+h.
+
+\index{pv\+\_\+module\+\_\+in.\+h@{pv\+\_\+module\+\_\+in.\+h}!D\+SB@{D\+SB}}
+\index{D\+SB@{D\+SB}!pv\+\_\+module\+\_\+in.\+h@{pv\+\_\+module\+\_\+in.\+h}}
+\subsubsection[{\texorpdfstring{D\+SB}{DSB}}]{\setlength{\rightskip}{0pt plus 5cm}\#define D\+SB~0.\+21}\hypertarget{pv__module__in_8h_ac222db61ccc923f24415d8085bef26df}{}\label{pv__module__in_8h_ac222db61ccc923f24415d8085bef26df}
+
+
+Definition at line 42 of file pv\+\_\+module\+\_\+in.\+h.
+
+\index{pv\+\_\+module\+\_\+in.\+h@{pv\+\_\+module\+\_\+in.\+h}!E\+N\+A\+B\+L\+E\+\_\+\+A\+L\+T\+U\+RA@{E\+N\+A\+B\+L\+E\+\_\+\+A\+L\+T\+U\+RA}}
+\index{E\+N\+A\+B\+L\+E\+\_\+\+A\+L\+T\+U\+RA@{E\+N\+A\+B\+L\+E\+\_\+\+A\+L\+T\+U\+RA}!pv\+\_\+module\+\_\+in.\+h@{pv\+\_\+module\+\_\+in.\+h}}
+\subsubsection[{\texorpdfstring{E\+N\+A\+B\+L\+E\+\_\+\+A\+L\+T\+U\+RA}{ENABLE_ALTURA}}]{\setlength{\rightskip}{0pt plus 5cm}\#define E\+N\+A\+B\+L\+E\+\_\+\+A\+L\+T\+U\+RA}\hypertarget{pv__module__in_8h_a2856395932810f0a84e0e5f8efe14720}{}\label{pv__module__in_8h_a2856395932810f0a84e0e5f8efe14720}
+
+
+Definition at line 28 of file pv\+\_\+module\+\_\+in.\+h.
+
+\index{pv\+\_\+module\+\_\+in.\+h@{pv\+\_\+module\+\_\+in.\+h}!E\+N\+A\+B\+L\+E\+\_\+\+I\+MU@{E\+N\+A\+B\+L\+E\+\_\+\+I\+MU}}
+\index{E\+N\+A\+B\+L\+E\+\_\+\+I\+MU@{E\+N\+A\+B\+L\+E\+\_\+\+I\+MU}!pv\+\_\+module\+\_\+in.\+h@{pv\+\_\+module\+\_\+in.\+h}}
+\subsubsection[{\texorpdfstring{E\+N\+A\+B\+L\+E\+\_\+\+I\+MU}{ENABLE_IMU}}]{\setlength{\rightskip}{0pt plus 5cm}\#define E\+N\+A\+B\+L\+E\+\_\+\+I\+MU}\hypertarget{pv__module__in_8h_a652f732918751d421cd00672fbcf34e6}{}\label{pv__module__in_8h_a652f732918751d421cd00672fbcf34e6}
+
+
+Define que modulos serao utilizados. 
+
+Se E\+N\+A\+B\+L\+E\+\_\+$\ast$ 1 então tal modulo será utilizado 
+
+Definition at line 26 of file pv\+\_\+module\+\_\+in.\+h.
+
+\index{pv\+\_\+module\+\_\+in.\+h@{pv\+\_\+module\+\_\+in.\+h}!E\+N\+A\+B\+L\+E\+\_\+\+S\+E\+R\+VO@{E\+N\+A\+B\+L\+E\+\_\+\+S\+E\+R\+VO}}
+\index{E\+N\+A\+B\+L\+E\+\_\+\+S\+E\+R\+VO@{E\+N\+A\+B\+L\+E\+\_\+\+S\+E\+R\+VO}!pv\+\_\+module\+\_\+in.\+h@{pv\+\_\+module\+\_\+in.\+h}}
+\subsubsection[{\texorpdfstring{E\+N\+A\+B\+L\+E\+\_\+\+S\+E\+R\+VO}{ENABLE_SERVO}}]{\setlength{\rightskip}{0pt plus 5cm}\#define E\+N\+A\+B\+L\+E\+\_\+\+S\+E\+R\+VO}\hypertarget{pv__module__in_8h_ad825ce45a05b0e80e8d97f8cebd1ee76}{}\label{pv__module__in_8h_ad825ce45a05b0e80e8d97f8cebd1ee76}
+
+
+Definition at line 27 of file pv\+\_\+module\+\_\+in.\+h.
+
+\index{pv\+\_\+module\+\_\+in.\+h@{pv\+\_\+module\+\_\+in.\+h}!E\+N\+A\+L\+B\+E\+\_\+\+D\+E\+B\+UG@{E\+N\+A\+L\+B\+E\+\_\+\+D\+E\+B\+UG}}
+\index{E\+N\+A\+L\+B\+E\+\_\+\+D\+E\+B\+UG@{E\+N\+A\+L\+B\+E\+\_\+\+D\+E\+B\+UG}!pv\+\_\+module\+\_\+in.\+h@{pv\+\_\+module\+\_\+in.\+h}}
+\subsubsection[{\texorpdfstring{E\+N\+A\+L\+B\+E\+\_\+\+D\+E\+B\+UG}{ENALBE_DEBUG}}]{\setlength{\rightskip}{0pt plus 5cm}\#define E\+N\+A\+L\+B\+E\+\_\+\+D\+E\+B\+UG}\hypertarget{pv__module__in_8h_acd356bc5fafb6cf72fd434275f0026a6}{}\label{pv__module__in_8h_acd356bc5fafb6cf72fd434275f0026a6}
+
+
+Definition at line 29 of file pv\+\_\+module\+\_\+in.\+h.
+
+\index{pv\+\_\+module\+\_\+in.\+h@{pv\+\_\+module\+\_\+in.\+h}!I\+N\+I\+T\+\_\+\+I\+T\+E\+R\+A\+T\+I\+O\+NS@{I\+N\+I\+T\+\_\+\+I\+T\+E\+R\+A\+T\+I\+O\+NS}}
+\index{I\+N\+I\+T\+\_\+\+I\+T\+E\+R\+A\+T\+I\+O\+NS@{I\+N\+I\+T\+\_\+\+I\+T\+E\+R\+A\+T\+I\+O\+NS}!pv\+\_\+module\+\_\+in.\+h@{pv\+\_\+module\+\_\+in.\+h}}
+\subsubsection[{\texorpdfstring{I\+N\+I\+T\+\_\+\+I\+T\+E\+R\+A\+T\+I\+O\+NS}{INIT_ITERATIONS}}]{\setlength{\rightskip}{0pt plus 5cm}\#define I\+N\+I\+T\+\_\+\+I\+T\+E\+R\+A\+T\+I\+O\+NS~1000}\hypertarget{pv__module__in_8h_ada7264418a41278b0690fb70277a2ffa}{}\label{pv__module__in_8h_ada7264418a41278b0690fb70277a2ffa}
+
+
+Definition at line 49 of file pv\+\_\+module\+\_\+in.\+h.
+
+\index{pv\+\_\+module\+\_\+in.\+h@{pv\+\_\+module\+\_\+in.\+h}!L\+I\+M\+I\+T\+\_\+\+S\+O\+N\+A\+R\+\_\+\+V\+AR@{L\+I\+M\+I\+T\+\_\+\+S\+O\+N\+A\+R\+\_\+\+V\+AR}}
+\index{L\+I\+M\+I\+T\+\_\+\+S\+O\+N\+A\+R\+\_\+\+V\+AR@{L\+I\+M\+I\+T\+\_\+\+S\+O\+N\+A\+R\+\_\+\+V\+AR}!pv\+\_\+module\+\_\+in.\+h@{pv\+\_\+module\+\_\+in.\+h}}
+\subsubsection[{\texorpdfstring{L\+I\+M\+I\+T\+\_\+\+S\+O\+N\+A\+R\+\_\+\+V\+AR}{LIMIT_SONAR_VAR}}]{\setlength{\rightskip}{0pt plus 5cm}\#define L\+I\+M\+I\+T\+\_\+\+S\+O\+N\+A\+R\+\_\+\+V\+AR}\hypertarget{pv__module__in_8h_ae4ea5b3f1cbc2d035c41b6109eed0be7}{}\label{pv__module__in_8h_ae4ea5b3f1cbc2d035c41b6109eed0be7}
+
+
+Definition at line 40 of file pv\+\_\+module\+\_\+in.\+h.
+
+\index{pv\+\_\+module\+\_\+in.\+h@{pv\+\_\+module\+\_\+in.\+h}!S\+O\+N\+A\+R\+\_\+\+F\+I\+L\+T\+E\+R\+\_\+1\+\_\+\+O\+R\+D\+E\+R\+\_\+10\+HZ@{S\+O\+N\+A\+R\+\_\+\+F\+I\+L\+T\+E\+R\+\_\+1\+\_\+\+O\+R\+D\+E\+R\+\_\+10\+HZ}}
+\index{S\+O\+N\+A\+R\+\_\+\+F\+I\+L\+T\+E\+R\+\_\+1\+\_\+\+O\+R\+D\+E\+R\+\_\+10\+HZ@{S\+O\+N\+A\+R\+\_\+\+F\+I\+L\+T\+E\+R\+\_\+1\+\_\+\+O\+R\+D\+E\+R\+\_\+10\+HZ}!pv\+\_\+module\+\_\+in.\+h@{pv\+\_\+module\+\_\+in.\+h}}
+\subsubsection[{\texorpdfstring{S\+O\+N\+A\+R\+\_\+\+F\+I\+L\+T\+E\+R\+\_\+1\+\_\+\+O\+R\+D\+E\+R\+\_\+10\+HZ}{SONAR_FILTER_1_ORDER_10HZ}}]{\setlength{\rightskip}{0pt plus 5cm}\#define S\+O\+N\+A\+R\+\_\+\+F\+I\+L\+T\+E\+R\+\_\+1\+\_\+\+O\+R\+D\+E\+R\+\_\+10\+HZ}\hypertarget{pv__module__in_8h_a36e061088806ff253cf7c99acdd12a0a}{}\label{pv__module__in_8h_a36e061088806ff253cf7c99acdd12a0a}
+
+
+Definition at line 45 of file pv\+\_\+module\+\_\+in.\+h.
+
+\index{pv\+\_\+module\+\_\+in.\+h@{pv\+\_\+module\+\_\+in.\+h}!S\+O\+N\+A\+R\+\_\+\+M\+A\+X\+\_\+\+V\+AR@{S\+O\+N\+A\+R\+\_\+\+M\+A\+X\+\_\+\+V\+AR}}
+\index{S\+O\+N\+A\+R\+\_\+\+M\+A\+X\+\_\+\+V\+AR@{S\+O\+N\+A\+R\+\_\+\+M\+A\+X\+\_\+\+V\+AR}!pv\+\_\+module\+\_\+in.\+h@{pv\+\_\+module\+\_\+in.\+h}}
+\subsubsection[{\texorpdfstring{S\+O\+N\+A\+R\+\_\+\+M\+A\+X\+\_\+\+V\+AR}{SONAR_MAX_VAR}}]{\setlength{\rightskip}{0pt plus 5cm}\#define S\+O\+N\+A\+R\+\_\+\+M\+A\+X\+\_\+\+V\+AR~0.\+5}\hypertarget{pv__module__in_8h_a488238590df7f864862ba53318248c21}{}\label{pv__module__in_8h_a488238590df7f864862ba53318248c21}
+
+
+Definition at line 41 of file pv\+\_\+module\+\_\+in.\+h.
+
+
+
+\subsection{Variable Documentation}
+\index{pv\+\_\+module\+\_\+in.\+h@{pv\+\_\+module\+\_\+in.\+h}!pv\+\_\+interface\+\_\+in@{pv\+\_\+interface\+\_\+in}}
+\index{pv\+\_\+interface\+\_\+in@{pv\+\_\+interface\+\_\+in}!pv\+\_\+module\+\_\+in.\+h@{pv\+\_\+module\+\_\+in.\+h}}
+\subsubsection[{\texorpdfstring{pv\+\_\+interface\+\_\+in}{pv_interface_in}}]{\setlength{\rightskip}{0pt plus 5cm}struct {\bf pv\+\_\+interface\+\_\+in}  {\bf pv\+\_\+interface\+\_\+in}}\hypertarget{pv__module__in_8h_adb91b9002b5ee35e4d9c1b0a1eb2b6e3}{}\label{pv__module__in_8h_adb91b9002b5ee35e4d9c1b0a1eb2b6e3}

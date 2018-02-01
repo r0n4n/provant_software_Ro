@@ -1,0 +1,148 @@
+\hypertarget{page_naming_page_naming_sec_codeorganization}{}\section{Organização deste projeto}\label{page_naming_page_naming_sec_codeorganization}
+Este projeto tenta seguir os princípios de organização apresentados em {\itshape  \href{http://www.amazon.com/Large-Scale-Software-Design-John-Lakos/dp/0201633620}{\tt Large-\/\+Scale C++ Software Design}}, de John Lakos. Para tal, tentou-\/se implementar uma estrutura hierárquica verticalizada dos elementos de um nível em relação aos de um nível superior. Para a descrição deste projeto, faz-\/se necessário apresentar convenções de nomenclatura usadas pelo autor, adaptadas ao contexto desta aplicação. São elas\+:
+
+\begin{center} \tabulinesep=1mm
+\begin{longtabu} spread 0pt [c]{*2{|X[-1]}|}
+\hline
+\rowcolor{\tableheadbgcolor}{\bf Nomenclatura }&{\bf Uso em contexto  }\\\cline{1-2}
+\endfirsthead
+\hline
+\endfoot
+\hline
+\rowcolor{\tableheadbgcolor}{\bf Nomenclatura }&{\bf Uso em contexto  }\\\cline{1-2}
+\endhead
+Arquivo &Unidade atômica do projeto; conjuntos de dados com extensões ({\itshape .c, .cpp, .h, etc }), ou binários sem extensão. \\\cline{1-2}
+Componente &Par de arquivos; {\itshape  header + source file } respectivos. Exemplo, {\ttfamily c\+\_\+io\+\_\+imu.\+c} e {\ttfamily c\+\_\+io\+\_\+imu.\+h}. Pode ser referido como {\bfseries submódulo}. \\\cline{1-2}
+Módulo &Conjunto de componentes implementando alguma unidade funcional. Exemplo, a coleção de arquivos em {\itshape  modules/io }, que implementa as funções de E/S do V\+A\+NT. \\\cline{1-2}
+Subsistema &Conjunto de módulo + documentação do módulo + unidades de teste do módulo. \\\cline{1-2}
+Sistema &Conjunto de subsistemas + documentação + aplicação que implementam a funcionalidade total do V\+A\+NT. \\\cline{1-2}
+\end{longtabu}
+\end{center} 
+
+Neste projeto, a {\bfseries aplicação} -\/ o binário a ser efetivamente executado pelo V\+A\+NT -\/, se encontra a nível de {\bfseries sistema}. O uso de documentação independente para os {\bfseries subsistemas} não é necessária no escopo deste projeto, e portanto, toda a documentação dos {\bfseries módulos} é gerada {\itshape juntamente com esta documentação} de {\bfseries sistema}. Durante o uso deste documento, quando estes termos aparecerem com os significados da tabela acima, eles serão marcados em {\bfseries negrito}.
+
+Seguindo um conceito de verticalização, os elementos do projeto estão organizados como no diagrama abaixo\+:
+
+
+
+Identificam-\/se três níveis principais e seus elementos, do topo à base\+:
+
+
+\begin{DoxyItemize}
+\item {\bfseries  Application level }
+\begin{DoxyItemize}
+\item {\itshape Modules\+:} Módulos, implementando as funções de interesse do V\+A\+NT (estabilização, navegação, comunicação com {\itshape main-\/board}, etc). O binário da {\bfseries aplicação} é compilado diretamente acima deste nível.
+\end{DoxyItemize}
+\item {\bfseries  Middleware level }
+\begin{DoxyItemize}
+\item {\itshape Libs\+:} Bibliotecas próprias ou de terceiros. Funções utilitárias próprias do projeto (a exemplo dos componente {\ttfamily c\+\_\+common\+\_\+utils.\+h} e {\ttfamily c\+\_\+common\+\_\+utils.\+c}) além de bibliotecas como o Tracealyzer estão neste nível.
+\item {\itshape H\+AL\+:} Hardware Abstraction Layer.
+\item {\itshape State-\/\+Machine}\+:
+\item {\itshape Free-\/\+R\+T\+OS}\+:
+\end{DoxyItemize}
+\item {\bfseries  Core level }
+\begin{DoxyItemize}
+\item {\itshape C\+M\+S\+IS} {\itshape Core\+:} 
+\item {\itshape C\+M\+S\+IS} {\itshape Vendor\+:} 
+\end{DoxyItemize}
+\end{DoxyItemize}
+
+É importante lembrar que um elemento em um nível pode depender direta ou indiretamente de todos os elementos abaixo dele, sem que os princípios de modularidade ou hierarquia vertical sejam violados. No entanto, relações diretas -\/ de um elemento apenas com aqueles diretamente abaixo dele -\/ são recomendadas.\hypertarget{page_naming_page_naming_subsec_foldertree}{}\subsection{Estrutura de pastas}\label{page_naming_page_naming_subsec_foldertree}
+Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis adnum,\hypertarget{page_naming_page_naming_sec_naming}{}\section{Nomenclatura}\label{page_naming_page_naming_sec_naming}
+\hypertarget{page_naming_page_naming_subsec_filenaming}{}\subsection{Arquivos e módulos}\label{page_naming_page_naming_subsec_filenaming}
+Todos os componentes são nomeados seguindo o padrão\+:
+
+
+\begin{DoxyCode}
+c\_<nome\_do\_modulo>\_<nomeDoComponente>.c
+c\_<nome\_do\_modulo>\_<nomeDoComponente>.h 
+\end{DoxyCode}
+
+
+Componentes nomeados desta maneira não devem ser incluídos por arquivos fora do módulo respectivo (como se fossem funcões {\bfseries private}). Componentes públicos de cada módulo (que serão efetivamente incluídos por outros módulos, ou pela {\itshape main}) são nomeados com a sigla {\itshape \char`\"{}pv\char`\"{}} (como em {\bfseries pro\+V\+A\+NT}) no início\+:
+
+
+\begin{DoxyCode}
+pv\_interface\_<nomeDoModulo>.\{h,c\}
+pv\_module\_<nomeDoModulo>.\{h,c\} 
+\end{DoxyCode}
+
+
+É desejado que o módulo tenha um nome compacto -\/ de preferência uma única palavra ou sigla (ex.\+: {\bfseries rc}, {\bfseries io}, {\bfseries common}) -\/ totalmente minúsculo (ou dividida com letras maísculas e minúsculas; {\itshape \char`\"{}nome\+Do\+Modulo\char`\"{}}). Acentos e caracteres especiais não devem ser usados.
+
+Todos os arquivos do projeto devem incluir uma descrição formatada do Doxygen no topo, com nome, data de criação do arquivo e breve descrição, como segue -\/ exemplo do arquivo {\itshape c\+\_\+rc\+\_\+receiver.\+c} \+:
+
+
+\begin{DoxyCode}
+\textcolor{comment}{/**}
+\textcolor{comment}{  /******************************************************************************}
+\textcolor{comment}{  * @file    modules/rc/c\_rc\_receiver.c}
+\textcolor{comment}{  * @author  Martin Vincent Bloedorn}
+\textcolor{comment}{  * @version V1.0.0}
+\textcolor{comment}{  * @date    30-November-2013}
+\textcolor{comment}{  * @brief   Implementação do receiver do controle de rádio manual.}
+\textcolor{comment}{  *          Implementa as funções de recebimento, detecção e interpretação do}
+\textcolor{comment}{  *          receiver configurado em modo PPM.}
+\textcolor{comment}{  /******************************************************************************/}
+\end{DoxyCode}
+
+
+A tag {\bfseries @date} deve conter a data de criação/inserção do arquivo e não será alterada depois disso. A tag {\bfseries @version} é opcional é serve mais para controle local próprio desenvolvedor.
+
+De maneira equivalente, as funções devem ser adicionadas ao grupo de documentação correto do Doxygen via a tag {\bfseries @addtogroup}. Isto deve ser feito {\bfseries apenas} no {\itshape }.c, garantindo que todas as funções implementadas apareçam na documentação. Primeramente, as funções devem ser adicionadas ao componente ao qual elas pertencem. A descrição do grupo fica na sua definição de mais alto nível, ou seja, a definição do componente fica no próprio {\itshape }.c do componente, enquanto que a definição do módulo fica no {\itshape }.c do módulo ({\bfseries pv\+\_\+module\+\_\+\{}...{\bfseries }\}.h). Em seguida, elas são adicionadas ao módulo equivalente. Novamente, o exemplo abaixo é do arquivo {\itshape c\+\_\+rc\+\_\+receiver.\+c} \+:
+
+
+\begin{DoxyCode}
+\textcolor{comment}{/*! @addtogroup Module\_RC}
+\textcolor{comment}{  * @\{}
+\textcolor{comment}{  */}
+  \textcolor{comment}{}
+\textcolor{comment}{/** @addtogroup Module\_RC\_Component\_Receiver}
+\textcolor{comment}{  }
+\textcolor{comment}{ *  Módulo do receiver.}
+\textcolor{comment}{  * @\{}
+\textcolor{comment}{  */}
+\end{DoxyCode}
+
+
+Analogamente, o arquivo {\itshape pv\+\_\+module\+\_\+rc.\+c} é então adicionado à listagem de módulos do Pro\+V\+A\+NT, e possui então a descrição do grupo {\bfseries Module\+\_\+\+RC}.
+
+
+\begin{DoxyCode}
+\textcolor{comment}{/** @addtogroup ProVANT\_Modules}
+\textcolor{comment}{  * @\{}
+\textcolor{comment}{  */}
+\textcolor{comment}{}
+\textcolor{comment}{/** @addtogroup Module\_RC}
+\textcolor{comment}{  * Definição do módulo de controle e comunicação via rádio manual.}
+\textcolor{comment}{  * @\{}
+\textcolor{comment}{  */}
+\end{DoxyCode}
+
+
+Isto garante que o diagrama da estrutura de projeto gerada pelo Doxygen corresponde à hierarquia planejada. Os exemplos acima geram um diagrama na documentação como o mostrado abaixo\+:
+
+.\hypertarget{page_naming_page_naming_subsec_codenaming}{}\subsection{Funções, variáveis, etc.}\label{page_naming_page_naming_subsec_codenaming}
+{\bfseries Variáveis\+:} critério não estrito, mas recomenda-\/se o uso do padrão Java -\/ com separações apenas com letras maiúsculas e minúsculas.
+
+
+\begin{DoxyCode}
+\textcolor{keywordtype}{int} someVariable; 
+\end{DoxyCode}
+
+
+{\bfseries Funções\+:} seguindo o apresentado acima, devem ser separadas com {\itshape underlines}, seguinto o sistema de nomeclatura proposto.
+
+
+\begin{DoxyCode}
+c\_common\_gpio\_init(GPIOC, GPIO\_Pin\_13, GPIO\_Mode\_OUT); 
+\end{DoxyCode}
+ Para funções privadas de componentes específicos, usa-\/se nomes compactos mas não crípticos, também divididos com {\itshape underlines} se necessário for. 
+\begin{DoxyCode}
+\textcolor{keywordtype}{long} map(\textcolor{keywordtype}{long} x, \textcolor{keywordtype}{long} in\_min, \textcolor{keywordtype}{long} in\_max, \textcolor{keywordtype}{long} out\_min, \textcolor{keywordtype}{long} out\_max) \{
+    \textcolor{keywordflow}{return} (x - in\_min) * (out\_max - out\_min) / (in\_max - in\_min) + out\_min;
+\} 
+\end{DoxyCode}
+
+
+Por fim, a utilização de pinos da M\+CU deve ser definida no arquivo {\ttfamily pv\+\_\+pinmapping.\+h}, seguindo as regras de nomenclatura definidas em \hyperlink{}{Pin\+Mapping } .\hypertarget{page_naming_page_naming_sec_doxygen}{}\section{Doxygen}\label{page_naming_page_naming_sec_doxygen}

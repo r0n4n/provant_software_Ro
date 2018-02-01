@@ -24,7 +24,7 @@ MCU   = cortex-m4
 BOARD =-DSTM32F4_DISCOVERY
 
 # path, root and common dir
-APPDIR := $(shell pwd)
+APPDIR := $(shell pwd)/app/remote-controlled-flight
 PATH   := ${PATH}:$(APPDIR)
 BASE   := $(APPDIR)/../../base
 CORE   := $(APPDIR)/../../core

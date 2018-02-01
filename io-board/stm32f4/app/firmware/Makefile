@@ -27,9 +27,10 @@ COMMON := $(PRJDIR)/../common
 
 # project directories
 OUTDIR       := $(PRJDIR)/bin
-MODDIR       := $(COMMON)/modules
+MODDIR       := $(PRJDIR)/../../base/modules
+STM32F4      := $(PRJDIR)/../..
 INCDIR       := $(PRJDIR)/inc
-LIBDIR       := $(PRJDIR)/../lib
+LIBDIR       := $(PRJDIR)/../../base/lib
 
 # modules 
 MODULES	      = $(MODDIR)/common
@@ -37,12 +38,12 @@ MODULES	     += $(MODDIR)/rc
 MODULES	     += $(MODDIR)/io
 
 # CMSIS directory
-CMSISDIR     := $(LIBDIR)/cmsis
+CMSISDIR     := $(PRJDIR)/../../core/cmsis#$(LIBDIR)/cmsis 
 CMSISSRCDIR  := $(CMSISDIR)/src
 CMSISINCDIR  := $(CMSISDIR)/inc
 
 # FreeRTOS directories
-FRTDIR    := $(LIBDIR)/FreeRTOSV7.5.2/FreeRTOS
+FRTDIR    := $(STM32F4)/base/FreeRTOSV7.5.2/FreeRTOS
 FRTSRCDIR := $(FRTDIR)/Source
 FRTINCDIR := $(FRTSRCDIR)/include
 FRTMEMDIR := $(FRTSRCDIR)/portable/MemMang/
@@ -52,17 +53,19 @@ FRTPORDIR := $(FRTSRCDIR)/portable/GCC/ARM_CM4F
 
 #modules
 C_SRC += $(PRJDIR)/*.c
-C_SRC += $(COMMON)/system/*.c
+C_SRC += $(PRJDIR)/../../core/system/*.c
 C_SRC += $(MODDIR)/rc/*.c
 C_SRC += $(MODDIR)/io/*.c
-C_SRC += $(MODDIR)/common/*.c
+C_SRC += $(PRJDIR)/../../base/hal/*.c
+
 #freertos
-C_SRC += $(FRTSRCDIR)/list.c 
-C_SRC += $(FRTSRCDIR)/queue.c 
-C_SRC += $(FRTSRCDIR)/tasks.c 
-C_SRC += $(FRTSRCDIR)/timers.c 
-C_SRC += $(FRTPORDIR)/port.c  
-C_SRC += $(FRTMEMDIR)/heap_2.c
+
+C_SRC += $(PRJDIR)/../../base/FreeRTOSV7.5.2/FreeRTOS/Source/list.c 
+C_SRC += $(PRJDIR)/../../base/FreeRTOSV7.5.2/FreeRTOS/Source/queue.c 
+C_SRC += $(PRJDIR)/../../base/FreeRTOSV7.5.2/FreeRTOS/Source/tasks.c 
+C_SRC += $(PRJDIR)/../../base/FreeRTOSV7.5.2/FreeRTOS/Source/timers.c 
+C_SRC += $(PRJDIR)/../../base/FreeRTOSV7.5.2/FreeRTOS/Source/portable/GCC/ARM_CM0/port.c  
+C_SRC += $(PRJDIR)/../../base/FreeRTOSV7.5.2/FreeRTOS/Source/portable/MemMang/heap_2.c
 # FreeRTOS+Trace
 C_SRC += $(LIBDIR)/trace/*.c
 
@@ -78,10 +81,10 @@ DOXYGEN = doxygen
 INCDIRS = $(INCDIR) $(LIBDIR) $(MODULES) $(COMMON)/system 											\
 	  	  $(CMSISDIR) $(CMSISINCDIR) $(CMSISINCDIR)/peripherals $(CMSISINCDIR)/core \
 	  	  $(FRTINCDIR) $(FRTPORDIR)													\
-	  	  $(LIBDIR)/trace/config $(LIBDIR)/trace/inc		 						
+	  	  $(LIBDIR)/trace/config $(LIBDIR)/trace/inc $(LIBDIR)/provant $(STM32F4)/base/hal		 						
 
 # add startup file to build
-C_SRC += $(CMSISDIR)/startup_stm32f4xx.s	
+C_SRC += $(PRJDIR)/../../core/cmsis/startup_stm32f4xx.s	
 
 # Define programs and commands.
 CC      = $(TOOLCHAIN_PREFIX)gcc
@@ -109,14 +112,16 @@ OBJS = $(SRCS:.c=.o)
 
 .PHONY: doc lib proj
 
-all: directories lib proj
+all: directories lib proj 
+
 
 doc:
 	cd $(PRJDIR)/doc && $(DOXYGEN)
 	cd ..
-
+ 
 directories:
 	mkdir -p bin
+	echo $(CMSISINCDIR)
 
 lib:
 	$(MAKE) -C $(CMSISDIR)
@@ -125,8 +130,9 @@ proj: 	$(PRJNAME).elf
 
 $(PRJNAME).elf: $(C_SRC) 
 	$(CC) $(CFLAGS) $^ -o $(OUTDIR)/$@ -L$(CMSISDIR) -lc -lstm32f4 -lstdc++ -lnosys
-	$(OBJCOPY) -O ihex $(OUTDIR)/$(PRJNAME).elf $(OUTDIR)/$(PRJNAME).hex
-	$(OBJCOPY) -O binary $(OUTDIR)/$(PRJNAME).elf $(OUTDIR)/$(PRJNAME).bin
+	#$(OBJCOPY) -O ihex $(OUTDIR)/$(PRJNAME).elf $(OUTDIR)/$(PRJNAME).hex
+	#$(OBJCOPY) -O binary $(OUTDIR)/$(PRJNAME).elf $(OUTDIR)/$(PRJNAME).bin
+
 
 clean:
 	rm -f *.o

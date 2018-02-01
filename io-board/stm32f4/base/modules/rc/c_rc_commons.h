@@ -12,11 +12,12 @@
 
 // Choose the controller
 //#define LQR_ATTITUDE_HEIGHT_CONTROL
-#define TORQUE_CONTROL
+//#define TORQUE_CONTROL
 //#define BACKSTEPPING_ATTITUDE_HEIGHT_CONTROL //Based on Chowdhurry's article
-//#define LQR_PATHTRACK_CONTROL  //To be implemented
+#define LQR_PATHTRACK_CONTROL  //To be implemented
 //#define HINF_PATHTRACK_CONTROL //To be implemented
 //#define HMIX_PATHTRACK_CONTROL //To be implemented
+#define HIL
 
 
 #if defined LQR_ATTITUDE_HEIGHT_CONTROL || defined BACKSTEPPING_ATTITUDE_HEIGHT_CONTROL
@@ -86,17 +87,21 @@
 //#define ATTITUDE_MINIMUM_STEP	0.0035f// Radians. Minimum change in angle that is passed to the controller
 
  // Fixed Sample Time
- #define CONTROL_SAMPLE_TIME 	0.006f
+ #define CONTROL_SAMPLE_TIME 0.012f
 
  // Saturation limits for the anti-windup
 #define INT_ROLL_LOWER_ER_LIMIT		-0.01
 #define INT_ROLL_UPPER_ER_LIMIT		 0.01
 #define INT_PITCH_LOWER_ER_LIMIT	-0.01
 #define INT_PITCH_UPPER_ER_LIMIT	 0.01
-#define INT_YAW_LOWER_ER_LIMIT		-0.01
-#define INT_YAW_UPPER_ER_LIMIT		 0.01
-#define INT_Z_LOWER_ER_LIMIT		-0.03
-#define INT_Z_UPPER_ER_LIMIT		 0.03
+#define INT_YAW_LOWER_ER_LIMIT		-1 //-0.01
+#define INT_YAW_UPPER_ER_LIMIT		 1 //0.01
+#define INT_X_LOWER_ER_LIMIT   -1 //-0.03
+#define INT_X_UPPER_ER_LIMIT    1 // 0.03
+#define INT_Z_LOWER_ER_LIMIT   -1//-0.03
+#define INT_Y_UPPER_ER_LIMIT    1 // 0.03
+#define INT_Y_LOWER_ER_LIMIT		-1 //-0.03
+#define INT_Z_UPPER_ER_LIMIT		1 // 0.03
 
 
 #define ATTITUDE_REF_CONTINOUS
@@ -105,6 +110,7 @@
 
  // Reference limits for the radio controller
 #ifdef ATTITUDE_REF_CONTINOUS
+
 //	#define REF_ROLL_BIAS		0.0 //radians
 //	#define REF_ROLL_BIAS		-0.0087 //radians
 	#define REF_ROLL_BIAS		0.0175//-0.0087 //radians
@@ -114,19 +120,30 @@
 //	#define REF_PITCH_BIAS		0.148 //radians //funciona no chowdhurry
 //	#define REF_PITCH_BIAS		-0.0576
 	#define REF_PITCH_BIAS		 -0.0349//-0.1169
+  #define REF_YAW_BIAS     -0.0349//-0.1169
 	#define REF_YAW_MAX			0.0 //radians
-	#define REF_Z_MAX			0.5 //meters
-	#define REF_Z_INCREMENT     0.05 //meters
+	#define REF_X_MAX			0.5 //meters
+	#define REF_X_INCREMENT     0.05 //meters
+  #define REF_Y_MAX     0.5 //meters
+  #define REF_Y_INCREMENT     0.05 //meters
+  #define REF_Z_MAX      0.5 //meters
+  #define REF_Z_INCREMENT     0.05 //meters
+
 #elif defined ATTITUDE_REF_INCREMENTAL
+
 	#define REF_ROLL_INCREMENT	0.5*DEG_TO_RAD
 	#define REF_PITCH_INCREMENT	0.5*DEG_TO_RAD
 	#define REF_YAW_INCREMENT	0.5*DEG_TO_RAD
+
 #endif
+
  //Enable the integration in relation to time
-//#define ENABLE_INT_Z
- #define ENABLE_INT_ROLL
+#define ENABLE_INT_X
+#define ENABLE_INT_Y
+#define ENABLE_INT_Z
+//#define ENABLE_INT_ROLL
 // #define ENABLE_INT_PITCH
-// #define ENABLE_INT_YAW
+#define ENABLE_INT_YAW
 
 
 #ifdef STABILITY_CONTROL

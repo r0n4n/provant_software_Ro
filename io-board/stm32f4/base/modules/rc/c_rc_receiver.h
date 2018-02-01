@@ -13,7 +13,6 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f4xx_conf.h"
-
 #include "c_common_utils.h"
 
 #ifdef __cplusplus

@@ -56,23 +56,33 @@ unsigned char setPointESC_Forca(float forca);
   */
 void module_co_init() 
 {
-   /* Inicializar os escs*/
+#ifdef ENABLE_ESC
+  /* Inicializar os escs*/
   c_common_i2c_init(I2C3);
   c_io_blctrl_init_i2c(I2C3);
-
+#endif
   /* Inicializar os servos */
   //feito no module in
 
+#ifdef ENABLE_BEAGLE
   /*USART initialization for beagle comunication*/
   c_common_usart2_init(USART_BAUDRATE);
+#endif
 
   /*Inicializar o tipo de controlador*/
+#ifdef BACKSTEPPING_ATTITUDE_HEIGHT_CONTROL
   c_rc_BS_control_init();
+#endif
+
+#if defined LQR_ATTITUDE_HEIGHT_CONTROL || defined LQR_PATHTRACK_CONTROL
+  c_rc_LQR_control_init() ;
+#endif
 
   /* Pin for debug */
   pv_module_co_LED5 = c_common_gpio_init(GPIOD, GPIO_Pin_14, GPIO_Mode_OUT); //LD5
   /*Data consumed by the thread*/
   pv_interface_co.iInputData          = xQueueCreate(1, sizeof(pv_msg_input));
+
   pv_interface_co.iControlBeagleData  = xQueueCreate(1, sizeof(pv_msg_controlOutput));
   /*Data produced by the thread*/
   pv_interface_co.oControlOutputData  = xQueueCreate(1, sizeof(pv_msg_controlOutput));
@@ -107,13 +117,17 @@ void module_co_run()
   float servoTorque[2];
   float escForce[2];
   int channel[7];
+  int iterations=1  ;
   pv_type_actuation    auxactuation;
   /* Inicializa os dados da attitude*/
+
   oControlOutputData.actuation.servoRight = 0;
   oControlOutputData.actuation.servoLeft  = 0;
   oControlOutputData.actuation.escRightSpeed = 0;
   oControlOutputData.actuation.escLeftSpeed  = 0;
+  oControlOutputData.HIL_mode = false ;
   auxactuation= oControlOutputData.actuation;
+
   while(1) 
   {
 
@@ -131,6 +145,7 @@ void module_co_run()
 	if (uxQueueMessagesWaiting(pv_interface_co.iInputData)!=0){
 		xQueueReceive(pv_interface_co.iInputData, &iInputData, 0);
 	}
+
 /*
 	if (uxQueueMessagesWaiting(pv_interface_co.iControlBeagleData)!=0){
 		xQueueReceive(pv_interface_co.iControlBeagleData, &iControlBeagleData, 0);
@@ -144,10 +159,33 @@ void module_co_run()
 		iActuation = c_rc_LQR_AH_controller(iInputData.attitude,iInputData.attitude_reference,iInputData.position,iInputData.position_refrence,(float)(iInputData.receiverOutput.joystick[0])/200,iInputData.flightmode);
 		// Ajusta o eixo de referencia do servo (montado ao contrario)
 		iActuation.servoLeft = -iActuation.servoLeft;
+		oControlOutputData.actuation= iActuation ;
 	#elif defined BACKSTEPPING_ATTITUDE_HEIGHT_CONTROL
 		iActuation = c_rc_BS_AH_controller(iInputData.attitude,iInputData.attitude_reference,iInputData.position,iInputData.position_refrence,(float)(iInputData.receiverOutput.joystick[0])/200,iInputData.flightmode,iInputData.enableintegration);
 		// Ajusta o eixo de referencia do servo (montado ao contrario)
 		iActuation.servoLeft = -iActuation.servoLeft;
+		oControlOutputData.actuation= iActuation ;
+
+  #elif defined LQR_PATHTRACK_CONTROL
+		/*if (iterations > 20) {
+		      int test = 1 ;
+		}*/
+		iActuation = c_rc_LQR_PT_controller(iInputData.attitude,
+		                                    iInputData.attitude_reference,
+		                                    iInputData.position,
+		                                    iInputData.position_refrence,
+		                                    iInputData.servosOutput.servo,
+		                                    (float)(iInputData.receiverOutput.joystick[0])/200,
+		                                    iInputData.flightmode,
+		                                    iInputData.enableintegration);
+		//iActuation.servoLeft = -iActuation.servoLeft;
+		oControlOutputData.actuation= iActuation ;
+
+
+
+
+
+
 	#elif defined TORQUE_CONTROL
 		aux[0]=iInputData.securityStop;
 		aux[1]=0;
@@ -267,16 +305,31 @@ void module_co_run()
 	}
 	#endif
 
+  #ifdef HIL
+
+  if (iInputData.enableintegration){
+    oControlOutputData.HIL_mode = true ;
+    iInputData.enableintegration = false ;
+  }
+  else
+    oControlOutputData.HIL_mode = false ;
+  #endif
+
 	/*Time Code Execution*/
 	unsigned int timeNow=xTaskGetTickCount();
     oControlOutputData.cicleTime = timeNow - pv_module_co_lastWakeTime;
 
+
     /* toggle pin for debug */
     c_common_gpio_toggle(pv_module_co_LED5);
-/*
-    if(pv_interface_co.oControlOutputData != 0)
+
+    //iterations++;
+    if(pv_interface_co.oControlOutputData != 0){
       xQueueOverwrite(pv_interface_co.oControlOutputData, &oControlOutputData);
-*/
+    }
+
+
+
     /* A thread dorme ate o tempo final ser atingido */
     vTaskDelayUntil( &pv_module_co_lastWakeTime, MODULE_PERIOD / portTICK_RATE_MS);
 	}

@@ -30,20 +30,20 @@
 	#define 	EXTI_SOURCE		EXTI_PinSource13		// PD5 na placa STM32F4-H407
 	#define 	EXTI_LINE		EXTI_Line13				// Tem que ser a mesma do pino
 	#define 	EXTI_Chanell	EXTI_Line13				
-#elif STM32F4_DISCOVERY
+#elif defined STM32F4_DISCOVERY
   	#define 	EXTI_PORT		EXTI_PortSourceGPIOE
 	#define 	EXTI_SOURCE		EXTI_PinSource7		    // PE7 na placa STM32F4-Discovery
 	#define 	EXTI_LINE		EXTI_Line7				// Tem que ser a mesma do pino
 	#define 	EXTI_Chanell	EXTI9_5_IRQn				
 #endif
 
-#define 	PULSE_INTERVAL 	400						// us
-#define 	SYNC_WIDTH		2500					// us
-#define	 	NUM_OF_CHANNELS 7
+#define 	PULSE_INTERVAL 	0						// us
+#define 	SYNC_WIDTH	 3000					// us
+#define	 	NUM_OF_CHANNELS 8
 
-#define 	RECV_MINIMUM	450   /** Largura mínima de um pulso válido */
-#define 	RECV_MAXIMUM	1800  /** Largura máxima de um pulso válido */
-#define 	RECV_MIN_THROTTLE 700 /** Minima largura de pulso para um throttle válido */
+#define 	RECV_MINIMUM	984 //450   /** Largura mínima de um pulso válido */
+#define 	RECV_MAXIMUM	1999 //1800  /** Largura máxima de um pulso válido */
+#define 	RECV_MIN_THROTTLE 984//700 /** Minima largura de pulso para um throttle válido */
 
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
@@ -51,6 +51,7 @@ long int 	channels[12];
 long int 	last_channels[12];
 int 		channel_index = 0;
 long int   channel_center[4]; /** Largura média do pulso em repouso, apenas para canais R-P-Y. */
+bool err = false ; // true if there is an error, false else
 
 /* Private function prototypes -----------------------------------------------*/
 /* Private functions ---------------------------------------------------------*/
@@ -173,7 +174,7 @@ void c_rc_receiver_init2() {
   * @retval int Duração em \em us do pulso no canal selecionado.
   */
 float  c_rc_receiver_getChannel(int channel_n) {
-	if(channel_n < NUM_OF_CHANNELS && channels[channel_n] > RECV_MINIMUM && channels[channel_n] < RECV_MAXIMUM) {
+	if(channel_n < NUM_OF_CHANNELS && channels[channel_n] > RECV_MINIMUM && channels[channel_n] < RECV_MAXIMUM && err == false) {
 
   /** Maximos e minimos de cada canal
     * temosque encontrar os zeros do mag
@@ -183,12 +184,12 @@ float  c_rc_receiver_getChannel(int channel_n) {
             706/1581            |        713/1542         |        692/1523       |       687/1513         |    564/1672
     ************************************************************************************************************************/
     //ufsc_provant_control
-    #if 0
-    int throttleMapValues[] ={706,1581};
-    int rollMapValues[]     ={713,1542};
-    int yawMapValues[]		={692,1523};
-    int pitchMapValues[]	={687,1513};
-    int vrMapValues[]		={564,1672};
+    #if 1
+    int throttleMapValues[] ={984,1999} ; //{706,1581};
+    int rollMapValues[]     ={984,1999} ;//{713,1542};
+    int yawMapValues[]		={984,1999} ;//{692,1523};
+    int pitchMapValues[]	={984,1999} ;//{687,1513};
+    int vrMapValues[]		={984,1999} ;//{564,1672};
    	#else
    	//willian_control
    	int throttleMapValues[] ={689,1588};
@@ -198,16 +199,17 @@ float  c_rc_receiver_getChannel(int channel_n) {
     int vrMapValues[]		={564,1672};
 
    	#endif
+    long int   channelsNorm[12];
         if(channel_n==C_RC_CHANNEL_THROTTLE)
-            last_channels[channel_n] = channels[channel_n] = c_common_utils_map(channels[channel_n], throttleMapValues[0], throttleMapValues[1], +100, -100);
+            last_channels[channel_n] = channelsNorm[channel_n] = c_common_utils_map(channels[channel_n], throttleMapValues[0], throttleMapValues[1], 0, +100);
        	if(channel_n==C_RC_CHANNEL_ROLL)
-            last_channels[channel_n] = channels[channel_n] = c_common_utils_map(channels[channel_n], rollMapValues[0],rollMapValues[1], -100, +100);
+            last_channels[channel_n] = channelsNorm[channel_n] = c_common_utils_map(channels[channel_n], rollMapValues[0],rollMapValues[1], -100, +100);
         if(channel_n==C_RC_CHANNEL_YAW)
-            last_channels[channel_n] = channels[channel_n] = c_common_utils_map(channels[channel_n], yawMapValues[0],yawMapValues[1], -100, +100);
+            last_channels[channel_n] = channelsNorm[channel_n] = c_common_utils_map(channels[channel_n], yawMapValues[0],yawMapValues[1], -100, +100);
         if(channel_n==C_RC_CHANNEL_PITCH)
-            last_channels[channel_n] = channels[channel_n] = c_common_utils_map(channels[channel_n], pitchMapValues[0],pitchMapValues[1], +100, -100);
+            last_channels[channel_n] = channelsNorm[channel_n] = c_common_utils_map(channels[channel_n], pitchMapValues[0],pitchMapValues[1], +100, -100);
         if(channel_n==C_RC_CHANNEL_VR)
-            last_channels[channel_n] = channels[channel_n] = c_common_utils_map(channels[channel_n], vrMapValues[0],vrMapValues[1], 0,100);
+            last_channels[channel_n] = channelsNorm[channel_n] = c_common_utils_map(channels[channel_n], vrMapValues[0],vrMapValues[1], 0,100);
         if(channel_n==C_RC_CHANNEL_A)
             if(channels[channel_n]>1000)
             	channels[channel_n]=last_channels[channel_n] = 0;
@@ -218,7 +220,7 @@ float  c_rc_receiver_getChannel(int channel_n) {
             	channels[channel_n]=last_channels[channel_n] = 1;
             else
             	channels[channel_n]=last_channels[channel_n] = 100;
-		return channels[channel_n];
+		return channelsNorm[channel_n];
 	}
 	else
 		return last_channels[channel_n];
@@ -300,20 +302,28 @@ void  EXTI9_5_IRQHandler()
 	EXTI_ClearITPendingBit(EXTI_LINE); // clear interrupt
 	int pulse_width = TIM_GetCounter(TIM2) - PULSE_INTERVAL;
 
-	if(pulse_width > SYNC_WIDTH) //sync pulse
-		channel_index = 0;
+	if(pulse_width > SYNC_WIDTH) {//sync pulse
+	  if (channel_index<NUM_OF_CHANNELS)
+	    err=true ;
+
+	  else{
+	    err=false ;
+      channel_index = 0;
+	  }
+	}
 	else {
 		if(channel_index < NUM_OF_CHANNELS) {
 			channels[channel_index] = pulse_width;
 			channel_index++;
 		}
+
 	}
 	TIM_SetCounter(TIM2, 0);
-	/*
-	char str[64]={};
-	sprintf(str, "INT--------------------------------%d,%d,%d,%d\n\r",channels[0],channels[1],channels[2],channels[3] );
-	c_common_usart_puts(USART2, str);
-	*/
+
+	//char str[64]={};
+	//sprintf(str, "INT--------------------------------%d,%d,%d,%d\n\r",channels[0],channels[1],channels[2],channels[3] );
+	//c_common_usart_puts(USART2, str);
+
 }
 
 /**

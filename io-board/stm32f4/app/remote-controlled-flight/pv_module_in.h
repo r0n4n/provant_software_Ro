@@ -23,9 +23,11 @@
     * Se ENABLE_* 1 então tal modulo será utilizado
     *
     */
-#define ENABLE_IMU
-#define ENABLE_SERVO
-#define ENABLE_ALTURA
+
+//#define ENABLE_IMU
+//#define ENABLE_SERVO
+//#define ENABLE_ALTURA
+#define DISABLE_RC
 #define ENALBE_DEBUG
 
  /*Def da IMU*/
@@ -50,6 +52,8 @@
 
 /* Includes ------------------------------------------------------------------*/
 
+#include <stdio.h>
+
 /* FreeRTOS kernel includes */
 #include "FreeRTOS.h"
 #include "queue.h"
@@ -72,17 +76,25 @@
 
 #include "pv_typedefs.h"
 #include "c_datapr_MultWii.h"
+#include "protocolo.h"
 
 /* Filtros Complementares */
 #include "c_datapr_MahonyAHRS.h"
  /* Filtro */
- #include "c_datapr_filter.h"
+#include "c_datapr_filter.h"
 
 /* Exported types ------------------------------------------------------------*/
 struct pv_interface_in
 {
-  xQueueHandle oInputData;  
+  xQueueHandle oInputData;
+#ifdef HIL
+  xQueueHandle iOutputData;
+#endif
 } pv_interface_in;
+
+
+
+
 /* Exported constants --------------------------------------------------------*/
 /* Exported macro ------------------------------------------------------------*/
 

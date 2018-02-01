@@ -1,0 +1,67 @@
+\hypertarget{pv__module__gps_8h}{}\section{/home/provant/\+Documents/provant-\/software/io-\/board/stm32f4/app/remote-\/controlled-\/flight/pv\+\_\+module\+\_\+gps.h File Reference}
+\label{pv__module__gps_8h}\index{/home/provant/\+Documents/provant-\/software/io-\/board/stm32f4/app/remote-\/controlled-\/flight/pv\+\_\+module\+\_\+gps.\+h@{/home/provant/\+Documents/provant-\/software/io-\/board/stm32f4/app/remote-\/controlled-\/flight/pv\+\_\+module\+\_\+gps.\+h}}
+
+
+Implementação do módulo de leitura de dados do G\+PS.  
+
+
+{\ttfamily \#include \char`\"{}Free\+R\+T\+O\+S.\+h\char`\"{}}\\*
+{\ttfamily \#include \char`\"{}queue.\+h\char`\"{}}\\*
+{\ttfamily \#include \char`\"{}task.\+h\char`\"{}}\\*
+{\ttfamily \#include \char`\"{}c\+\_\+common\+\_\+gpio.\+h\char`\"{}}\\*
+{\ttfamily \#include \char`\"{}c\+\_\+common\+\_\+i2c.\+h\char`\"{}}\\*
+{\ttfamily \#include \char`\"{}c\+\_\+common\+\_\+uart.\+h\char`\"{}}\\*
+{\ttfamily \#include \char`\"{}c\+\_\+common\+\_\+utils.\+h\char`\"{}}\\*
+{\ttfamily \#include \char`\"{}c\+\_\+io\+\_\+novatel.\+h\char`\"{}}\\*
+{\ttfamily \#include \char`\"{}pv\+\_\+typedefs.\+h\char`\"{}}\\*
+Include dependency graph for pv\+\_\+module\+\_\+gps.\+h\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{pv__module__gps_8h__incl}
+\end{center}
+\end{figure}
+This graph shows which files directly or indirectly include this file\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{pv__module__gps_8h__dep__incl}
+\end{center}
+\end{figure}
+\subsection*{Data Structures}
+\begin{DoxyCompactItemize}
+\item 
+struct \hyperlink{structpv__interface__gps}{pv\+\_\+interface\+\_\+gps}
+\end{DoxyCompactItemize}
+\subsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+void \hyperlink{group__app__gps_ga9ee93102a0a5aec6877376bbcaf1dcb0}{module\+\_\+gps\+\_\+init} ()
+\begin{DoxyCompactList}\small\item\em Inicializacao do módulo de G\+PS. \end{DoxyCompactList}\item 
+void \hyperlink{group__app__gps_gace423457cfae0d22bd57db9e2fb4c033}{module\+\_\+gps\+\_\+run} ()
+\begin{DoxyCompactList}\small\item\em Função principal do módulo de G\+PS. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+struct \hyperlink{structpv__interface__gps}{pv\+\_\+interface\+\_\+gps} \hyperlink{pv__module__gps_8h_a775804c5a6320fe3d55e009d0aed6363}{pv\+\_\+interface\+\_\+gps}
+\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+Implementação do módulo de leitura de dados do G\+PS. 
+
+\begin{DoxyAuthor}{Author}
+Patrick Jose Pereira 
+\end{DoxyAuthor}
+\begin{DoxyVersion}{Version}
+V1.\+0.\+0 
+\end{DoxyVersion}
+\begin{DoxyDate}{Date}
+27-\/\+August-\/2014 
+\end{DoxyDate}
+
+
+\subsection{Variable Documentation}
+\index{pv\+\_\+module\+\_\+gps.\+h@{pv\+\_\+module\+\_\+gps.\+h}!pv\+\_\+interface\+\_\+gps@{pv\+\_\+interface\+\_\+gps}}
+\index{pv\+\_\+interface\+\_\+gps@{pv\+\_\+interface\+\_\+gps}!pv\+\_\+module\+\_\+gps.\+h@{pv\+\_\+module\+\_\+gps.\+h}}
+\subsubsection[{\texorpdfstring{pv\+\_\+interface\+\_\+gps}{pv_interface_gps}}]{\setlength{\rightskip}{0pt plus 5cm}struct {\bf pv\+\_\+interface\+\_\+gps}  {\bf pv\+\_\+interface\+\_\+gps}}\hypertarget{pv__module__gps_8h_a775804c5a6320fe3d55e009d0aed6363}{}\label{pv__module__gps_8h_a775804c5a6320fe3d55e009d0aed6363}

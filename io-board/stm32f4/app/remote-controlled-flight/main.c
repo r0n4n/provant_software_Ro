@@ -13,7 +13,7 @@
     Recompilando com:
     make allclean
     make
-  *	TODO
+  * TODO
   *
   *****************************************************************************/
 /* Includes ------------------------------------------------------------------*/
@@ -76,15 +76,15 @@ void vApplicationMallocFailedHook() {};
 
 
 void FPU_init(){
-	/* Enable FPU.*/
-	__asm("  LDR.W R0, =0xE000ED88\n"
-		"  LDR R1, [R0]\n"
-		"  ORR R1, R1, #(0xF << 20)\n"
-		"  STR R1, [R0]");
+  /* Enable FPU.*/
+  __asm("  LDR.W R0, =0xE000ED88\n"
+    "  LDR R1, [R0]\n"
+    "  ORR R1, R1, #(0xF << 20)\n"
+    "  STR R1, [R0]");
 
-	//#if (__FPU_PRESENT == 1) && (__FPU_USED == 1)
-		SCB->CPACR |= ((3UL << 10*2)|(3UL << 11*2));  /* set CP10 and CP11 Full Access */
-	//#endif
+  //#if (__FPU_PRESENT == 1) && (__FPU_USED == 1)
+    SCB->CPACR |= ((3UL << 10*2)|(3UL << 11*2));  /* set CP10 and CP11 Full Access */
+  //#endif
 }
 
 /* Tasks ----------------------------------------------------------------------*/
@@ -105,7 +105,7 @@ void blink_led_task(void *pvParameters)
     {
       c_common_gpio_toggle(LED_builtin);
       #ifdef STM32F4_DISCOVERY
-        c_common_gpio_toggle(LED_builtin2);
+        //c_common_gpio_toggle(LED_builtin2);
       #endif
       vTaskDelay(100/portTICK_RATE_MS);
     }
@@ -114,13 +114,13 @@ void blink_led_task(void *pvParameters)
 // Task control output 
 void module_co_task(void *pvParameters)
 {
-	module_co_run();
+  module_co_run();
 }
 
 // Task input input
 void module_in_task(void *pvParameters)
 {
-	module_in_run();
+  module_in_run();
 }
 
 // Task data out 
@@ -144,18 +144,19 @@ void module_sm_task(void *pvParameters)
 /* Main ----------------------------------------------------------------------*/
 int main(void)
 {
-	/* Init system and trace */
-	SystemInit();
-	FPU_init();
+  /* Init system and trace */
+  SystemInit();
+ //printf("init module in") ;
+  FPU_init();
 
-	vTraceInitTraceData();
-	vTraceConsoleMessage("Starting application...");
-	if (! uiTraceStart() )
-		vTraceConsoleMessage("Could not start recorder!");
+  vTraceInitTraceData();
+  vTraceConsoleMessage("Starting application...");
+  if (! uiTraceStart() )
+    vTraceConsoleMessage("Could not start recorder!");
 
-	/* Init modules */
-	module_in_init();
-	module_co_init();
+  /* Init modules */
+  module_in_init();
+  module_co_init();
   //module_do_init();
   //module_gps_init();
 
@@ -163,11 +164,12 @@ int main(void)
     //pv_interface_do.iGpsData    = pv_interface_gps.oGpsData;
     //pv_interface_do.iInputData  = pv_interface_in.oInputData;
     pv_interface_co.iInputData  = pv_interface_in.oInputData;
+    pv_interface_in.iOutputData = pv_interface_co.oControlOutputData ;
     //pv_interface_do.iControlOutputData  = pv_interface_co.oControlOutputData;
     //pv_interface_co.iControlBeagleData  = pv_interface_do.oControlBeagleData;
-	/* create tasks
-	 * Prioridades - quanto maior o valor, maior a prioridade
-	 * */
+  /* create tasks
+   * Prioridades - quanto maior o valor, maior a prioridade
+   * */
     xTaskCreate(blink_led_task, (signed char *)"Blink led", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+1, NULL);
     //xTaskCreate(module_do_task, (signed char *)"Data out", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+3, NULL);
     xTaskCreate(module_in_task, (signed char *)"Data input", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+2, NULL);
@@ -175,13 +177,13 @@ int main(void)
     //xTaskCreate(module_gps_task, (signed char *)"Gps", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+2, NULL);
     //xTaskCreate(module_sm_task, (signed char *)"State machine", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+1, NULL);
 
-	//xTaskCreate(sonar_task, (signed char *)"Sonar task", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+1, NULL);
+  //xTaskCreate(sonar_task, (signed char *)"Sonar task", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY+1, NULL);
 
-	/* Start the scheduler. */
-	vTaskStartScheduler();
+  /* Start the scheduler. */
+  vTaskStartScheduler();
 
-	/* should never reach here! */
-	for(;;);
+  /* should never reach here! */
+  for(;;);
 }
 
 /**

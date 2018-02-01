@@ -1,0 +1,90 @@
+\hypertarget{pv__module__do_8c}{}\section{/home/provant/\+Documents/provant-\/software/io-\/board/stm32f4/app/remote-\/controlled-\/flight/pv\+\_\+module\+\_\+do.c File Reference}
+\label{pv__module__do_8c}\index{/home/provant/\+Documents/provant-\/software/io-\/board/stm32f4/app/remote-\/controlled-\/flight/pv\+\_\+module\+\_\+do.\+c@{/home/provant/\+Documents/provant-\/software/io-\/board/stm32f4/app/remote-\/controlled-\/flight/pv\+\_\+module\+\_\+do.\+c}}
+
+
+Implementação do módulo de transmissao de dados para fora do A\+RM.  
+
+
+{\ttfamily \#include \char`\"{}pv\+\_\+module\+\_\+do.\+h\char`\"{}}\\*
+Include dependency graph for pv\+\_\+module\+\_\+do.\+c\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{pv__module__do_8c__incl}
+\end{center}
+\end{figure}
+\subsection*{Macros}
+\begin{DoxyCompactItemize}
+\item 
+\#define \hyperlink{group__app__do_ga0ac6c9f2991b096e49c354e5cce6fae0}{M\+O\+D\+U\+L\+E\+\_\+\+P\+E\+R\+I\+OD}~15
+\item 
+\#define \hyperlink{group__app__do_ga6a53a6c94a70cc286e300a0ea8f46ba4}{U\+S\+A\+R\+T\+\_\+\+B\+A\+U\+D\+R\+A\+TE}~921600
+\end{DoxyCompactItemize}
+\subsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+void \hyperlink{group__app__do_ga901c023651503207f5cfd8cdb8c305b3}{module\+\_\+do\+\_\+init} ()
+\begin{DoxyCompactList}\small\item\em Inicializacao do módulo de data out. \end{DoxyCompactList}\item 
+void \hyperlink{group__app__do_ga1f08b4b431624465a47f47eca0520253}{module\+\_\+do\+\_\+run} ()
+\begin{DoxyCompactList}\small\item\em Função principal do módulo de data out. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+port\+Tick\+Type \hyperlink{group__app__do_gaa8db3871cb5f64abbd94ddd5a1db73a6}{last\+Wake\+Time}
+\item 
+unsigned int \hyperlink{group__app__do_ga24475be702ffcc5a6f0a5557040368ef}{heart\+Beat} =0
+\item 
+unsigned int \hyperlink{group__app__do_ga5bdb7b29978109a480db66886e58f475}{cicle\+Time} =0
+\item 
+pv\+\_\+msg\+\_\+input \hyperlink{group__app__do_gac40b8cfe5fd2000670ad57fe3e75ec89}{i\+Input\+Data}
+\item 
+pv\+\_\+msg\+\_\+gps \hyperlink{group__app__do_gac433f205128f94bd944f8ddcbff92744}{i\+Gps\+Data}
+\item 
+pv\+\_\+msg\+\_\+control\+Output \hyperlink{group__app__do_gacabca53fbaffdbf13b8e5a1c29b73bc4}{i\+Control\+Output\+Data}
+\item 
+pv\+\_\+msg\+\_\+control\+Output \hyperlink{group__app__do_ga83a7ee8a519c421eec8b1c7efc9e0501}{o\+Control\+Beagle\+Data}
+\item 
+float \hyperlink{group__app__do_ga1ba0a7c98794a4cda502c52d222ab614}{rpy} \mbox{[}3\mbox{]}
+\item 
+float \hyperlink{group__app__do_ga09c67ab670708cf621c9853aeb34fc2c}{drpy} \mbox{[}3\mbox{]}
+\item 
+float \hyperlink{group__app__do_ga1a3ca0a0bf0cdb13a8689c0558ead4df}{position} \mbox{[}3\mbox{]}
+\item 
+float \hyperlink{group__app__do_ga63a3bb0717d926f2f94b982b96e92237}{velocity} \mbox{[}3\mbox{]}
+\item 
+float \hyperlink{group__app__do_gaf2c21f3aed6186d912908dcd33a057d6}{alpha} \mbox{[}2\mbox{]}
+\item 
+float \hyperlink{group__app__do_gac55455b51b6abc065db2bfa3a99c0783}{dalpha} \mbox{[}2\mbox{]}
+\item 
+float \hyperlink{group__app__do_ga44b306459efc6e5e3543390e98fa8df7}{data1} \mbox{[}2\mbox{]}
+\item 
+float \hyperlink{group__app__do_ga2241fa8ef7e6a940cd8ce8dc13d8b4e8}{data2} \mbox{[}2\mbox{]}
+\item 
+float \hyperlink{group__app__do_gafb91c0f3a7dabe2beb8c046ff3cd4613}{data3} \mbox{[}2\mbox{]}
+\item 
+int \hyperlink{group__app__do_ga5acd447dc75f4ac13cdac246a2c75291}{aux} \mbox{[}2\mbox{]}
+\item 
+float \hyperlink{group__app__do_gae93eafaee31c92a65f90bcb26eda96df}{aux2} \mbox{[}3\mbox{]}
+\item 
+float \hyperlink{group__app__do_gaa56fed06b51b312e13aa20c0c740795e}{servo\+Torque} \mbox{[}2\mbox{]}
+\item 
+float \hyperlink{group__app__do_ga7b919fc59fbb86e34627c65320446dd3}{esc\+Force} \mbox{[}2\mbox{]}
+\item 
+int \hyperlink{group__app__do_ga7738565d91833be3229136a1beaaf44b}{channel} \mbox{[}7\mbox{]}
+\item 
+G\+P\+I\+O\+Pin \hyperlink{group__app__do_ga804d3aba22a782022afc3977966f2faa}{L\+E\+D3}
+\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+Implementação do módulo de transmissao de dados para fora do A\+RM. 
+
+\begin{DoxyAuthor}{Author}
+Patrick Jose Pereira 
+\end{DoxyAuthor}
+\begin{DoxyVersion}{Version}
+V1.\+0.\+0 
+\end{DoxyVersion}
+\begin{DoxyDate}{Date}
+27-\/\+August-\/2014 
+\end{DoxyDate}

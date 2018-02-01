@@ -17,7 +17,7 @@ void c_rc_commons_init(bool manual_height_control){
 /** \brief Integral numérica utilizando o método trapezoidal (Tustin) */
 float c_rc_integrate_trapezoidal(float last_integration, float current_value, float last_value, float sample_time){
 
-	return last_integration + sample_time * 0.5* (current_value + last_value);
+	return (last_integration + (sample_time * 0.5)* (current_value + last_value));
 }
 
 float c_rc_saturation(float value, float lower_limit, float upper_limit){

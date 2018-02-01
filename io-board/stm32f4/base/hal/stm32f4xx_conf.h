@@ -26,8 +26,8 @@
 #ifndef STM32F4_H407
   #ifndef STM32F4_DISCOVERY
 
-    #define STM32F4_H407
-    //#define STM32F4_DISCOVERY
+    //#define STM32F4_H407
+    #define STM32F4_DISCOVERY
   
   #endif
 #endif

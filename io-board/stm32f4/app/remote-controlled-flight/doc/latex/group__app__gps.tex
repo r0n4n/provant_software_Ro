@@ -1,0 +1,127 @@
+\hypertarget{group__app__gps}{}\section{App\+\_\+gps}
+\label{group__app__gps}\index{App\+\_\+gps@{App\+\_\+gps}}
+
+
+Módulo responsavel por tratar os dados do G\+PS.  
+
+
+Collaboration diagram for App\+\_\+gps\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=251pt]{group__app__gps}
+\end{center}
+\end{figure}
+\subsection*{Macros}
+\begin{DoxyCompactItemize}
+\item 
+\#define \hyperlink{group__app__gps_ga0ac6c9f2991b096e49c354e5cce6fae0}{M\+O\+D\+U\+L\+E\+\_\+\+P\+E\+R\+I\+OD}~100
+\end{DoxyCompactItemize}
+\subsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+void \hyperlink{group__app__gps_ga9ee93102a0a5aec6877376bbcaf1dcb0}{module\+\_\+gps\+\_\+init} ()
+\begin{DoxyCompactList}\small\item\em Inicializacao do módulo de G\+PS. \end{DoxyCompactList}\item 
+void \hyperlink{group__app__gps_gace423457cfae0d22bd57db9e2fb4c033}{module\+\_\+gps\+\_\+run} ()
+\begin{DoxyCompactList}\small\item\em Função principal do módulo de G\+PS. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+port\+Tick\+Type \hyperlink{group__app__gps_gaa8db3871cb5f64abbd94ddd5a1db73a6}{last\+Wake\+Time}
+\item 
+pv\+\_\+msg\+\_\+gps \hyperlink{group__app__gps_ga744821cc9c45de009ae70e6dc8d5e220}{o\+Gps\+Data}
+\item 
+pv\+\_\+msg\+\_\+control\+Output \hyperlink{group__app__gps_ga0a14ca4568444d2d76c256fa91585cdf}{o\+Control\+Output\+Data}
+\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+Módulo responsavel por tratar os dados do G\+PS. 
+
+Definição do módulo de tratamento dos dados de G\+PS. 
+
+\subsection{Macro Definition Documentation}
+\index{App\+\_\+gps@{App\+\_\+gps}!M\+O\+D\+U\+L\+E\+\_\+\+P\+E\+R\+I\+OD@{M\+O\+D\+U\+L\+E\+\_\+\+P\+E\+R\+I\+OD}}
+\index{M\+O\+D\+U\+L\+E\+\_\+\+P\+E\+R\+I\+OD@{M\+O\+D\+U\+L\+E\+\_\+\+P\+E\+R\+I\+OD}!App\+\_\+gps@{App\+\_\+gps}}
+\subsubsection[{\texorpdfstring{M\+O\+D\+U\+L\+E\+\_\+\+P\+E\+R\+I\+OD}{MODULE_PERIOD}}]{\setlength{\rightskip}{0pt plus 5cm}\#define M\+O\+D\+U\+L\+E\+\_\+\+P\+E\+R\+I\+OD~100}\hypertarget{group__app__gps_ga0ac6c9f2991b096e49c354e5cce6fae0}{}\label{group__app__gps_ga0ac6c9f2991b096e49c354e5cce6fae0}
+
+
+Definition at line 26 of file pv\+\_\+module\+\_\+gps.\+c.
+
+
+
+\subsection{Function Documentation}
+\index{App\+\_\+gps@{App\+\_\+gps}!module\+\_\+gps\+\_\+init@{module\+\_\+gps\+\_\+init}}
+\index{module\+\_\+gps\+\_\+init@{module\+\_\+gps\+\_\+init}!App\+\_\+gps@{App\+\_\+gps}}
+\subsubsection[{\texorpdfstring{module\+\_\+gps\+\_\+init()}{module_gps_init()}}]{\setlength{\rightskip}{0pt plus 5cm}void module\+\_\+gps\+\_\+init (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)}\hypertarget{group__app__gps_ga9ee93102a0a5aec6877376bbcaf1dcb0}{}\label{group__app__gps_ga9ee93102a0a5aec6877376bbcaf1dcb0}
+
+
+Inicializacao do módulo de G\+PS. 
+
+Instancia as Queues de comunicação inter-\/thread. 
+\begin{DoxyParams}{Parameters}
+{\em None} & \\
+\hline
+\end{DoxyParams}
+
+\begin{DoxyRetVals}{Return values}
+{\em None} & \\
+\hline
+\end{DoxyRetVals}
+
+
+Definition at line 43 of file pv\+\_\+module\+\_\+gps.\+c.
+
+\index{App\+\_\+gps@{App\+\_\+gps}!module\+\_\+gps\+\_\+run@{module\+\_\+gps\+\_\+run}}
+\index{module\+\_\+gps\+\_\+run@{module\+\_\+gps\+\_\+run}!App\+\_\+gps@{App\+\_\+gps}}
+\subsubsection[{\texorpdfstring{module\+\_\+gps\+\_\+run()}{module_gps_run()}}]{\setlength{\rightskip}{0pt plus 5cm}void module\+\_\+gps\+\_\+run (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)}\hypertarget{group__app__gps_gace423457cfae0d22bd57db9e2fb4c033}{}\label{group__app__gps_gace423457cfae0d22bd57db9e2fb4c033}
+
+
+Função principal do módulo de G\+PS. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em None} & \\
+\hline
+\end{DoxyParams}
+
+\begin{DoxyRetVals}{Return values}
+{\em None} & \\
+\hline
+\end{DoxyRetVals}
+
+
+Definition at line 55 of file pv\+\_\+module\+\_\+gps.\+c.
+
+
+
+\subsection{Variable Documentation}
+\index{App\+\_\+gps@{App\+\_\+gps}!last\+Wake\+Time@{last\+Wake\+Time}}
+\index{last\+Wake\+Time@{last\+Wake\+Time}!App\+\_\+gps@{App\+\_\+gps}}
+\subsubsection[{\texorpdfstring{last\+Wake\+Time}{lastWakeTime}}]{\setlength{\rightskip}{0pt plus 5cm}port\+Tick\+Type last\+Wake\+Time}\hypertarget{group__app__gps_gaa8db3871cb5f64abbd94ddd5a1db73a6}{}\label{group__app__gps_gaa8db3871cb5f64abbd94ddd5a1db73a6}
+
+
+Definition at line 30 of file pv\+\_\+module\+\_\+gps.\+c.
+
+\index{App\+\_\+gps@{App\+\_\+gps}!o\+Control\+Output\+Data@{o\+Control\+Output\+Data}}
+\index{o\+Control\+Output\+Data@{o\+Control\+Output\+Data}!App\+\_\+gps@{App\+\_\+gps}}
+\subsubsection[{\texorpdfstring{o\+Control\+Output\+Data}{oControlOutputData}}]{\setlength{\rightskip}{0pt plus 5cm}pv\+\_\+msg\+\_\+control\+Output o\+Control\+Output\+Data}\hypertarget{group__app__gps_ga0a14ca4568444d2d76c256fa91585cdf}{}\label{group__app__gps_ga0a14ca4568444d2d76c256fa91585cdf}
+
+
+Definition at line 32 of file pv\+\_\+module\+\_\+gps.\+c.
+
+\index{App\+\_\+gps@{App\+\_\+gps}!o\+Gps\+Data@{o\+Gps\+Data}}
+\index{o\+Gps\+Data@{o\+Gps\+Data}!App\+\_\+gps@{App\+\_\+gps}}
+\subsubsection[{\texorpdfstring{o\+Gps\+Data}{oGpsData}}]{\setlength{\rightskip}{0pt plus 5cm}pv\+\_\+msg\+\_\+gps o\+Gps\+Data}\hypertarget{group__app__gps_ga744821cc9c45de009ae70e6dc8d5e220}{}\label{group__app__gps_ga744821cc9c45de009ae70e6dc8d5e220}
+
+
+Definition at line 31 of file pv\+\_\+module\+\_\+gps.\+c.
+

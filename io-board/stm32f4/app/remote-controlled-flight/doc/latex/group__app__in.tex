@@ -1,0 +1,145 @@
+\hypertarget{group__app__in}{}\section{App\+\_\+in}
+\label{group__app__in}\index{App\+\_\+in@{App\+\_\+in}}
+
+
+Componentes para o sensoriamento do V\+A\+NT.  
+
+
+Collaboration diagram for App\+\_\+in\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=243pt]{group__app__in}
+\end{center}
+\end{figure}
+\subsection*{Macros}
+\begin{DoxyCompactItemize}
+\item 
+\#define \hyperlink{group__app__in_ga0ac6c9f2991b096e49c354e5cce6fae0}{M\+O\+D\+U\+L\+E\+\_\+\+P\+E\+R\+I\+OD}~6
+\end{DoxyCompactItemize}
+\subsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+void \hyperlink{group__app__in_gaffe0980a750cbec13ebf241c933460dd}{module\+\_\+in\+\_\+init} ()
+\begin{DoxyCompactList}\small\item\em Inicializacao componentes de IO. \end{DoxyCompactList}\item 
+void \hyperlink{group__app__in_ga2b56089e4c5adb9ac8b7a41fc1a0b0b2}{module\+\_\+in\+\_\+run} ()
+\begin{DoxyCompactList}\small\item\em Função principal do módulo de IO. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+port\+Tick\+Type \hyperlink{group__app__in_ga3ff9efc032b26284423c9100a5474b7b}{pv\+\_\+module\+\_\+in\+\_\+last\+Wake\+Time}
+\item 
+char \hyperlink{group__app__in_ga3000f858ecb5a5417c1566b691efd56d}{str} \mbox{[}256\mbox{]}
+\item 
+G\+P\+I\+O\+Pin \hyperlink{group__app__in_ga8d3f5e0ec53e4667efbebf11383765e4}{pv\+\_\+module\+\_\+in\+\_\+\+L\+E\+D4}
+\item 
+float \hyperlink{group__app__in_ga926ba5b807f8b3d71b9fb486eb32a508}{attitude\+\_\+quaternion} \mbox{[}4\mbox{]} =\{1,0,0,0\}
+\item 
+pv\+\_\+msg\+\_\+input \hyperlink{group__app__in_gaffc6f7805bab2d46af160c6f7715ba99}{o\+Input\+Data}
+\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+Componentes para o sensoriamento do V\+A\+NT. 
+
+Reunião de todos os componentes relacionados às operações de input do V\+A\+NT. Leituras de todos os sensores. O processamento destes dados brutos é feito neste módulo. 
+
+\subsection{Macro Definition Documentation}
+\index{App\+\_\+in@{App\+\_\+in}!M\+O\+D\+U\+L\+E\+\_\+\+P\+E\+R\+I\+OD@{M\+O\+D\+U\+L\+E\+\_\+\+P\+E\+R\+I\+OD}}
+\index{M\+O\+D\+U\+L\+E\+\_\+\+P\+E\+R\+I\+OD@{M\+O\+D\+U\+L\+E\+\_\+\+P\+E\+R\+I\+OD}!App\+\_\+in@{App\+\_\+in}}
+\subsubsection[{\texorpdfstring{M\+O\+D\+U\+L\+E\+\_\+\+P\+E\+R\+I\+OD}{MODULE_PERIOD}}]{\setlength{\rightskip}{0pt plus 5cm}\#define M\+O\+D\+U\+L\+E\+\_\+\+P\+E\+R\+I\+OD~6}\hypertarget{group__app__in_ga0ac6c9f2991b096e49c354e5cce6fae0}{}\label{group__app__in_ga0ac6c9f2991b096e49c354e5cce6fae0}
+
+
+Definition at line 28 of file pv\+\_\+module\+\_\+in.\+c.
+
+
+
+\subsection{Function Documentation}
+\index{App\+\_\+in@{App\+\_\+in}!module\+\_\+in\+\_\+init@{module\+\_\+in\+\_\+init}}
+\index{module\+\_\+in\+\_\+init@{module\+\_\+in\+\_\+init}!App\+\_\+in@{App\+\_\+in}}
+\subsubsection[{\texorpdfstring{module\+\_\+in\+\_\+init()}{module_in_init()}}]{\setlength{\rightskip}{0pt plus 5cm}void module\+\_\+in\+\_\+init (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)}\hypertarget{group__app__in_gaffe0980a750cbec13ebf241c933460dd}{}\label{group__app__in_gaffe0980a750cbec13ebf241c933460dd}
+
+
+Inicializacao componentes de IO. 
+
+Initializes the hardware to communicate with the sensors (I\+MU, S\+O\+N\+AR, R\+E\+C\+E\+I\+V\+ER, S\+E\+R\+V\+OS) Test routines still need to be performed. 
+\begin{DoxyParams}{Parameters}
+{\em None} & \\
+\hline
+\end{DoxyParams}
+
+\begin{DoxyRetVals}{Return values}
+{\em None} & \\
+\hline
+\end{DoxyRetVals}
+
+
+Definition at line 55 of file pv\+\_\+module\+\_\+in.\+c.
+
+\index{App\+\_\+in@{App\+\_\+in}!module\+\_\+in\+\_\+run@{module\+\_\+in\+\_\+run}}
+\index{module\+\_\+in\+\_\+run@{module\+\_\+in\+\_\+run}!App\+\_\+in@{App\+\_\+in}}
+\subsubsection[{\texorpdfstring{module\+\_\+in\+\_\+run()}{module_in_run()}}]{\setlength{\rightskip}{0pt plus 5cm}void module\+\_\+in\+\_\+run (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)}\hypertarget{group__app__in_ga2b56089e4c5adb9ac8b7a41fc1a0b0b2}{}\label{group__app__in_ga2b56089e4c5adb9ac8b7a41fc1a0b0b2}
+
+
+Função principal do módulo de IO. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em None} & \\
+\hline
+\end{DoxyParams}
+
+\begin{DoxyRetVals}{Return values}
+{\em None} & Loop que amostra sensores como necessário. \\
+\hline
+\end{DoxyRetVals}
+
+
+Definition at line 90 of file pv\+\_\+module\+\_\+in.\+c.
+
+
+
+\subsection{Variable Documentation}
+\index{App\+\_\+in@{App\+\_\+in}!attitude\+\_\+quaternion@{attitude\+\_\+quaternion}}
+\index{attitude\+\_\+quaternion@{attitude\+\_\+quaternion}!App\+\_\+in@{App\+\_\+in}}
+\subsubsection[{\texorpdfstring{attitude\+\_\+quaternion}{attitude_quaternion}}]{\setlength{\rightskip}{0pt plus 5cm}float attitude\+\_\+quaternion\mbox{[}4\mbox{]} =\{1,0,0,0\}}\hypertarget{group__app__in_ga926ba5b807f8b3d71b9fb486eb32a508}{}\label{group__app__in_ga926ba5b807f8b3d71b9fb486eb32a508}
+
+
+Definition at line 37 of file pv\+\_\+module\+\_\+in.\+c.
+
+\index{App\+\_\+in@{App\+\_\+in}!o\+Input\+Data@{o\+Input\+Data}}
+\index{o\+Input\+Data@{o\+Input\+Data}!App\+\_\+in@{App\+\_\+in}}
+\subsubsection[{\texorpdfstring{o\+Input\+Data}{oInputData}}]{\setlength{\rightskip}{0pt plus 5cm}pv\+\_\+msg\+\_\+input o\+Input\+Data}\hypertarget{group__app__in_gaffc6f7805bab2d46af160c6f7715ba99}{}\label{group__app__in_gaffc6f7805bab2d46af160c6f7715ba99}
+
+
+Definition at line 41 of file pv\+\_\+module\+\_\+in.\+c.
+
+\index{App\+\_\+in@{App\+\_\+in}!pv\+\_\+module\+\_\+in\+\_\+last\+Wake\+Time@{pv\+\_\+module\+\_\+in\+\_\+last\+Wake\+Time}}
+\index{pv\+\_\+module\+\_\+in\+\_\+last\+Wake\+Time@{pv\+\_\+module\+\_\+in\+\_\+last\+Wake\+Time}!App\+\_\+in@{App\+\_\+in}}
+\subsubsection[{\texorpdfstring{pv\+\_\+module\+\_\+in\+\_\+last\+Wake\+Time}{pv_module_in_lastWakeTime}}]{\setlength{\rightskip}{0pt plus 5cm}port\+Tick\+Type pv\+\_\+module\+\_\+in\+\_\+last\+Wake\+Time}\hypertarget{group__app__in_ga3ff9efc032b26284423c9100a5474b7b}{}\label{group__app__in_ga3ff9efc032b26284423c9100a5474b7b}
+
+
+Definition at line 33 of file pv\+\_\+module\+\_\+in.\+c.
+
+\index{App\+\_\+in@{App\+\_\+in}!pv\+\_\+module\+\_\+in\+\_\+\+L\+E\+D4@{pv\+\_\+module\+\_\+in\+\_\+\+L\+E\+D4}}
+\index{pv\+\_\+module\+\_\+in\+\_\+\+L\+E\+D4@{pv\+\_\+module\+\_\+in\+\_\+\+L\+E\+D4}!App\+\_\+in@{App\+\_\+in}}
+\subsubsection[{\texorpdfstring{pv\+\_\+module\+\_\+in\+\_\+\+L\+E\+D4}{pv_module_in_LED4}}]{\setlength{\rightskip}{0pt plus 5cm}G\+P\+I\+O\+Pin pv\+\_\+module\+\_\+in\+\_\+\+L\+E\+D4}\hypertarget{group__app__in_ga8d3f5e0ec53e4667efbebf11383765e4}{}\label{group__app__in_ga8d3f5e0ec53e4667efbebf11383765e4}
+
+
+Definition at line 35 of file pv\+\_\+module\+\_\+in.\+c.
+
+\index{App\+\_\+in@{App\+\_\+in}!str@{str}}
+\index{str@{str}!App\+\_\+in@{App\+\_\+in}}
+\subsubsection[{\texorpdfstring{str}{str}}]{\setlength{\rightskip}{0pt plus 5cm}char str\mbox{[}256\mbox{]}}\hypertarget{group__app__in_ga3000f858ecb5a5417c1566b691efd56d}{}\label{group__app__in_ga3000f858ecb5a5417c1566b691efd56d}
+
+
+Definition at line 34 of file pv\+\_\+module\+\_\+in.\+c.
+

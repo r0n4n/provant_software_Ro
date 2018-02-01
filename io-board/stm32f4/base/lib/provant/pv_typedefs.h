@@ -188,6 +188,7 @@ typedef struct
   pv_type_vantBehavior vantBehavior;
   unsigned int cicleTime;
   unsigned int heartBeat;
+  bool HIL_mode ; // send if true, receive if false
 } pv_msg_controlOutput;
 
 /** \brief Estrutura de mensagem de saida da estrutura thread de gps.*/

@@ -1,0 +1,307 @@
+\hypertarget{group__app__do}{}\section{App\+\_\+do}
+\label{group__app__do}\index{App\+\_\+do@{App\+\_\+do}}
+
+
+Módulo responsavel por transmitir dados.  
+
+
+Collaboration diagram for App\+\_\+do\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=246pt]{group__app__do}
+\end{center}
+\end{figure}
+\subsection*{Macros}
+\begin{DoxyCompactItemize}
+\item 
+\#define \hyperlink{group__app__do_ga0ac6c9f2991b096e49c354e5cce6fae0}{M\+O\+D\+U\+L\+E\+\_\+\+P\+E\+R\+I\+OD}~15
+\item 
+\#define \hyperlink{group__app__do_ga6a53a6c94a70cc286e300a0ea8f46ba4}{U\+S\+A\+R\+T\+\_\+\+B\+A\+U\+D\+R\+A\+TE}~921600
+\end{DoxyCompactItemize}
+\subsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+void \hyperlink{group__app__do_ga901c023651503207f5cfd8cdb8c305b3}{module\+\_\+do\+\_\+init} ()
+\begin{DoxyCompactList}\small\item\em Inicializacao do módulo de data out. \end{DoxyCompactList}\item 
+void \hyperlink{group__app__do_ga1f08b4b431624465a47f47eca0520253}{module\+\_\+do\+\_\+run} ()
+\begin{DoxyCompactList}\small\item\em Função principal do módulo de data out. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+port\+Tick\+Type \hyperlink{group__app__do_gaa8db3871cb5f64abbd94ddd5a1db73a6}{last\+Wake\+Time}
+\item 
+unsigned int \hyperlink{group__app__do_ga24475be702ffcc5a6f0a5557040368ef}{heart\+Beat} =0
+\item 
+unsigned int \hyperlink{group__app__do_ga5bdb7b29978109a480db66886e58f475}{cicle\+Time} =0
+\item 
+pv\+\_\+msg\+\_\+input \hyperlink{group__app__do_gac40b8cfe5fd2000670ad57fe3e75ec89}{i\+Input\+Data}
+\item 
+pv\+\_\+msg\+\_\+gps \hyperlink{group__app__do_gac433f205128f94bd944f8ddcbff92744}{i\+Gps\+Data}
+\item 
+pv\+\_\+msg\+\_\+control\+Output \hyperlink{group__app__do_gacabca53fbaffdbf13b8e5a1c29b73bc4}{i\+Control\+Output\+Data}
+\item 
+pv\+\_\+msg\+\_\+control\+Output \hyperlink{group__app__do_ga83a7ee8a519c421eec8b1c7efc9e0501}{o\+Control\+Beagle\+Data}
+\item 
+float \hyperlink{group__app__do_ga1ba0a7c98794a4cda502c52d222ab614}{rpy} \mbox{[}3\mbox{]}
+\item 
+float \hyperlink{group__app__do_ga09c67ab670708cf621c9853aeb34fc2c}{drpy} \mbox{[}3\mbox{]}
+\item 
+float \hyperlink{group__app__do_ga1a3ca0a0bf0cdb13a8689c0558ead4df}{position} \mbox{[}3\mbox{]}
+\item 
+float \hyperlink{group__app__do_ga63a3bb0717d926f2f94b982b96e92237}{velocity} \mbox{[}3\mbox{]}
+\item 
+float \hyperlink{group__app__do_gaf2c21f3aed6186d912908dcd33a057d6}{alpha} \mbox{[}2\mbox{]}
+\item 
+float \hyperlink{group__app__do_gac55455b51b6abc065db2bfa3a99c0783}{dalpha} \mbox{[}2\mbox{]}
+\item 
+float \hyperlink{group__app__do_ga44b306459efc6e5e3543390e98fa8df7}{data1} \mbox{[}2\mbox{]}
+\item 
+float \hyperlink{group__app__do_ga2241fa8ef7e6a940cd8ce8dc13d8b4e8}{data2} \mbox{[}2\mbox{]}
+\item 
+float \hyperlink{group__app__do_gafb91c0f3a7dabe2beb8c046ff3cd4613}{data3} \mbox{[}2\mbox{]}
+\item 
+int \hyperlink{group__app__do_ga5acd447dc75f4ac13cdac246a2c75291}{aux} \mbox{[}2\mbox{]}
+\item 
+float \hyperlink{group__app__do_gae93eafaee31c92a65f90bcb26eda96df}{aux2} \mbox{[}3\mbox{]}
+\item 
+float \hyperlink{group__app__do_gaa56fed06b51b312e13aa20c0c740795e}{servo\+Torque} \mbox{[}2\mbox{]}
+\item 
+float \hyperlink{group__app__do_ga7b919fc59fbb86e34627c65320446dd3}{esc\+Force} \mbox{[}2\mbox{]}
+\item 
+int \hyperlink{group__app__do_ga7738565d91833be3229136a1beaaf44b}{channel} \mbox{[}7\mbox{]}
+\item 
+G\+P\+I\+O\+Pin \hyperlink{group__app__do_ga804d3aba22a782022afc3977966f2faa}{L\+E\+D3}
+\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+Módulo responsavel por transmitir dados. 
+
+Definição do módulo de transmissão de dados. 
+
+\subsection{Macro Definition Documentation}
+\index{App\+\_\+do@{App\+\_\+do}!M\+O\+D\+U\+L\+E\+\_\+\+P\+E\+R\+I\+OD@{M\+O\+D\+U\+L\+E\+\_\+\+P\+E\+R\+I\+OD}}
+\index{M\+O\+D\+U\+L\+E\+\_\+\+P\+E\+R\+I\+OD@{M\+O\+D\+U\+L\+E\+\_\+\+P\+E\+R\+I\+OD}!App\+\_\+do@{App\+\_\+do}}
+\subsubsection[{\texorpdfstring{M\+O\+D\+U\+L\+E\+\_\+\+P\+E\+R\+I\+OD}{MODULE_PERIOD}}]{\setlength{\rightskip}{0pt plus 5cm}\#define M\+O\+D\+U\+L\+E\+\_\+\+P\+E\+R\+I\+OD~15}\hypertarget{group__app__do_ga0ac6c9f2991b096e49c354e5cce6fae0}{}\label{group__app__do_ga0ac6c9f2991b096e49c354e5cce6fae0}
+
+
+Definition at line 26 of file pv\+\_\+module\+\_\+do.\+c.
+
+\index{App\+\_\+do@{App\+\_\+do}!U\+S\+A\+R\+T\+\_\+\+B\+A\+U\+D\+R\+A\+TE@{U\+S\+A\+R\+T\+\_\+\+B\+A\+U\+D\+R\+A\+TE}}
+\index{U\+S\+A\+R\+T\+\_\+\+B\+A\+U\+D\+R\+A\+TE@{U\+S\+A\+R\+T\+\_\+\+B\+A\+U\+D\+R\+A\+TE}!App\+\_\+do@{App\+\_\+do}}
+\subsubsection[{\texorpdfstring{U\+S\+A\+R\+T\+\_\+\+B\+A\+U\+D\+R\+A\+TE}{USART_BAUDRATE}}]{\setlength{\rightskip}{0pt plus 5cm}\#define U\+S\+A\+R\+T\+\_\+\+B\+A\+U\+D\+R\+A\+TE~921600}\hypertarget{group__app__do_ga6a53a6c94a70cc286e300a0ea8f46ba4}{}\label{group__app__do_ga6a53a6c94a70cc286e300a0ea8f46ba4}
+
+
+Definition at line 28 of file pv\+\_\+module\+\_\+do.\+c.
+
+
+
+\subsection{Function Documentation}
+\index{App\+\_\+do@{App\+\_\+do}!module\+\_\+do\+\_\+init@{module\+\_\+do\+\_\+init}}
+\index{module\+\_\+do\+\_\+init@{module\+\_\+do\+\_\+init}!App\+\_\+do@{App\+\_\+do}}
+\subsubsection[{\texorpdfstring{module\+\_\+do\+\_\+init()}{module_do_init()}}]{\setlength{\rightskip}{0pt plus 5cm}void module\+\_\+do\+\_\+init (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)}\hypertarget{group__app__do_ga901c023651503207f5cfd8cdb8c305b3}{}\label{group__app__do_ga901c023651503207f5cfd8cdb8c305b3}
+
+
+Inicializacao do módulo de data out. 
+
+Instancia as Queues de comunicação inter-\/thread. 
+\begin{DoxyParams}{Parameters}
+{\em None} & \\
+\hline
+\end{DoxyParams}
+
+\begin{DoxyRetVals}{Return values}
+{\em None} & \\
+\hline
+\end{DoxyRetVals}
+
+
+Definition at line 64 of file pv\+\_\+module\+\_\+do.\+c.
+
+\index{App\+\_\+do@{App\+\_\+do}!module\+\_\+do\+\_\+run@{module\+\_\+do\+\_\+run}}
+\index{module\+\_\+do\+\_\+run@{module\+\_\+do\+\_\+run}!App\+\_\+do@{App\+\_\+do}}
+\subsubsection[{\texorpdfstring{module\+\_\+do\+\_\+run()}{module_do_run()}}]{\setlength{\rightskip}{0pt plus 5cm}void module\+\_\+do\+\_\+run (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)}\hypertarget{group__app__do_ga1f08b4b431624465a47f47eca0520253}{}\label{group__app__do_ga1f08b4b431624465a47f47eca0520253}
+
+
+Função principal do módulo de data out. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em None} & \\
+\hline
+\end{DoxyParams}
+
+\begin{DoxyRetVals}{Return values}
+{\em None} & \\
+\hline
+\end{DoxyRetVals}
+
+
+Definition at line 87 of file pv\+\_\+module\+\_\+do.\+c.
+
+
+
+\subsection{Variable Documentation}
+\index{App\+\_\+do@{App\+\_\+do}!alpha@{alpha}}
+\index{alpha@{alpha}!App\+\_\+do@{App\+\_\+do}}
+\subsubsection[{\texorpdfstring{alpha}{alpha}}]{\setlength{\rightskip}{0pt plus 5cm}float alpha\mbox{[}2\mbox{]}}\hypertarget{group__app__do_gaf2c21f3aed6186d912908dcd33a057d6}{}\label{group__app__do_gaf2c21f3aed6186d912908dcd33a057d6}
+
+
+Definition at line 44 of file pv\+\_\+module\+\_\+do.\+c.
+
+\index{App\+\_\+do@{App\+\_\+do}!aux@{aux}}
+\index{aux@{aux}!App\+\_\+do@{App\+\_\+do}}
+\subsubsection[{\texorpdfstring{aux}{aux}}]{\setlength{\rightskip}{0pt plus 5cm}int aux\mbox{[}2\mbox{]}}\hypertarget{group__app__do_ga5acd447dc75f4ac13cdac246a2c75291}{}\label{group__app__do_ga5acd447dc75f4ac13cdac246a2c75291}
+
+
+Definition at line 47 of file pv\+\_\+module\+\_\+do.\+c.
+
+\index{App\+\_\+do@{App\+\_\+do}!aux2@{aux2}}
+\index{aux2@{aux2}!App\+\_\+do@{App\+\_\+do}}
+\subsubsection[{\texorpdfstring{aux2}{aux2}}]{\setlength{\rightskip}{0pt plus 5cm}float aux2\mbox{[}3\mbox{]}}\hypertarget{group__app__do_gae93eafaee31c92a65f90bcb26eda96df}{}\label{group__app__do_gae93eafaee31c92a65f90bcb26eda96df}
+
+
+Definition at line 48 of file pv\+\_\+module\+\_\+do.\+c.
+
+\index{App\+\_\+do@{App\+\_\+do}!channel@{channel}}
+\index{channel@{channel}!App\+\_\+do@{App\+\_\+do}}
+\subsubsection[{\texorpdfstring{channel}{channel}}]{\setlength{\rightskip}{0pt plus 5cm}int channel\mbox{[}7\mbox{]}}\hypertarget{group__app__do_ga7738565d91833be3229136a1beaaf44b}{}\label{group__app__do_ga7738565d91833be3229136a1beaaf44b}
+
+
+Definition at line 51 of file pv\+\_\+module\+\_\+do.\+c.
+
+\index{App\+\_\+do@{App\+\_\+do}!cicle\+Time@{cicle\+Time}}
+\index{cicle\+Time@{cicle\+Time}!App\+\_\+do@{App\+\_\+do}}
+\subsubsection[{\texorpdfstring{cicle\+Time}{cicleTime}}]{\setlength{\rightskip}{0pt plus 5cm}unsigned int cicle\+Time =0}\hypertarget{group__app__do_ga5bdb7b29978109a480db66886e58f475}{}\label{group__app__do_ga5bdb7b29978109a480db66886e58f475}
+
+
+Definition at line 35 of file pv\+\_\+module\+\_\+do.\+c.
+
+\index{App\+\_\+do@{App\+\_\+do}!dalpha@{dalpha}}
+\index{dalpha@{dalpha}!App\+\_\+do@{App\+\_\+do}}
+\subsubsection[{\texorpdfstring{dalpha}{dalpha}}]{\setlength{\rightskip}{0pt plus 5cm}float dalpha\mbox{[}2\mbox{]}}\hypertarget{group__app__do_gac55455b51b6abc065db2bfa3a99c0783}{}\label{group__app__do_gac55455b51b6abc065db2bfa3a99c0783}
+
+
+Definition at line 45 of file pv\+\_\+module\+\_\+do.\+c.
+
+\index{App\+\_\+do@{App\+\_\+do}!data1@{data1}}
+\index{data1@{data1}!App\+\_\+do@{App\+\_\+do}}
+\subsubsection[{\texorpdfstring{data1}{data1}}]{\setlength{\rightskip}{0pt plus 5cm}float data1\mbox{[}2\mbox{]}}\hypertarget{group__app__do_ga44b306459efc6e5e3543390e98fa8df7}{}\label{group__app__do_ga44b306459efc6e5e3543390e98fa8df7}
+
+
+Definition at line 46 of file pv\+\_\+module\+\_\+do.\+c.
+
+\index{App\+\_\+do@{App\+\_\+do}!data2@{data2}}
+\index{data2@{data2}!App\+\_\+do@{App\+\_\+do}}
+\subsubsection[{\texorpdfstring{data2}{data2}}]{\setlength{\rightskip}{0pt plus 5cm}float data2\mbox{[}2\mbox{]}}\hypertarget{group__app__do_ga2241fa8ef7e6a940cd8ce8dc13d8b4e8}{}\label{group__app__do_ga2241fa8ef7e6a940cd8ce8dc13d8b4e8}
+
+
+Definition at line 46 of file pv\+\_\+module\+\_\+do.\+c.
+
+\index{App\+\_\+do@{App\+\_\+do}!data3@{data3}}
+\index{data3@{data3}!App\+\_\+do@{App\+\_\+do}}
+\subsubsection[{\texorpdfstring{data3}{data3}}]{\setlength{\rightskip}{0pt plus 5cm}float data3\mbox{[}2\mbox{]}}\hypertarget{group__app__do_gafb91c0f3a7dabe2beb8c046ff3cd4613}{}\label{group__app__do_gafb91c0f3a7dabe2beb8c046ff3cd4613}
+
+
+Definition at line 46 of file pv\+\_\+module\+\_\+do.\+c.
+
+\index{App\+\_\+do@{App\+\_\+do}!drpy@{drpy}}
+\index{drpy@{drpy}!App\+\_\+do@{App\+\_\+do}}
+\subsubsection[{\texorpdfstring{drpy}{drpy}}]{\setlength{\rightskip}{0pt plus 5cm}float drpy\mbox{[}3\mbox{]}}\hypertarget{group__app__do_ga09c67ab670708cf621c9853aeb34fc2c}{}\label{group__app__do_ga09c67ab670708cf621c9853aeb34fc2c}
+
+
+Definition at line 41 of file pv\+\_\+module\+\_\+do.\+c.
+
+\index{App\+\_\+do@{App\+\_\+do}!esc\+Force@{esc\+Force}}
+\index{esc\+Force@{esc\+Force}!App\+\_\+do@{App\+\_\+do}}
+\subsubsection[{\texorpdfstring{esc\+Force}{escForce}}]{\setlength{\rightskip}{0pt plus 5cm}float esc\+Force\mbox{[}2\mbox{]}}\hypertarget{group__app__do_ga7b919fc59fbb86e34627c65320446dd3}{}\label{group__app__do_ga7b919fc59fbb86e34627c65320446dd3}
+
+
+Definition at line 50 of file pv\+\_\+module\+\_\+do.\+c.
+
+\index{App\+\_\+do@{App\+\_\+do}!heart\+Beat@{heart\+Beat}}
+\index{heart\+Beat@{heart\+Beat}!App\+\_\+do@{App\+\_\+do}}
+\subsubsection[{\texorpdfstring{heart\+Beat}{heartBeat}}]{\setlength{\rightskip}{0pt plus 5cm}unsigned int heart\+Beat =0}\hypertarget{group__app__do_ga24475be702ffcc5a6f0a5557040368ef}{}\label{group__app__do_ga24475be702ffcc5a6f0a5557040368ef}
+
+
+Definition at line 34 of file pv\+\_\+module\+\_\+do.\+c.
+
+\index{App\+\_\+do@{App\+\_\+do}!i\+Control\+Output\+Data@{i\+Control\+Output\+Data}}
+\index{i\+Control\+Output\+Data@{i\+Control\+Output\+Data}!App\+\_\+do@{App\+\_\+do}}
+\subsubsection[{\texorpdfstring{i\+Control\+Output\+Data}{iControlOutputData}}]{\setlength{\rightskip}{0pt plus 5cm}pv\+\_\+msg\+\_\+control\+Output i\+Control\+Output\+Data}\hypertarget{group__app__do_gacabca53fbaffdbf13b8e5a1c29b73bc4}{}\label{group__app__do_gacabca53fbaffdbf13b8e5a1c29b73bc4}
+
+
+Definition at line 38 of file pv\+\_\+module\+\_\+do.\+c.
+
+\index{App\+\_\+do@{App\+\_\+do}!i\+Gps\+Data@{i\+Gps\+Data}}
+\index{i\+Gps\+Data@{i\+Gps\+Data}!App\+\_\+do@{App\+\_\+do}}
+\subsubsection[{\texorpdfstring{i\+Gps\+Data}{iGpsData}}]{\setlength{\rightskip}{0pt plus 5cm}pv\+\_\+msg\+\_\+gps i\+Gps\+Data}\hypertarget{group__app__do_gac433f205128f94bd944f8ddcbff92744}{}\label{group__app__do_gac433f205128f94bd944f8ddcbff92744}
+
+
+Definition at line 37 of file pv\+\_\+module\+\_\+do.\+c.
+
+\index{App\+\_\+do@{App\+\_\+do}!i\+Input\+Data@{i\+Input\+Data}}
+\index{i\+Input\+Data@{i\+Input\+Data}!App\+\_\+do@{App\+\_\+do}}
+\subsubsection[{\texorpdfstring{i\+Input\+Data}{iInputData}}]{\setlength{\rightskip}{0pt plus 5cm}pv\+\_\+msg\+\_\+input i\+Input\+Data}\hypertarget{group__app__do_gac40b8cfe5fd2000670ad57fe3e75ec89}{}\label{group__app__do_gac40b8cfe5fd2000670ad57fe3e75ec89}
+
+
+Definition at line 36 of file pv\+\_\+module\+\_\+do.\+c.
+
+\index{App\+\_\+do@{App\+\_\+do}!last\+Wake\+Time@{last\+Wake\+Time}}
+\index{last\+Wake\+Time@{last\+Wake\+Time}!App\+\_\+do@{App\+\_\+do}}
+\subsubsection[{\texorpdfstring{last\+Wake\+Time}{lastWakeTime}}]{\setlength{\rightskip}{0pt plus 5cm}port\+Tick\+Type last\+Wake\+Time}\hypertarget{group__app__do_gaa8db3871cb5f64abbd94ddd5a1db73a6}{}\label{group__app__do_gaa8db3871cb5f64abbd94ddd5a1db73a6}
+
+
+Definition at line 33 of file pv\+\_\+module\+\_\+do.\+c.
+
+\index{App\+\_\+do@{App\+\_\+do}!L\+E\+D3@{L\+E\+D3}}
+\index{L\+E\+D3@{L\+E\+D3}!App\+\_\+do@{App\+\_\+do}}
+\subsubsection[{\texorpdfstring{L\+E\+D3}{LED3}}]{\setlength{\rightskip}{0pt plus 5cm}G\+P\+I\+O\+Pin L\+E\+D3}\hypertarget{group__app__do_ga804d3aba22a782022afc3977966f2faa}{}\label{group__app__do_ga804d3aba22a782022afc3977966f2faa}
+
+
+Definition at line 52 of file pv\+\_\+module\+\_\+do.\+c.
+
+\index{App\+\_\+do@{App\+\_\+do}!o\+Control\+Beagle\+Data@{o\+Control\+Beagle\+Data}}
+\index{o\+Control\+Beagle\+Data@{o\+Control\+Beagle\+Data}!App\+\_\+do@{App\+\_\+do}}
+\subsubsection[{\texorpdfstring{o\+Control\+Beagle\+Data}{oControlBeagleData}}]{\setlength{\rightskip}{0pt plus 5cm}pv\+\_\+msg\+\_\+control\+Output o\+Control\+Beagle\+Data}\hypertarget{group__app__do_ga83a7ee8a519c421eec8b1c7efc9e0501}{}\label{group__app__do_ga83a7ee8a519c421eec8b1c7efc9e0501}
+
+
+Definition at line 39 of file pv\+\_\+module\+\_\+do.\+c.
+
+\index{App\+\_\+do@{App\+\_\+do}!position@{position}}
+\index{position@{position}!App\+\_\+do@{App\+\_\+do}}
+\subsubsection[{\texorpdfstring{position}{position}}]{\setlength{\rightskip}{0pt plus 5cm}float position\mbox{[}3\mbox{]}}\hypertarget{group__app__do_ga1a3ca0a0bf0cdb13a8689c0558ead4df}{}\label{group__app__do_ga1a3ca0a0bf0cdb13a8689c0558ead4df}
+
+
+Definition at line 42 of file pv\+\_\+module\+\_\+do.\+c.
+
+\index{App\+\_\+do@{App\+\_\+do}!rpy@{rpy}}
+\index{rpy@{rpy}!App\+\_\+do@{App\+\_\+do}}
+\subsubsection[{\texorpdfstring{rpy}{rpy}}]{\setlength{\rightskip}{0pt plus 5cm}float rpy\mbox{[}3\mbox{]}}\hypertarget{group__app__do_ga1ba0a7c98794a4cda502c52d222ab614}{}\label{group__app__do_ga1ba0a7c98794a4cda502c52d222ab614}
+
+
+Definition at line 40 of file pv\+\_\+module\+\_\+do.\+c.
+
+\index{App\+\_\+do@{App\+\_\+do}!servo\+Torque@{servo\+Torque}}
+\index{servo\+Torque@{servo\+Torque}!App\+\_\+do@{App\+\_\+do}}
+\subsubsection[{\texorpdfstring{servo\+Torque}{servoTorque}}]{\setlength{\rightskip}{0pt plus 5cm}float servo\+Torque\mbox{[}2\mbox{]}}\hypertarget{group__app__do_gaa56fed06b51b312e13aa20c0c740795e}{}\label{group__app__do_gaa56fed06b51b312e13aa20c0c740795e}
+
+
+Definition at line 49 of file pv\+\_\+module\+\_\+do.\+c.
+
+\index{App\+\_\+do@{App\+\_\+do}!velocity@{velocity}}
+\index{velocity@{velocity}!App\+\_\+do@{App\+\_\+do}}
+\subsubsection[{\texorpdfstring{velocity}{velocity}}]{\setlength{\rightskip}{0pt plus 5cm}float velocity\mbox{[}3\mbox{]}}\hypertarget{group__app__do_ga63a3bb0717d926f2f94b982b96e92237}{}\label{group__app__do_ga63a3bb0717d926f2f94b982b96e92237}
+
+
+Definition at line 43 of file pv\+\_\+module\+\_\+do.\+c.
+
