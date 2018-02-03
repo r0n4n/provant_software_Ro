@@ -47,7 +47,7 @@ pv_msg_input oInputData;
   pv_msg_controlOutput iOutputData;
   double startDelay ;
   double delay ;
-  pv_type_datapr_position ref2 ;
+  pv_type_datapr_attitude ref2 ;
 #endif
 
 /* Private function prototypes -----------------------------------------------*/
@@ -183,12 +183,12 @@ void module_in_run()
   oInputData.position.dotZ = 0;
 
   /*Inicializa as referencias*/
-  oInputData.position_refrence.x = 0;
-  oInputData.position_refrence.y = 0;
-  oInputData.position_refrence.z = 0.5;
-  oInputData.position_refrence.dotX = 0;
-  oInputData.position_refrence.dotY = 0;
-  oInputData.position_refrence.dotZ = 0;
+  oInputData.position_reference.x = 0;
+  oInputData.position_reference.y = 0;
+  oInputData.position_reference.z = 0.5;
+  oInputData.position_reference.dotX = 0;
+  oInputData.position_reference.dotY = 0;
+  oInputData.position_reference.dotZ = 0;
 
   oInputData.attitude_reference.roll  = 0;
   oInputData.attitude_reference.pitch = 0;
@@ -205,12 +205,19 @@ void module_in_run()
   iOutputData.actuation.escLeftNewtons  = 0;
   iOutputData.HIL_mode = false ;
 
-  ref2.x=0;
+  /*ref2.x=0;
   ref2.y=0;
-  ref2.z=oInputData.position_refrence.z ;
+  ref2.z=oInputData.position_reference.z ;
   ref2.dotX=0;
   ref2.dotY=0;
-  ref2.dotZ=0;
+  ref2.dotZ=0;*/
+
+  ref2.pitch=0;
+  ref2.roll=0;
+  ref2.yaw=1 ;
+  ref2.dotPitch=0;
+  ref2.dotRoll=0;
+  ref2.dotYaw=0;
 
 
 
@@ -239,13 +246,13 @@ void module_in_run()
 
 
 #ifdef HIL
-    //oInputData.position_refrence.z = 0.5; /// TO REMOVE THEN !!!!!
+    //oInputData.position_reference.z = 0.5; /// TO REMOVE THEN !!!!!
 
 
 
 
     if (oInputData.enableintegration== false) { // if no data needs to be sent we can read de serial port
-      ReceiveData(16, state) ;
+      ReceiveData(16, state) ; //!!!! set the size input
 
       // get the position
       oInputData.position.x = state[0];
@@ -272,7 +279,7 @@ void module_in_run()
       oInputData.enableintegration= true ; // enable integration in the controller
     }
 
-    if ( ( oInputData.position.z < oInputData.position_refrence.z*1.1)&&  ( oInputData.position.z > oInputData.position_refrence.z*0.9) ) {
+   /* if ( ( oInputData.position.z < oInputData.position_reference.z*1.1)&&  ( oInputData.position.z > oInputData.position_reference.z*0.9) ) {
           if (startDelay == 0 ) {
             startDelay = xTaskGetTickCount() ;
           }
@@ -287,9 +294,9 @@ void module_in_run()
         }
 
         if (delay>3000 ) {
-          oInputData.position_refrence = ref2 ;
+          oInputData.attitude_reference = ref2 ;
 
-        }
+        }*/
 
     if(iOutputData.HIL_mode) { // if the controller calculated the control outputs we can send them
       output[0]=iOutputData.actuation.escRightNewtons ;
@@ -297,9 +304,9 @@ void module_in_run()
       output[2]=iOutputData.actuation.servoRight ;
       output[3]=iOutputData.actuation.servoLeft ;
 
-     /* output[0]=oInputData.position_refrence.x;
-      output[1]=oInputData.position_refrence.y;
-      output[2]=oInputData.position_refrence.z;
+     /* output[0]=oInputData.position_reference.x;
+      output[1]=oInputData.position_reference.y;
+      output[2]=oInputData.position_reference.z;
       output[3]= oInputData.attitude_reference.yaw ;*/
 
       SendData(output,4) ;
@@ -374,16 +381,16 @@ void module_in_run()
     //		oInputData.flightmode=0;
     //	else{
     //		oInputData.flightmode=1;
-    //		oInputData.position_refrence.refz = sonar_filtered;
+    //		oInputData.position_reference.refz = sonar_filtered;
     //	}
 
     /* Position reference */
     if (oInputData.receiverOutput.joystick[1]>3 || oInputData.receiverOutput.joystick[1]<-3)
-      oInputData.position_refrence.x = oInputData.position_refrence.x + ((float)oInputData.receiverOutput.joystick[1]/100)*REF_X_INCREMENT;
+      oInputData.position_reference.x = oInputData.position_reference.x + ((float)oInputData.receiverOutput.joystick[1]/100)*REF_X_INCREMENT;
     if (oInputData.receiverOutput.joystick[2]>3 || oInputData.receiverOutput.joystick[2]<-3)
-      oInputData.position_refrence.y = oInputData.position_refrence.y+ ((float)oInputData.receiverOutput.joystick[2]/100)*REF_Y_INCREMENT;
+      oInputData.position_reference.y = oInputData.position_reference.y+ ((float)oInputData.receiverOutput.joystick[2]/100)*REF_Y_INCREMENT;
     if (oInputData.receiverOutput.joystick[0]>3 || oInputData.receiverOutput.joystick[0]<-3)
-      oInputData.position_refrence.z = oInputData.position_refrence.z +((float)oInputData.receiverOutput.joystick[0]/100)*REF_Z_INCREMENT;
+      oInputData.position_reference.z = oInputData.position_reference.z +((float)oInputData.receiverOutput.joystick[0]/100)*REF_Z_INCREMENT;
 
 
     //SendData(output,4) ;
@@ -397,7 +404,6 @@ void module_in_run()
     }
     else{
       oInputData.flightmode=1;
-      oInputData.position_refrence.z=((float)(oInputData.receiverOutput.joystick[0]+100)/200)*1.5;
     }*/
 
 

@@ -14,8 +14,8 @@
 //#define LQR_ATTITUDE_HEIGHT_CONTROL
 //#define TORQUE_CONTROL
 //#define BACKSTEPPING_ATTITUDE_HEIGHT_CONTROL //Based on Chowdhurry's article
-#define LQR_PATHTRACK_CONTROL  //To be implemented
-//#define HINF_PATHTRACK_CONTROL //To be implemented
+//#define LQR_PATHTRACK_CONTROL  //To be implemented
+#define HINF_PATHTRACK_CONTROL //To be implemented
 //#define HMIX_PATHTRACK_CONTROL //To be implemented
 #define HIL
 
@@ -174,7 +174,11 @@
  #define STATE_DALPHA_L		15
 #endif
 
-
+#ifdef HINF_PATHTRACK_CONTROL
+  #define INPUT_STATE_SIZE 20
+#elif defined LQR_PATHTRACK_CONTROL
+  #define INPUT_STATE_SIZE 16
+#endif
 
 
 //Environment parameters

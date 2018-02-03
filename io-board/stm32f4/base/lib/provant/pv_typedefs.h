@@ -172,7 +172,7 @@ typedef struct
   pv_type_datapr_attitude attitude;
   pv_type_datapr_position position;
   pv_type_datapr_attitude attitude_reference;
-  pv_type_datapr_position position_refrence;
+  pv_type_datapr_position position_reference;
   unsigned int cicleTime;
   unsigned int heartBeat;
   bool init;

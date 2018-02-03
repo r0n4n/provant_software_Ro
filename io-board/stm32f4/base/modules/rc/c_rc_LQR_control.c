@@ -31,7 +31,7 @@
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
 
-float StepSize[3]={0.01,0.01,0.01} ;
+float stepSize[4]={0.1,0.3,0.3,0.01} ;
 
 pv_type_stability_error LQR_AH_integrated_error={0};
 pv_type_stability_error LQR_AH_last_error={0};
@@ -125,6 +125,11 @@ float32_t LQR_PT_Ke_f32[4][16]={
     0.036878957916608 ,  0.218443336829840 ,  0.070383903601564 ,  0.028402976825487  , 0.000007312089313 , -0.017740572220967,
     0.025908596148404,  -0.030981560936545  , 0.000723658016145  , 0.007155720063258} };
 
+float32_t equilibrium_point_f32[] ;
+float32_t equilibrium_control_f32[] ;
+float32_t state_vector_f32[] ;
+float32_t error_state_vector_f32[] ;
+
 #ifdef LQR_ATTITUDE_HEIGHT_CONTROL
 float32_t equilibrium_point_f32[8]={0, 0, -0.079091, 0, 0, 0, 0, 0};
 //float32_t equilibrium_point_f32[8]={0, 0.8913f,-0.0791f,-1.123453f, 0, 0, 0, 0};
@@ -132,6 +137,7 @@ float32_t equilibrium_point_f32[8]={0, 0, -0.079091, 0, 0, 0, 0, 0};
 float32_t equilibrium_control_f32[8]={0.113152E2,0.113459E2,0.79091E-1,0.79091E-1};
 float32_t state_vector_f32[8]={0};
 float32_t error_state_vector_f32[8]={0};
+
 #elif defined LQR_PATHTRACK_CONTROL
 
 float32_t equilibrium_control_f32[4]={10.2751,10.2799,0,0};
@@ -174,7 +180,7 @@ arm_matrix_instance_f32 c_rc_LQR_PT_errorStateVector(pv_type_datapr_attitude att
 void c_rc_LQR_PT_integrate_error(pv_type_pathtrack_error error, float sample_time) ;
 arm_matrix_instance_f32 c_rc_LQR_PT_PD(arm_matrix_instance_f32 error_state_vector);
 arm_matrix_instance_f32 c_rc_LQR_PT_I(pv_type_pathtrack_error error, bool enable_integration) ;
-pv_type_datapr_position c_RC_LQR_PT_StepRef(pv_type_datapr_position position_reference, pv_type_datapr_position position) ;
+pv_msg_input c_RC_LQR_PT_StepRef(pv_msg_input msg_input) ;
 
 /* Private functions ---------------------------------------------------------*/
 
@@ -394,53 +400,37 @@ arm_matrix_instance_f32 c_rc_LQR_PT_I(pv_type_pathtrack_error error, bool enable
   return I_control_output;
 }
 
-pv_type_datapr_position c_RC_LQR_PT_StepRef(pv_type_datapr_position position_reference, pv_type_datapr_position position){
+pv_msg_input c_RC_LQR_PT_StepRef(pv_msg_input msg_input){
 
-  pv_type_datapr_position New_position_reference = position_reference ;
-  float position_ref[3]={position_reference.x,position_reference.y,position_reference.z} ;
-  float positionXYZ[3]={position.x,position.y,position.z} ;
-  float new_position_reference[3]={0} ;
-  float distance[3]={0} ;
-  float x =  positionXYZ[2] ;
-  float xref = position_ref[2] ;
+  pv_msg_input new_msg_input = msg_input ;
+  float reference[4]={msg_input.position_reference.x,msg_input.position_reference.y,msg_input.position_reference.z,msg_input.attitude_reference.yaw} ;
+  float state[4]={msg_input.position.x,msg_input.position.y,msg_input.position.z,msg_input.attitude.yaw} ;
+  float new_reference[4]={0} ;
+  float distance[4]={0} ;
 
-  for (int i=0;i<3;i++){
-    distance[i] = position_ref[i] - positionXYZ[i] ;
 
-    //float absdistance = fabs(distance) ;
-    if (fabs(distance[i])>StepSize[i]) {
+  for (int i=0;i<4;i++){
+    distance[i] = reference[i] - state[i] ;
+
+
+    if (fabs(distance[i])>stepSize[i]) {
       if (distance[i]>0){
-        new_position_reference[i]=positionXYZ[i] +StepSize[i] ;
+        new_reference[i]=state[i] +stepSize[i] ;
       }
       else {
-        new_position_reference[i]=positionXYZ[i]-StepSize[i] ;
+        new_reference[i]=state[i]-stepSize[i] ;
       }
     }
     else {
-      new_position_reference[i]=position_ref[i] ;
+      new_reference[i]=reference[i] ;
     }
   }
-  New_position_reference.x = new_position_reference[0] ;
-  New_position_reference.y = new_position_reference[1] ;
-  New_position_reference.z = new_position_reference[2] ;
-  //distance[i] = position_ref[i] - positionXYZ[i] ;
+  new_msg_input.position_reference.x = new_reference[0] ;
+  new_msg_input.position_reference.y = new_reference[1] ;
+  new_msg_input.position_reference.z = new_reference[2] ;
+  new_msg_input.attitude_reference.yaw = new_reference[3] ;
 
- /* float new_position_reference=0 ;
-  float distance = position_reference.z  - position.z ;
-  if (fabs(distance)>StepSize[2]) {
-    if (distance>0){
-      new_position_reference=position.z +StepSize[2] ;
-    }
-    else {
-      new_position_reference=position.z-StepSize[2] ;
-    }
-  }
-  else {
-    new_position_reference=position_reference.z ;
-  }
-  New_position_reference.z = new_position_reference ;*/
-
-  return New_position_reference ;
+  return new_msg_input ;
 }
 
 
@@ -546,14 +536,16 @@ pv_type_actuation c_rc_LQR_AH_controller(pv_type_datapr_attitude attitude,
 	return actuation_signals;
 }
 
-pv_type_actuation c_rc_LQR_PT_controller(pv_type_datapr_attitude attitude,
-          pv_type_datapr_attitude attitude_reference,
-          pv_type_datapr_position position,
-          pv_type_datapr_position position_reference,
-          pv_type_datapr_servos servo_state,
-          float throttle_control,
-          bool manual_height_control,
-          bool enable_integration){
+pv_type_actuation c_rc_LQR_PT_controller(pv_msg_input msg_input){
+
+  pv_type_datapr_attitude attitude = msg_input.attitude ;
+  pv_type_datapr_attitude attitude_reference = msg_input.attitude_reference ;
+  pv_type_datapr_position position= msg_input.position ;
+  pv_type_datapr_position position_reference= msg_input.position_reference ;
+  pv_type_datapr_servos servo_state = msg_input.servosOutput.servo ;
+
+
+  bool enable_integration = msg_input.enableintegration ;
 
   pv_type_actuation actuation_signals;
   arm_matrix_instance_f32 error_state_vector, PD_control, I_control, PID_control, control_output;
@@ -564,7 +556,7 @@ pv_type_actuation c_rc_LQR_PT_controller(pv_type_datapr_attitude attitude,
   arm_mat_init_f32(&error_state_vector, 4, 1, (float32_t *)error_state_vector_f32);
   arm_mat_init_f32(&control_output, 4, 1, (float32_t *)control_output_f32);
 
-  //position_reference =c_RC_LQR_PT_StepRef( position_reference,  position) ;
+  msg_input =c_RC_LQR_PT_StepRef( msg_input) ;
 
   error_state_vector = c_rc_LQR_PT_errorStateVector(attitude,
                                                     attitude_reference,

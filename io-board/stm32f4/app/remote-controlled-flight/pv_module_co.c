@@ -167,18 +167,11 @@ void module_co_run()
 		oControlOutputData.actuation= iActuation ;
 
   #elif defined LQR_PATHTRACK_CONTROL
-		/*if (iterations > 20) {
-		      int test = 1 ;
-		}*/
-		iActuation = c_rc_LQR_PT_controller(iInputData.attitude,
-		                                    iInputData.attitude_reference,
-		                                    iInputData.position,
-		                                    iInputData.position_refrence,
-		                                    iInputData.servosOutput.servo,
-		                                    (float)(iInputData.receiverOutput.joystick[0])/200,
-		                                    iInputData.flightmode,
-		                                    iInputData.enableintegration);
-		//iActuation.servoLeft = -iActuation.servoLeft;
+		iActuation = c_rc_LQR_PT_controller(iInputData);
+		oControlOutputData.actuation= iActuation ;
+
+#elif defined HINF_PATHTRACK_CONTROL
+		iActuation =  c_rc_HinfLoad_controller(iInputData);
 		oControlOutputData.actuation= iActuation ;
 
 
