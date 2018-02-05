@@ -171,9 +171,10 @@ void module_co_run()
 		oControlOutputData.actuation= iActuation ;
 
 #elif defined HINF_PATHTRACK_CONTROL
-		iActuation =  c_rc_HinfLoad_controller(iInputData);
-		oControlOutputData.actuation= iActuation ;
-
+		if (iInputData.enableintegration) {
+		  iActuation =  c_rc_HinfLoad_controller(iInputData);
+		  oControlOutputData.actuation= iActuation ;
+		}
 
 
 

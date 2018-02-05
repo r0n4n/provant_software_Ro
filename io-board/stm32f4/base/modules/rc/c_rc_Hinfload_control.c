@@ -80,20 +80,32 @@ pv_type_actuation c_rc_HinfLoad_controller(pv_msg_input input)
 0.000009316184096 , -0.021344301330953}
 }; */
 
-float32_t Hinfload_K_f32_hil[OUTPUT_SIZE][STATE_SIZE]={{0.7101244468428165 , 6.141471260155515 , 7.765440795725267 , -18.97385920336097 , 1.826066960066656 , -0.09338611048322061 ,
-  17.57791369983566 , -0.7164683413615529 , -0.03350735071807359 , 0.4235128078145839 , 0.2708588223207514 , 4.311055003650324 ,
-  4.170146360015496 , -5.072227698361692 , 0.3809539101204998 , -0.06650607548831029 , 2.122392130887405 , -0.02473442956879733 ,
-  0.0006404185518007683 , 0.008513558472367464},
-{0.4662177448319676 , 3.523707063368016 , 5.320429316782071 , -0.1472247707396855 , -1.571274680558446 , -8.596271330525751 ,
-    6.985745062499001 , 21.91480875426527 , -1.94921538690414 , 0.09535891280953998 , -18.42904004957552 , 0.4434387926540275 ,
-    0.1072202681687932 , -0.317249054464631 , -0.9548973567439005 , -5.910676814456982 , 4.55703288130231 , 5.454379896200787,
-    -0.2518284755625079 , 0.06360770401465654},
-{-2.133681658482248 , -0.008445306788653999 , 0.001718825918710477 , -0.005954099368496411 , -1.2250793041699 , -5.503330766582297,
-    3.925043415306752 , 0.09204438852464802 , 0.1952075590979948 ,-0.03032542746108816 ,-0.003380038380425396 , 0.06292464197787898,
-    0.3808490158409268 , 0.04098134842638689 , -0.0437294922542443 , -0.1815063858105274 , 0.1672299855993115 , -0.004950772796723103,
-    0.1160491338776613,-0.01901526180028523}
-} ;
 
+float32_t Hinfload_K_f32_hil[OUTPUT_SIZE][STATE_SIZE]={
+    {0.7101244468428165,6.141471260155515,7.765440795725267,-18.97385920336097,1.826066960066656,
+    -0.09338611048322061,17.57791369983566,-0.7164683413615529,-0.03350735071807359,0.4235128078145839,
+          0.2708588223207514,4.311055003650324,4.170146360015496,-5.072227698361692,0.3809539101204998,
+    -0.06650607548831029,2.122392130887405,-0.02473442956879733,0.0006404185518007683,0.008513558472367464,
+  0.4662177448319676,3.523707063368016,5.320429316782071,-0.1472247707396855},
+
+  {-1.571274680558446,-8.596271330525751,6.985745062499001,21.91480875426527,-1.94921538690414,
+  0.09535891280953998,-18.42904004957552,0.4434387926540275,0.1072202681687932,-0.317249054464631,
+  -0.9548973567439005,-5.910676814456982,4.55703288130231,5.454379896200787,-0.2518284755625079,
+  0.06360770401465654,-2.133681658482248,-0.008445306788653999,0.001718825918710477,-0.005954099368496411,
+  -1.2250793041699,-5.503330766582297,3.925043415306752,0.09204438852464802},
+
+  {0.1952075590979948,-0.03032542746108816,-0.003380038380425396,0.06292464197787898,0.3808490158409268,
+  0.04098134842638689,-0.0437294922542443,-0.1815063858105274,0.1672299855993115,-0.004950772796723103,
+  0.1160491338776613,-0.01901526180028523,-0.01046202265880625,0.01457474072728251,0.07364843512499895,
+  0.02819675274652457,-0.003764578805403473,-0.008102716027547696,0.004792989032152177,0.000274744109690024,
+  0.1320526541764119,-0.01982603318640202,0.008140109577766043,0.01296630640217303},
+
+  {0.1858289717940038,-0.004531750410384653,-0.001691334240977282,-0.01099980803116952,0.3650350924346544,
+  -0.03429654457475473,0.02114487202233904,-0.1765601446988155,-0.0087900241089497,0.1676412256268605,
+  0.1107587378532268,-0.0008316297740917086,-0.0101361709665762,-0.00430220334492462,0.07112118136129204,
+  -0.02734833615631714,0.002775618184624419,-0.007952050965466266,0.000294409460551884,0.004683773810332413,
+  0.1255028830715101,-0.004335263292000928,0.009748974116588649,-0.01431313055730361}
+} ;
 
 	float32_t error_state_vector_f32_hil[STATE_SIZE]={0};
 	float32_t control_output_f32_hil[OUTPUT_SIZE]={0};
@@ -125,30 +137,18 @@ float32_t Hinfload_K_f32_hil[OUTPUT_SIZE][STATE_SIZE]={{0.7101244468428165 , 6.1
 	float32_t yaw_atual = 0;
 
 	// criando vetor de refência
-	reference_f32_hil[0]= 2;
-	reference_f32_hil[1]= 0;
-	reference_f32_hil[2]= 1;
-	reference_f32_hil[3]= 0;
-	reference_f32_hil[4]= 0;
-	reference_f32_hil[5]= 0;
-	reference_f32_hil[6]= 0.00002965;
-	reference_f32_hil[7]= 0.004885;
-	reference_f32_hil[8]= 0.004893;
-	reference_f32_hil[9]= 0.00484;
-	reference_f32_hil[10]= 0;
-	reference_f32_hil[11]= 0;
-	reference_f32_hil[12]= 0;
-	reference_f32_hil[13]= 0;
-	reference_f32_hil[14]= 0;
-	reference_f32_hil[15]= 0;
-	reference_f32_hil[16]= 0;
-	reference_f32_hil[17]= 0;
-	reference_f32_hil[18]= 0;
-	reference_f32_hil[19]= 0;
-	reference_f32_hil[20]= 0;
-	reference_f32_hil[21]= 0;
-	reference_f32_hil[22]= 0;
-	reference_f32_hil[23]= 0;
+	reference_f32_hil[STATE_X]= input.position_reference.x;
+	reference_f32_hil[STATE_Y]= input.position_reference.y;
+	reference_f32_hil[STATE_Z]= input.position_reference.z;
+	reference_f32_hil[STATE_YAW]= input.attitude_reference.yaw;
+	reference_f32_hil[STATE_ALPHA_R+2]= 0.00002965;
+	reference_f32_hil[STATE_ALPHA_L+2]= 0.004885;
+	reference_f32_hil[STATE_LOAD_X_ANGLE-2]= 0.004893;
+	reference_f32_hil[STATE_LOAD_Y_ANGLE-2]= 0.00484;
+	reference_f32_hil[STATE_DX]= 0;
+	reference_f32_hil[STATE_DY]= 0;
+	reference_f32_hil[STATE_DZ]= 0;
+
 
 	//Frame teste = frame_create();
 	//for(int i=0; i<24;i++) frame_addFloat(&teste, reference_f32_hil[i]);
@@ -169,7 +169,7 @@ float32_t Hinfload_K_f32_hil[OUTPUT_SIZE][STATE_SIZE]={{0.7101244468428165 , 6.1
 	z_atual = input.position.z - input.position_reference.z;
 	zint = zint + (0.012/2.0)*(z_atual + z_ant);
 	z_ant = z_atual;
-	yaw_atual = input.attitude.yaw;
+	yaw_atual = input.attitude.yaw- input.attitude_reference.yaw;
 	yawint = yawint + (0.012/2.0)*(yaw_atual + yaw_ant);
 	yaw_ant = yaw_atual;
 	
@@ -188,42 +188,17 @@ float32_t Hinfload_K_f32_hil[OUTPUT_SIZE][STATE_SIZE]={{0.7101244468428165 , 6.1
 	state_vector_f32_hil[STATE_DX]= input.position.dotX;
 	state_vector_f32_hil[STATE_DY]= input.position.dotY;
 	state_vector_f32_hil[STATE_DZ]= input.position.dotZ;
-	state_vector_f32_hil[STATE_DROLL]= angular_velocity[0];/* +
-			      input.attitude.dotYaw*cos(input.attitude.roll)*tan(input.attitude.pitch) + 
-			      input.attitude.dotPitch*sin(input.attitude.roll)*tan(input.attitude.pitch); */
-	state_vector_f32_hil[STATE_DPITCH]= angular_velocity[1];/**cos(input.attitude.roll) -
-			      input.attitude.dotYaw*sin(input.attitude.roll); */
-	state_vector_f32_hil[STATE_DYAW]= angular_velocity[2];/* *cos(input.attitude.roll))/cos(input.attitude.pitch) +
-			      (input.attitude.dotPitch*sin(input.attitude.roll))/cos(input.attitude.pitch); */
+	state_vector_f32_hil[STATE_DROLL]= angular_velocity[0];
+	state_vector_f32_hil[STATE_DPITCH]= angular_velocity[1];
+	state_vector_f32_hil[STATE_DYAW]= angular_velocity[2];
 	state_vector_f32_hil[STATE_DALPHA_R+2]= input.servosOutput.servo.dotAlphar;
 	state_vector_f32_hil[STATE_DALPHA_L+2]= input.servosOutput.servo.dotAlphal;
-
 	state_vector_f32_hil[STATE_LOAD_X_ANGLE_VELOCITY-2]= input.load_attitude.dotx_angle;
 	state_vector_f32_hil[STATE_LOAD_Y_ANGLE_VELOCITY-2]= input.load_attitude.doty_angle ;
-	/*c_common_usart_puts(USART6, "\ndAR: ");
-	char _buff[10];
-	c_common_utils_floatToString(state_vector_f32_hil[15], _buff, 0);
-	c_common_usart_puts(USART6, _buff);
-	state_vector_f32_hil[16]= input.servosOutput.servo.dotAlphal;
-	c_common_usart_puts(USART6, "\ndAL: ");
-	char _buff2[10];
-	c_common_utils_floatToString(state_vector_f32_hil[16], _buff2, 0);
-	c_common_usart_puts(USART6, _buff2);*/
-
-  yaw_ant = yaw_atual;
 	state_vector_f32_hil[STATE_XINT]= xint;
 	state_vector_f32_hil[STATE_YINT]= yint;
 	state_vector_f32_hil[STATE_ZINT]= zint;
 	state_vector_f32_hil[STATE_YAWINT]= yawint;
-	/*state_vector_f32_hil[17]= 0;
-	state_vector_f32_hil[18]= 0;
-	state_vector_f32_hil[19]= 0;
-	state_vector_f32_hil[20]= 0;*/
-
-	//Frame teste2 = frame_create();
-	//for(int i=0; i<24;i++) frame_addFloat(&teste2, state_vector_f32_hil[i]);
-	//frame_build(&teste2);
-	//c_io_protocolP2P_send(&teste2);
 
 	arm_mat_init_f32(&Hinfload_K_hil, OUTPUT_SIZE,STATE_SIZE,(float32_t *)Hinfload_K_f32_hil);
 	arm_mat_init_f32(&error_state_vector_hil, STATE_SIZE,1,(float32_t *)error_state_vector_f32_hil);
@@ -231,12 +206,16 @@ float32_t Hinfload_K_f32_hil[OUTPUT_SIZE][STATE_SIZE]={{0.7101244468428165 , 6.1
 	arm_mat_init_f32(&state_vector_hil,STATE_SIZE,1,(float_t *)state_vector_f32_hil);
 	arm_mat_init_f32(&reference_hil,STATE_SIZE,1,(float_t *)reference_f32_hil);
 
+
 	// Err = X - Xref
 	arm_mat_sub_f32(&state_vector_hil, &reference_hil, &error_state_vector_hil);
 
-	// Out = - K * Err
+	// - Out =  K * Err
 	arm_mat_mult_f32(&Hinfload_K_hil, &error_state_vector_hil, &control_output_hil);
 	
+	if (input.heartBeat==5){
+	    float p = 1 ;
+	  }
 	float32_t input1 = control_output_hil.pData[0];
 	float32_t input2 = control_output_hil.pData[1];
 	float32_t input3 = control_output_hil.pData[2];
@@ -253,8 +232,6 @@ float32_t Hinfload_K_f32_hil[OUTPUT_SIZE][STATE_SIZE]={{0.7101244468428165 , 6.1
 	actuation_signals.escLeftNewtons=(float32_t)control_output_hil.pData[1];
 	actuation_signals.servoRight=(float32_t)control_output_hil.pData[2];
 	actuation_signals.servoLeft=(float32_t)control_output_hil.pData[3];
-
-	//SendData(state_vector_f32_hil,24) ;
 
 	return actuation_signals;
 

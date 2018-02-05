@@ -558,6 +558,7 @@ pv_type_actuation c_rc_LQR_PT_controller(pv_msg_input msg_input){
 
   msg_input =c_RC_LQR_PT_StepRef( msg_input) ;
 
+  // e = X -Xref
   error_state_vector = c_rc_LQR_PT_errorStateVector(attitude,
                                                     attitude_reference,
                                                     position,

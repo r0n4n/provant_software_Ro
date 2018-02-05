@@ -189,9 +189,9 @@ void module_in_run()
   oInputData.load_attitude.doty_angle = 0 ;
 
   /*Inicializa as referencias*/
-  oInputData.position_reference.x = 0;
+  oInputData.position_reference.x = 2;
   oInputData.position_reference.y = 0;
-  oInputData.position_reference.z = 0.5;
+  oInputData.position_reference.z = 1;
   oInputData.position_reference.dotX = 0;
   oInputData.position_reference.dotY = 0;
   oInputData.position_reference.dotZ = 0;
@@ -237,7 +237,7 @@ void module_in_run()
         xQueueReceive(pv_interface_in.iOutputData, &iOutputData, 0);
 
 
-    oInputData.heartBeat=heartBeat+=1;
+
 
 
     /* Verifica init*/
@@ -261,7 +261,7 @@ void module_in_run()
       ReceiveData(INPUT_SIZE, state) ; //!!!! set the size input
       c_rc_set_state(state, &oInputData ) ;
 
-
+      oInputData.heartBeat=heartBeat+=1;
       oInputData.enableintegration= true ; // enable integration in the controller
     }
 
@@ -510,7 +510,7 @@ void module_in_run()
     c_common_gpio_toggle(pv_module_in_LED4);
 
     /* Realiza o trabalho de mutex */
-    if(pv_interface_in.oInputData != 0)
+    if((pv_interface_in.oInputData != 0) & oInputData.enableintegration)
       xQueueOverwrite(pv_interface_in.oInputData, &oInputData);
 
     /* A thread dorme ate o tempo final ser atingido */
