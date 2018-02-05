@@ -117,7 +117,7 @@ void module_in_run()
 {
 
 #ifdef HIL
-  float state[16] ;
+  float state[INPUT_SIZE] ;
   float output[4] ; // set the output array
 #endif
 
@@ -181,6 +181,12 @@ void module_in_run()
   oInputData.position.dotX = 0;
   oInputData.position.dotY = 0;
   oInputData.position.dotZ = 0;
+
+  /* Initialization of the load attitude */
+  oInputData.load_attitude.x_angle = 0 ;
+  oInputData.load_attitude.y_angle = 0 ;
+  oInputData.load_attitude.dotx_angle = 0 ;
+  oInputData.load_attitude.doty_angle = 0 ;
 
   /*Inicializa as referencias*/
   oInputData.position_reference.x = 0;
@@ -252,29 +258,9 @@ void module_in_run()
 
 
     if (oInputData.enableintegration== false) { // if no data needs to be sent we can read de serial port
-      ReceiveData(16, state) ; //!!!! set the size input
+      ReceiveData(INPUT_SIZE, state) ; //!!!! set the size input
+      c_rc_set_state(state, &oInputData ) ;
 
-      // get the position
-      oInputData.position.x = state[0];
-      oInputData.position.y = state[1];
-      oInputData.position.z = state[2];
-      oInputData.position.dotX = state[8] ;
-      oInputData.position.dotY = state [9] ;
-      oInputData.position.dotZ = state[10] ;
-
-      // get servo motor position
-      oInputData.servosOutput.servo.alphar=state[6];
-      oInputData.servosOutput.servo.alphal=state[7];
-      oInputData.servosOutput.servo.dotAlphar=state[14];
-      oInputData.servosOutput.servo.dotAlphal=state[15];
-
-      /* get the attitude*/
-      oInputData.attitude.roll  = state[3];
-      oInputData.attitude.pitch = state[4];
-      oInputData.attitude.yaw   = state[5];
-      oInputData.attitude.dotRoll  = state[11];
-      oInputData.attitude.dotPitch = state[12];
-      oInputData.attitude.dotYaw   = state[13];
 
       oInputData.enableintegration= true ; // enable integration in the controller
     }
@@ -303,11 +289,6 @@ void module_in_run()
       output[1]=iOutputData.actuation.escLeftNewtons ;
       output[2]=iOutputData.actuation.servoRight ;
       output[3]=iOutputData.actuation.servoLeft ;
-
-     /* output[0]=oInputData.position_reference.x;
-      output[1]=oInputData.position_reference.y;
-      output[2]=oInputData.position_reference.z;
-      output[3]= oInputData.attitude_reference.yaw ;*/
 
       SendData(output,4) ;
       oInputData.enableintegration= false ;

@@ -16,6 +16,7 @@
 #include "arm_math.h"
 #include "c_rc_commons.h"
 #include "pv_typedefs.h"
+#include "protocolo.h"
 
 #ifdef __cplusplus
  extern "C" {
@@ -32,6 +33,7 @@
 void c_rc_HinfLoad_control_init();
 
 pv_type_actuation c_rc_HinfLoad_controller(pv_msg_input input);
+void pqr2EtaDot(float32_t* angular_velocity , double in_a, double in_b, double in_c, double phi, double theta, double psii) ;
 
 #ifdef __cplusplus
 }

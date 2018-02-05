@@ -155,7 +155,7 @@
  #define STATE_DROLL	5
  #define STATE_DPITCH	6
  #define STATE_DYAW		7
-#elif defined PATH_TRACKING_CONTROL
+#elif defined LQR_PATHTRACK_CONTROL
  #define STATE_X			0
  #define STATE_Y			1
  #define STATE_Z			2
@@ -172,13 +172,42 @@
  #define STATE_DYAW			13
  #define STATE_DALPHA_R		14
  #define STATE_DALPHA_L		15
+#elif defined HINF_PATHTRACK_CONTROL
+ #define STATE_X      0
+ #define STATE_Y      1
+ #define STATE_Z      2
+ #define STATE_ROLL     3
+ #define STATE_PITCH    4
+ #define STATE_YAW      5
+ #define STATE_ALPHA_R    6
+ #define STATE_ALPHA_L    7
+ #define STATE_LOAD_X_ANGLE 8
+ #define STATE_LOAD_Y_ANGLE 9
+ #define STATE_DX     10
+ #define STATE_DY     11
+ #define STATE_DZ     12
+ #define STATE_DROLL    13
+ #define STATE_DPITCH   14
+ #define STATE_DYAW     15
+ #define STATE_DALPHA_R   16
+ #define STATE_DALPHA_L   17
+ #define STATE_LOAD_X_ANGLE_VELOCITY 18
+ #define STATE_LOAD_Y_ANGLE_VELOCITY 19
+#define STATE_XINT 20
+#define STATE_YINT 21
+#define STATE_ZINT 22
+#define STATE_YAWINT 23
+
+
 #endif
 
 #ifdef HINF_PATHTRACK_CONTROL
-  #define INPUT_STATE_SIZE 20
+  #define INPUT_SIZE 20
+  #define STATE_SIZE 24
 #elif defined LQR_PATHTRACK_CONTROL
-  #define INPUT_STATE_SIZE 16
+  #define INPUT_SIZE 16
 #endif
+#define OUTPUT_SIZE 4
 
 
 //Environment parameters

@@ -84,6 +84,13 @@ typedef struct
   float dotX, dotY, dotZ;
 } pv_type_datapr_position;
 
+/** \brief Estrutura para orientação do VANT.*/
+typedef struct
+{
+  float x_angle, y_angle ;
+  float dotx_angle, doty_angle ;
+} pv_type_datapr_load_attitude;
+
 /** \brief Estrutura para stados dos servo do VANT.*/
 typedef struct
 {
@@ -173,6 +180,7 @@ typedef struct
   pv_type_datapr_position position;
   pv_type_datapr_attitude attitude_reference;
   pv_type_datapr_position position_reference;
+  pv_type_datapr_load_attitude load_attitude ;
   unsigned int cicleTime;
   unsigned int heartBeat;
   bool init;
