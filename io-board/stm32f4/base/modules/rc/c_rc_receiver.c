@@ -43,15 +43,29 @@
 
 #define 	RECV_MINIMUM	984 //450   /** Largura mínima de um pulso válido */
 #define 	RECV_MAXIMUM	1999 //1800  /** Largura máxima de um pulso válido */
-#define 	RECV_MIN_THROTTLE 984//700 /** Minima largura de pulso para um throttle válido */
+#define   CHANNEL_CENTER  1500
+#define 	RECV_MIN_THROTTLE RECV_MINIMUM//700 /** Minima largura de pulso para um throttle válido */
+
+#define   CHAN_INIT_PITCH CHANNEL_CENTER
+#define   CHAN_INIT_ROLL  CHANNEL_CENTER
+#define   CHAN_INIT_YAW CHANNEL_CENTER
+#define   CHAN_INIT_THROTTLE RECV_MINIMUM
+#define   CHAN_INIT_A RECV_MINIMUM
+#define   CHAN_INIT_B RECV_MINIMUM
+#define   CHAN_INIT_VR RECV_MINIMUM
+#define   CHAN_INIT_C RECV_MINIMUM
 
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
 long int 	channels[12];
-long int 	last_channels[12];
+long int   channelsNorm[12];
+long int 	last_channelsNorm[12];
+long int  last_channels[12];
+
 int 		channel_index = 0;
 long int   channel_center[4]; /** Largura média do pulso em repouso, apenas para canais R-P-Y. */
 bool err = false ; // true if there is an error, false else
+int channels_init[NUM_OF_CHANNELS] ;
 
 /* Private function prototypes -----------------------------------------------*/
 /* Private functions ---------------------------------------------------------*/
@@ -62,11 +76,11 @@ bool err = false ; // true if there is an error, false else
  * AVISO: Nesta versão, os centros são hard-coded!
  */
 void c_rc_calibrateCenters() {
-	int iterations = 10;
+  int iterations = 10;
 
 	for(int i=0; i<4; i++)
 		channel_center[i] = 0;
-	/*
+
 	for(int i=0; i<iterations; i++) {
 		channel_center[C_RC_CHANNEL_PITCH] += c_rc_receiver_getChannel(C_RC_CHANNEL_PITCH);
 		channel_center[C_RC_CHANNEL_ROLL]  += c_rc_receiver_getChannel(C_RC_CHANNEL_ROLL);
@@ -74,11 +88,11 @@ void c_rc_calibrateCenters() {
 		channel_center[C_RC_CHANNEL_THROTTLE]+= c_rc_receiver_getChannel(C_RC_CHANNEL_THROTTLE);
 		for(int i=0; i<0xFFFFFF; i++) { __asm("NOP"); } //delay para nova amostra
 	}
-	*/
+
 	for(int i=0; i<4; i++)
 		channel_center[i] = channel_center[i]/iterations;
 
-	/* Forçando canal de Throttle para o minimo predefinido */
+	/* Forçando canal de Throttle para o minimo predefinido*/
 	channel_center[C_RC_CHANNEL_THROTTLE] = RECV_MIN_THROTTLE;
 	channel_center[C_RC_CHANNEL_PITCH] += 1100;
 	channel_center[C_RC_CHANNEL_ROLL]  += 1100;
@@ -93,10 +107,35 @@ void c_rc_calibrateCenters() {
   * @param  None
   * @retval None
   */
+
+void c_rc_init_channels_checker() {
+  int ready = 1 ;
+  while (ready){
+    int count = 0 ;
+    for(int i=0; i<NUM_OF_CHANNELS ; i++){
+      if ( channels[i]<channels_init[i]*0.9 || channels[i]>channels_init[i]*1.1 ) // check if the channels value is the initial value
+        count+=1 ;
+      else
+        last_channels[i]=channels[i];
+    }
+    if (count==0)
+      ready=0 ;
+  }
+}
+
 void c_rc_receiver_init() {
 	 /* zerando os contadores */
 	 for(int i=0; i<12; i++)
 		 channels[i] = 0;
+
+	 channels_init[C_RC_CHANNEL_ROLL] = CHAN_INIT_ROLL ;
+	 channels_init[C_RC_CHANNEL_PITCH] = CHAN_INIT_PITCH ;
+	 channels_init[C_RC_CHANNEL_THROTTLE] = CHAN_INIT_THROTTLE ;
+	 channels_init[C_RC_CHANNEL_YAW] = CHAN_INIT_YAW ;
+	 channels_init[C_RC_CHANNEL_A] = CHAN_INIT_A ;
+	 channels_init[C_RC_CHANNEL_B] = CHAN_INIT_B ;
+	 channels_init[C_RC_CHANNEL_VR] = CHAN_INIT_VR ;
+	 channels_init[C_RC_CHANNEL_C] = CHAN_INIT_C ;
 
 
 	 /* Enable SYSCFG clock */
@@ -137,11 +176,10 @@ void c_rc_receiver_init() {
 	 /* TIM2 enable counter */
 	 TIM_Cmd(TIM2, ENABLE);
 
-	 // Calibra os centros
-	 c_rc_calibrateCenters();
+	 c_rc_init_channels_checker() ;
 }
 
-
+/*
 void c_rc_receiver_init2() {
   EXTI_InitTypeDef EXTI_InitStructure;
   NVIC_InitTypeDef NVIC_InitStructure;
@@ -163,7 +201,7 @@ void c_rc_receiver_init2() {
   NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
   NVIC_Init(&NVIC_InitStructure);
 }
-
+*/
 /** \brief Retorna a largura do pulso em \em us do canal selecionado.
   *
   * Retorna -1 caso o canal desejado não seja válido (por ex., não exista), ou se a largura
@@ -174,7 +212,7 @@ void c_rc_receiver_init2() {
   * @retval int Duração em \em us do pulso no canal selecionado.
   */
 float  c_rc_receiver_getChannel(int channel_n) {
-	if(channel_n < NUM_OF_CHANNELS && channels[channel_n] > RECV_MINIMUM && channels[channel_n] < RECV_MAXIMUM && err == false) {
+	if(channel_n < NUM_OF_CHANNELS && channels[channel_n] > RECV_MINIMUM && channels[channel_n] < RECV_MAXIMUM && fabs(last_channels[channel_n]-channels[channel_n])<20) { // && err == false
 
   /** Maximos e minimos de cada canal
     * temosque encontrar os zeros do mag
@@ -185,7 +223,7 @@ float  c_rc_receiver_getChannel(int channel_n) {
     ************************************************************************************************************************/
     //ufsc_provant_control
     #if 1
-    int throttleMapValues[] ={984,1999} ; //{706,1581};
+    int throttleMapValues[] ={984,1999,986} ; //{706,1581};
     int rollMapValues[]     ={984,1999} ;//{713,1542};
     int yawMapValues[]		={984,1999} ;//{692,1523};
     int pitchMapValues[]	={984,1999} ;//{687,1513};
@@ -199,31 +237,32 @@ float  c_rc_receiver_getChannel(int channel_n) {
     int vrMapValues[]		={564,1672};
 
    	#endif
-    long int   channelsNorm[12];
+        last_channels[channel_n]= channels[channel_n] ;
+
         if(channel_n==C_RC_CHANNEL_THROTTLE)
-            last_channels[channel_n] = channelsNorm[channel_n] = c_common_utils_map(channels[channel_n], throttleMapValues[0], throttleMapValues[1], 0, +100);
+            last_channelsNorm[channel_n] = channelsNorm[channel_n] = c_common_utils_map(channels[channel_n], throttleMapValues[0], throttleMapValues[1], 0, +100);
        	if(channel_n==C_RC_CHANNEL_ROLL)
-            last_channels[channel_n] = channelsNorm[channel_n] = c_common_utils_map(channels[channel_n], rollMapValues[0],rollMapValues[1], -100, +100);
+            last_channelsNorm[channel_n] = channelsNorm[channel_n] = c_common_utils_map(channels[channel_n], rollMapValues[0],rollMapValues[1], -100, +100);
         if(channel_n==C_RC_CHANNEL_YAW)
-            last_channels[channel_n] = channelsNorm[channel_n] = c_common_utils_map(channels[channel_n], yawMapValues[0],yawMapValues[1], -100, +100);
+            last_channelsNorm[channel_n] = channelsNorm[channel_n] = c_common_utils_map(channels[channel_n], yawMapValues[0],yawMapValues[1], -100, +100);
         if(channel_n==C_RC_CHANNEL_PITCH)
-            last_channels[channel_n] = channelsNorm[channel_n] = c_common_utils_map(channels[channel_n], pitchMapValues[0],pitchMapValues[1], +100, -100);
+            last_channelsNorm[channel_n] = channelsNorm[channel_n] = c_common_utils_map(channels[channel_n], pitchMapValues[0],pitchMapValues[1], +100, -100);
         if(channel_n==C_RC_CHANNEL_VR)
-            last_channels[channel_n] = channelsNorm[channel_n] = c_common_utils_map(channels[channel_n], vrMapValues[0],vrMapValues[1], 0,100);
+            last_channelsNorm[channel_n] = channelsNorm[channel_n] = c_common_utils_map(channels[channel_n], vrMapValues[0],vrMapValues[1], 0,100);
         if(channel_n==C_RC_CHANNEL_A)
             if(channels[channel_n]>1000)
-            	channels[channel_n]=last_channels[channel_n] = 0;
+              channelsNorm[channel_n]=last_channelsNorm[channel_n] = 0;
             else
-            	channels[channel_n]=last_channels[channel_n] = 1;
+            	channels[channel_n]=last_channelsNorm[channel_n] = 1;
         if(channel_n==C_RC_CHANNEL_B)
             if(channels[channel_n]>1000)
-            	channels[channel_n]=last_channels[channel_n] = 1;
+              channelsNorm[channel_n]=last_channelsNorm[channel_n] = 1;
             else
-            	channels[channel_n]=last_channels[channel_n] = 100;
+              channelsNorm[channel_n]=last_channelsNorm[channel_n] = 100;
 		return channelsNorm[channel_n];
 	}
 	else
-		return last_channels[channel_n];
+		return last_channelsNorm[channel_n];
 }
 
 /** \brief Retorna a largura do pulso em \em us do canal selecionado, em relação ao centro do canal.
@@ -236,7 +275,7 @@ float  c_rc_receiver_getChannel(int channel_n) {
   * @param  int Canal a ser lido (começando em 0)
   * @retval int Duração em \em us do pulso no canal selecionado em relação ao centro.
   */
-int  c_rc_receiver_getCenteredChannel(int channel_n) {
+/*int  c_rc_receiver_getCenteredChannel(int channel_n) {
 	int ch2ret, attempts;
 
 	switch(channel_n) {
@@ -256,12 +295,12 @@ int  c_rc_receiver_getCenteredChannel(int channel_n) {
 		break;
 
 	default:
-		/* Chamado um canal indefinido */
+		// Chamado um canal indefinido
 		return -1;
 		break;
 	}
-}
-
+}*/
+/*
 float32_t c_rc_receiver_getNormalizedChannel(int channel_n){
 	float32_t normalized_channel;
 	int teste;
@@ -273,7 +312,7 @@ float32_t c_rc_receiver_getNormalizedChannel(int channel_n){
 		normalized_channel = -normalized_channel;
 
 	return normalized_channel;
-}
+}*/
 
 /* IRQ handlers ------------------------------------------------------------- */
 
@@ -313,7 +352,11 @@ void  EXTI9_5_IRQHandler()
 	}
 	else {
 		if(channel_index < NUM_OF_CHANNELS) {
-			channels[channel_index] = pulse_width;
+		  float diff = fabs(channels[channel_index] - pulse_width) ;
+		 //if (diff<10){
+
+		    channels[channel_index] = pulse_width;
+		 //}
 			channel_index++;
 		}
 

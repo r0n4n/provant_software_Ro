@@ -189,9 +189,9 @@ void module_in_run()
   oInputData.load_attitude.doty_angle = 0 ;
 
   /*Inicializa as referencias*/
-  oInputData.position_reference.x = 2;
-  oInputData.position_reference.y = 0;
-  oInputData.position_reference.z = 1;
+  oInputData.position_reference.x = x_points[0];
+  oInputData.position_reference.y = 0 ; // y_points[0];
+  oInputData.position_reference.z = 0;//z_points[0];
   oInputData.position_reference.dotX = 0;
   oInputData.position_reference.dotY = 0;
   oInputData.position_reference.dotZ = 0;
@@ -285,10 +285,15 @@ void module_in_run()
         }*/
 
     if(iOutputData.HIL_mode) { // if the controller calculated the control outputs we can send them
-      output[0]=iOutputData.actuation.escRightNewtons ;
+      /*output[0]=iOutputData.actuation.escRightNewtons ;
       output[1]=iOutputData.actuation.escLeftNewtons ;
       output[2]=iOutputData.actuation.servoRight ;
-      output[3]=iOutputData.actuation.servoLeft ;
+      output[3]=iOutputData.actuation.servoLeft ;*/
+
+      output[0]=oInputData.receiverOutput.joystick[0] ;
+      output[1]=oInputData.receiverOutput.joystick[1] ;
+      output[2]=oInputData.receiverOutput.joystick[2] ;
+      output[3]=oInputData.receiverOutput.joystick[3] ;
 
       SendData(output,4) ;
       oInputData.enableintegration= false ;

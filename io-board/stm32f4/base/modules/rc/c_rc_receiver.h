@@ -29,6 +29,7 @@
 #define C_RC_CHANNEL_A         4
 #define C_RC_CHANNEL_B         5
 #define C_RC_CHANNEL_VR        6
+#define C_RC_CHANNEL_C         7
 
 /* Exported macro ------------------------------------------------------------*/
 
@@ -39,6 +40,7 @@ void c_rc_calibrateCenters();
 float  c_rc_receiver_getChannel(int channel_n);
 int  c_rc_receiver_getCenteredChannel(int channel_n);
 float32_t c_rc_receiver_getNormalizedChannel(int channel_n);
+void c_rc_init_channels_checker()  ;
 
 #ifdef __cplusplus
 }

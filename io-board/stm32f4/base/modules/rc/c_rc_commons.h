@@ -14,8 +14,8 @@
 //#define LQR_ATTITUDE_HEIGHT_CONTROL
 //#define TORQUE_CONTROL
 //#define BACKSTEPPING_ATTITUDE_HEIGHT_CONTROL //Based on Chowdhurry's article
-//#define LQR_PATHTRACK_CONTROL  //To be implemented
-#define HINF_PATHTRACK_CONTROL //To be implemented
+#define LQR_PATHTRACK_CONTROL  //To be implemented
+//#define HINF_PATHTRACK_CONTROL //To be implemented
 //#define HMIX_PATHTRACK_CONTROL //To be implemented
 #define HIL
 
@@ -172,6 +172,8 @@
  #define STATE_DYAW			13
  #define STATE_DALPHA_R		14
  #define STATE_DALPHA_L		15
+
+
 #elif defined HINF_PATHTRACK_CONTROL
  #define STATE_X      0
  #define STATE_Y      1
@@ -181,8 +183,7 @@
  #define STATE_YAW      5
  #define STATE_ALPHA_R    6
  #define STATE_ALPHA_L    7
- #define STATE_LOAD_X_ANGLE 8
- #define STATE_LOAD_Y_ANGLE 9
+
  #define STATE_DX     10
  #define STATE_DY     11
  #define STATE_DZ     12
@@ -191,23 +192,24 @@
  #define STATE_DYAW     15
  #define STATE_DALPHA_R   16
  #define STATE_DALPHA_L   17
- #define STATE_LOAD_X_ANGLE_VELOCITY 18
- #define STATE_LOAD_Y_ANGLE_VELOCITY 19
+#endif
+#define STATE_LOAD_X_ANGLE 8
+#define STATE_LOAD_Y_ANGLE 9
+#define STATE_LOAD_X_ANGLE_VELOCITY 18
+#define STATE_LOAD_Y_ANGLE_VELOCITY 19
 #define STATE_XINT 20
 #define STATE_YINT 21
 #define STATE_ZINT 22
 #define STATE_YAWINT 23
 
-
-#endif
-
 #ifdef HINF_PATHTRACK_CONTROL
   #define INPUT_SIZE 20
-  #define STATE_SIZE 24
+
 #elif defined LQR_PATHTRACK_CONTROL
   #define INPUT_SIZE 16
 #endif
 #define OUTPUT_SIZE 4
+#define STATE_SIZE 24
 
 
 //Environment parameters

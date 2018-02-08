@@ -27,7 +27,7 @@
 //#define ENABLE_IMU
 //#define ENABLE_SERVO
 //#define ENABLE_ALTURA
-#define DISABLE_RC
+//#define DISABLE_RC
 #define ENALBE_DEBUG
 
  /*Def da IMU*/
@@ -83,6 +83,7 @@
 #include "c_datapr_MahonyAHRS.h"
  /* Filtro */
 #include "c_datapr_filter.h"
+#include "c_rc_ref_generation.h"
 
 /* Exported types ------------------------------------------------------------*/
 struct pv_interface_in
