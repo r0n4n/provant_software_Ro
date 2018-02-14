@@ -68,7 +68,7 @@ void module_in_init()
   /* Inicialização do hardware do módulo */
   pv_module_in_LED4 = c_common_gpio_init(GPIOD, GPIO_Pin_12, GPIO_Mode_OUT); //LED4
 
-
+  void c_rc_ref_init() ;
 
 #ifndef DISABLE_RC
   /* Inicializador do receiver */
@@ -189,9 +189,9 @@ void module_in_run()
   oInputData.load_attitude.doty_angle = 0 ;
 
   /*Inicializa as referencias*/
-  oInputData.position_reference.x = x_points[0];
-  oInputData.position_reference.y = 0 ; // y_points[0];
-  oInputData.position_reference.z = 0;//z_points[0];
+  oInputData.position_reference.x = 0 ; //  x_points[0];
+  oInputData.position_reference.y = 0 ; //y_points[0];
+  oInputData.position_reference.z = 0.5 ; //z_points[0];
   oInputData.position_reference.dotX = 0;
   oInputData.position_reference.dotY = 0;
   oInputData.position_reference.dotZ = 0;
@@ -204,13 +204,13 @@ void module_in_run()
   oInputData.attitude_reference.dotYaw   = 0;
   oInputData.enableintegration== false ;
 
-
+#ifdef HIL
   iOutputData.actuation.servoRight = 0;
   iOutputData.actuation.servoLeft  = 0;
   iOutputData.actuation.escRightNewtons = 0;
   iOutputData.actuation.escLeftNewtons  = 0;
   iOutputData.HIL_mode = false ;
-
+#endif
   /*ref2.x=0;
   ref2.y=0;
   ref2.z=oInputData.position_reference.z ;
@@ -218,12 +218,12 @@ void module_in_run()
   ref2.dotY=0;
   ref2.dotZ=0;*/
 
-  ref2.pitch=0;
+  /*ref2.pitch=0;
   ref2.roll=0;
   ref2.yaw=1 ;
   ref2.dotPitch=0;
   ref2.dotRoll=0;
-  ref2.dotYaw=0;
+  ref2.dotYaw=0;*/
 
 
 
@@ -232,13 +232,14 @@ void module_in_run()
 
     /* Leitura do numero de ciclos atuais */
     pv_module_in_lastWakeTime = xTaskGetTickCount();
-
+#ifdef HIL
     if (uxQueueMessagesWaiting(pv_interface_in.iOutputData)!=0)
         xQueueReceive(pv_interface_in.iOutputData, &iOutputData, 0);
+#endif
 
-
-
-
+#ifdef REF_GENERATION
+    c_rc_ref_discrete(&oInputData) ;
+#endif
 
     /* Verifica init*/
     if (iterations > INIT_ITERATIONS)
@@ -252,12 +253,8 @@ void module_in_run()
 
 
 #ifdef HIL
-    //oInputData.position_reference.z = 0.5; /// TO REMOVE THEN !!!!!
 
-
-
-
-    if (oInputData.enableintegration== false) { // if no data needs to be sent we can read de serial port
+    if (oInputData.enableintegration== false) { // if no data needs to be sent we can read the serial port
       ReceiveData(INPUT_SIZE, state) ; //!!!! set the size input
       c_rc_set_state(state, &oInputData ) ;
 
@@ -285,15 +282,15 @@ void module_in_run()
         }*/
 
     if(iOutputData.HIL_mode) { // if the controller calculated the control outputs we can send them
-      /*output[0]=iOutputData.actuation.escRightNewtons ;
+      output[0]=iOutputData.actuation.escRightNewtons ;
       output[1]=iOutputData.actuation.escLeftNewtons ;
       output[2]=iOutputData.actuation.servoRight ;
-      output[3]=iOutputData.actuation.servoLeft ;*/
+      output[3]=iOutputData.actuation.servoLeft ;
 
-      output[0]=oInputData.receiverOutput.joystick[0] ;
+      /*output[0]=oInputData.receiverOutput.joystick[0] ;
       output[1]=oInputData.receiverOutput.joystick[1] ;
       output[2]=oInputData.receiverOutput.joystick[2] ;
-      output[3]=oInputData.receiverOutput.joystick[3] ;
+      output[3]=oInputData.receiverOutput.joystick[3] ;*/
 
       SendData(output,4) ;
       oInputData.enableintegration= false ;

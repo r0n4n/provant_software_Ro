@@ -14,9 +14,12 @@
 
 #define points_number 2
 
-float x_points[points_number] = {0,1} ;
+float x_points[points_number] ;
+float y_points[points_number] ;
+float z_points[points_number] ;
 
+void c_rc_ref_init()  ;
+void c_rc_ref_discrete(pv_msg_input *input) ;
 
-void c_rc_discrete_ref(pv_msg_input *input) ;
 
 #endif /* C_RC_REF_GENERATION_H_ */

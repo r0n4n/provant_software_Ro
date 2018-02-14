@@ -6,10 +6,15 @@
  */
 #include "c_rc_ref_generation.h"
 
-float y_points[points_number] = {0,0} ;
-float z_points[points_number] = {0.5,0.5} ;
 
-void c_rc_discrete_ref(pv_msg_input *input){
+
+void c_rc_ref_init() {
+	float x_points[points_number] = {0,1} ;
+	float y_points[points_number] = {0,0} ;
+	float z_points[points_number] = {0.5,0.5} ;
+}
+
+void c_rc_ref_discrete(pv_msg_input *input){
   static float startDelay = 0 ;
   static int countPoint = 0 ;
   int count = 0 ;
