@@ -68,7 +68,7 @@ void module_in_init()
   /* Inicialização do hardware do módulo */
   pv_module_in_LED4 = c_common_gpio_init(GPIOD, GPIO_Pin_12, GPIO_Mode_OUT); //LED4
 
-  void c_rc_ref_init() ;
+  c_rc_ref_init() ;
 
 #ifndef DISABLE_RC
   /* Inicializador do receiver */
@@ -191,7 +191,7 @@ void module_in_run()
   /*Inicializa as referencias*/
   oInputData.position_reference.x = 0 ; //  x_points[0];
   oInputData.position_reference.y = 0 ; //y_points[0];
-  oInputData.position_reference.z = 0.5 ; //z_points[0];
+  oInputData.position_reference.z = z_points[0];
   oInputData.position_reference.dotX = 0;
   oInputData.position_reference.dotY = 0;
   oInputData.position_reference.dotZ = 0;

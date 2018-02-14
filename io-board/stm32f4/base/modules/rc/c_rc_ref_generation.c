@@ -9,9 +9,11 @@
 
 
 void c_rc_ref_init() {
-	float x_points[points_number] = {0,1} ;
-	float y_points[points_number] = {0,0} ;
-	float z_points[points_number] = {0.5,0.5} ;
+	x_points[0] = 0 ;
+	y_points[0] = 0 ;
+	z_points[0] = 0.5 ;
+
+
 }
 
 void c_rc_ref_discrete(pv_msg_input *input){
