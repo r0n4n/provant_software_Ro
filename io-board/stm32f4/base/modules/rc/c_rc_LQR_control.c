@@ -31,7 +31,7 @@
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
 
-float stepSize[4]={0.1,0.3,0.3,0.01} ;
+float stepSize[4]={0.1,0.3,0.3,0.1} ;
 
 pv_type_stability_error LQR_AH_integrated_error={0};
 pv_type_stability_error LQR_AH_last_error={0};
@@ -140,7 +140,7 @@ float32_t error_state_vector_f32[8]={0};
 
 #elif defined LQR_PATHTRACK_CONTROL
 
-float32_t equilibrium_control_f32[4]={10.2751,10.2799,0,0};
+float32_t equilibrium_control_f32[4]={10.2751,10.2799,-0.0154,-0.0154};
 float32_t equilibrium_point_f32[16]={0};
 float32_t state_vector_f32[16]={0};
 float32_t error_state_vector_f32[16]={0};
@@ -171,16 +171,12 @@ arm_matrix_instance_f32 c_rc_LQR_AH_I(pv_type_stability_error error);
 void c_rc_LQR_AH_integrate_error(pv_type_stability_error current_error, float sample_time);
 
 /*//LQR Path Track (PT) controller.*/
-arm_matrix_instance_f32 c_rc_LQR_PT_errorStateVector(pv_type_datapr_attitude attitude,
-                                                     pv_type_datapr_attitude attitude_reference,
-                                                     pv_type_datapr_position position,
-                                                     pv_type_datapr_position position_reference,
-                                                     pv_type_datapr_servos servo_state) ;
+arm_matrix_instance_f32 c_rc_LQR_PT_errorStateVector(pv_msg_input msg_input ) ;
 
 void c_rc_LQR_PT_integrate_error(pv_type_pathtrack_error error, float sample_time) ;
 arm_matrix_instance_f32 c_rc_LQR_PT_PD(arm_matrix_instance_f32 error_state_vector);
 arm_matrix_instance_f32 c_rc_LQR_PT_I(pv_type_pathtrack_error error, bool enable_integration) ;
-pv_msg_input c_RC_LQR_PT_StepRef(pv_msg_input msg_input) ;
+void c_RC_LQR_PT_StepRef(pv_msg_input *msg_input) ;
 
 /* Private functions ---------------------------------------------------------*/
 
@@ -286,40 +282,41 @@ arm_matrix_instance_f32 c_rc_LQR_AH_I(pv_type_stability_error error){
 	return I_control_output;
 }
 
-arm_matrix_instance_f32 c_rc_LQR_PT_errorStateVector(pv_type_datapr_attitude attitude,
+arm_matrix_instance_f32 c_rc_LQR_PT_errorStateVector(pv_msg_input msg_input )
+		/*pv_type_datapr_attitude attitude,
                                                      pv_type_datapr_attitude attitude_reference,
                                                      pv_type_datapr_position position,
                                                      pv_type_datapr_position position_reference,
-                                                     pv_type_datapr_servos servo_state)
+                                                     pv_type_datapr_servos servo_state)*/
 {
 
   arm_matrix_instance_f32 error_state_vector, state_vector, equilibrium_point;
 
   //State Vector
-  state_vector_f32[STATE_X]=position.x;
-  state_vector_f32[STATE_Y]=position.y;
-  state_vector_f32[STATE_Z]=position.z;
-  state_vector_f32[STATE_ROLL]=attitude.roll;
-  state_vector_f32[STATE_PITCH]=attitude.pitch;
-  state_vector_f32[STATE_YAW]=attitude.yaw;
-  state_vector_f32[STATE_ALPHA_R]=servo_state.alphar;
-  state_vector_f32[STATE_ALPHA_L]=servo_state.alphal;
-  state_vector_f32[STATE_DX]=position.dotX;
-  state_vector_f32[STATE_DY]=position.dotY;
-  state_vector_f32[STATE_DZ]=position.dotZ;
-  state_vector_f32[STATE_DROLL]=attitude.dotRoll;
-  state_vector_f32[STATE_DPITCH]=attitude.dotPitch;
-  state_vector_f32[STATE_DYAW]=attitude.dotYaw;
-  state_vector_f32[STATE_DALPHA_R]=servo_state.dotAlphar;
-  state_vector_f32[STATE_DALPHA_L]=servo_state.dotAlphal;
+  state_vector_f32[STATE_X]=msg_input.position.x;
+  state_vector_f32[STATE_Y]=msg_input.position.y;
+  state_vector_f32[STATE_Z]=msg_input.position.z;
+  state_vector_f32[STATE_ROLL]=msg_input.attitude.roll;
+  state_vector_f32[STATE_PITCH]=msg_input.attitude.pitch;
+  state_vector_f32[STATE_YAW]=msg_input.attitude.yaw;
+  state_vector_f32[STATE_ALPHA_R]=msg_input.servosOutput.servo.alphar;
+  state_vector_f32[STATE_ALPHA_L]=msg_input.servosOutput.servo.alphal;
+  state_vector_f32[STATE_DX]=msg_input.position.dotX;
+  state_vector_f32[STATE_DY]=msg_input.position.dotY;
+  state_vector_f32[STATE_DZ]=msg_input.position.dotZ;
+  state_vector_f32[STATE_DROLL]=msg_input.attitude.dotRoll;
+  state_vector_f32[STATE_DPITCH]=msg_input.attitude.dotPitch;
+  state_vector_f32[STATE_DYAW]=msg_input.attitude.dotYaw;
+  state_vector_f32[STATE_DALPHA_R]=msg_input.servosOutput.servo.dotAlphar;
+  state_vector_f32[STATE_DALPHA_L]=msg_input.servosOutput.servo.dotAlphal;
 
 
 
   //Updates the height equilibrium point according to the reference
-  equilibrium_point_f32[STATE_X]= position_reference.x;
-  equilibrium_point_f32[STATE_Y]= position_reference.y;
-  equilibrium_point_f32[STATE_Z]= position_reference.z;
-  equilibrium_point_f32[STATE_YAW]= attitude_reference.yaw;
+  equilibrium_point_f32[STATE_X]= msg_input.position_reference.x;
+  equilibrium_point_f32[STATE_Y]= msg_input.position_reference.y;
+  equilibrium_point_f32[STATE_Z]= msg_input.position_reference.z;
+  equilibrium_point_f32[STATE_YAW]= msg_input.attitude_reference.yaw;
 
   //Initializes the matrices
   arm_mat_init_f32(&equilibrium_point, 16, 1, (float32_t *)equilibrium_point_f32);
@@ -400,11 +397,11 @@ arm_matrix_instance_f32 c_rc_LQR_PT_I(pv_type_pathtrack_error error, bool enable
   return I_control_output;
 }
 
-pv_msg_input c_RC_LQR_PT_StepRef(pv_msg_input msg_input){
+void c_RC_LQR_PT_StepRef(pv_msg_input *msg_input){
 
-  pv_msg_input new_msg_input = msg_input ;
-  float reference[4]={msg_input.position_reference.x,msg_input.position_reference.y,msg_input.position_reference.z,msg_input.attitude_reference.yaw} ;
-  float state[4]={msg_input.position.x,msg_input.position.y,msg_input.position.z,msg_input.attitude.yaw} ;
+
+  float reference[4]={msg_input->position_reference.x,msg_input->position_reference.y,msg_input->position_reference.z,msg_input->attitude_reference.yaw} ;
+  float state[4]={msg_input->position.x,msg_input->position.y,msg_input->position.z,msg_input->attitude.yaw} ;
   float new_reference[4]={0} ;
   float distance[4]={0} ;
 
@@ -425,12 +422,12 @@ pv_msg_input c_RC_LQR_PT_StepRef(pv_msg_input msg_input){
       new_reference[i]=reference[i] ;
     }
   }
-  new_msg_input.position_reference.x = new_reference[0] ;
-  new_msg_input.position_reference.y = new_reference[1] ;
-  new_msg_input.position_reference.z = new_reference[2] ;
-  new_msg_input.attitude_reference.yaw = new_reference[3] ;
+  msg_input->position_reference.x = new_reference[0] ;
+  msg_input->position_reference.y = new_reference[1] ;
+  msg_input->position_reference.z = new_reference[2] ;
+  msg_input->attitude_reference.yaw = new_reference[3] ;
 
-  return new_msg_input ;
+
 }
 
 
@@ -545,8 +542,6 @@ pv_type_actuation c_rc_LQR_PT_controller(pv_msg_input msg_input){
   pv_type_datapr_servos servo_state = msg_input.servosOutput.servo ;
 
 
-  bool enable_integration = msg_input.enableintegration ;
-
   pv_type_actuation actuation_signals;
   arm_matrix_instance_f32 error_state_vector, PD_control, I_control, PID_control, control_output;
   pv_type_pathtrack_error error;
@@ -556,14 +551,10 @@ pv_type_actuation c_rc_LQR_PT_controller(pv_msg_input msg_input){
   arm_mat_init_f32(&error_state_vector, 4, 1, (float32_t *)error_state_vector_f32);
   arm_mat_init_f32(&control_output, 4, 1, (float32_t *)control_output_f32);
 
-  //msg_input =c_RC_LQR_PT_StepRef( msg_input) ;
+  c_RC_LQR_PT_StepRef( &msg_input) ; // adapt the reference if it is too big
 
   // e = X -Xref
-  error_state_vector = c_rc_LQR_PT_errorStateVector(attitude,
-                                                    attitude_reference,
-                                                    position,
-                                                    position_reference,
-                                                    servo_state);
+  error_state_vector = c_rc_LQR_PT_errorStateVector(msg_input);
     //u_p+u_d=-Ke*e(t)
   PD_control = c_rc_LQR_PT_PD(error_state_vector);
 
@@ -574,7 +565,7 @@ pv_type_actuation c_rc_LQR_PT_controller(pv_msg_input msg_input){
   error.z=   error_state_vector_f32[STATE_Z];
   error.yaw=   error_state_vector_f32[STATE_YAW];
 
-  I_control = c_rc_LQR_PT_I(error,enable_integration);
+  I_control = c_rc_LQR_PT_I(error,msg_input.enableintegration);
 
     //u_pid=u_pd+u_i;
   arm_mat_add_f32(&PD_control, &I_control, &PID_control);

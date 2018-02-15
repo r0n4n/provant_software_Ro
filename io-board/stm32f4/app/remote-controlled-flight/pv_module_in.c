@@ -189,9 +189,9 @@ void module_in_run()
   oInputData.load_attitude.doty_angle = 0 ;
 
   /*Inicializa as referencias*/
-  oInputData.position_reference.x = 0 ; //  x_points[0];
+  oInputData.position_reference.x = 2 ; //  x_points[0];
   oInputData.position_reference.y = 0 ; //y_points[0];
-  oInputData.position_reference.z = z_points[0];
+  oInputData.position_reference.z = 1 ;  //z_points[0];
   oInputData.position_reference.dotX = 0;
   oInputData.position_reference.dotY = 0;
   oInputData.position_reference.dotZ = 0;
@@ -237,9 +237,6 @@ void module_in_run()
         xQueueReceive(pv_interface_in.iOutputData, &iOutputData, 0);
 #endif
 
-#ifdef REF_GENERATION
-    c_rc_ref_discrete(&oInputData) ;
-#endif
 
     /* Verifica init*/
     if (iterations > INIT_ITERATIONS)
@@ -254,9 +251,16 @@ void module_in_run()
 
 #ifdef HIL
 
+
+
     if (oInputData.enableintegration== false) { // if no data needs to be sent we can read the serial port
       ReceiveData(INPUT_SIZE, state) ; //!!!! set the size input
       c_rc_set_state(state, &oInputData ) ;
+
+	#ifdef REF_GENERATION
+		c_rc_ref_discrete(&oInputData) ;
+		//c_rc_ref_continuous(&oInputData) ;
+	#endif
 
       oInputData.heartBeat=heartBeat+=1;
       oInputData.enableintegration= true ; // enable integration in the controller
