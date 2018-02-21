@@ -27,9 +27,8 @@
 //#define ENABLE_IMU
 //#define ENABLE_SERVO
 //#define ENABLE_ALTURA
-#define DISABLE_RC
-#define ENALBE_DEBUG
-#define REF_GENERATION
+//#define ENABLE_RC
+#define REF_GENERATION // uncomment to use a reference generation
 
  /*Def da IMU*/
 #define ATTITUDE_MINIMUM_STEP	0.01// Radians. Minimum change in angle that is passed to the controller

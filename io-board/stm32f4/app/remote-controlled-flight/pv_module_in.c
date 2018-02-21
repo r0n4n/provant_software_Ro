@@ -70,7 +70,7 @@ void module_in_init()
 
   c_rc_ref_init() ;
 
-#ifndef DISABLE_RC
+#ifdef ENABLE_RC
   /* Inicializador do receiver */
    c_rc_receiver_init();
 #endif
@@ -189,16 +189,16 @@ void module_in_run()
   oInputData.load_attitude.doty_angle = 0 ;
 
   /*Inicializa as referencias*/
-  oInputData.position_reference.x = 2 ; //  x_points[0];
-  oInputData.position_reference.y = 0 ; //y_points[0];
-  oInputData.position_reference.z = 1 ;  //z_points[0];
+  oInputData.position_reference.x =  x_points[0];
+  oInputData.position_reference.y = y_points[0];
+  oInputData.position_reference.z = z_points[0];
   oInputData.position_reference.dotX = 0;
   oInputData.position_reference.dotY = 0;
   oInputData.position_reference.dotZ = 0;
 
   oInputData.attitude_reference.roll  = 0;
   oInputData.attitude_reference.pitch = 0;
-  oInputData.attitude_reference.yaw   = 0;
+  oInputData.attitude_reference.yaw   = yaw_points[0];
   oInputData.attitude_reference.dotRoll  = 0;
   oInputData.attitude_reference.dotPitch = 0;
   oInputData.attitude_reference.dotYaw   = 0;
@@ -211,19 +211,7 @@ void module_in_run()
   iOutputData.actuation.escLeftNewtons  = 0;
   iOutputData.HIL_mode = false ;
 #endif
-  /*ref2.x=0;
-  ref2.y=0;
-  ref2.z=oInputData.position_reference.z ;
-  ref2.dotX=0;
-  ref2.dotY=0;
-  ref2.dotZ=0;*/
 
-  /*ref2.pitch=0;
-  ref2.roll=0;
-  ref2.yaw=1 ;
-  ref2.dotPitch=0;
-  ref2.dotRoll=0;
-  ref2.dotYaw=0;*/
 
 
 
@@ -251,39 +239,19 @@ void module_in_run()
 
 #ifdef HIL
 
-
-
     if (oInputData.enableintegration== false) { // if no data needs to be sent we can read the serial port
-      ReceiveData(INPUT_SIZE, state) ; //!!!! set the size input
+      ReceiveData(INPUT_SIZE, state) ;
       c_rc_set_state(state, &oInputData ) ;
 
 	#ifdef REF_GENERATION
-		c_rc_ref_discrete(&oInputData) ;
-		//c_rc_ref_continuous(&oInputData) ;
+		//c_rc_ref_discrete(&oInputData) ;
+		c_rc_ref_continuous(&oInputData) ;
 	#endif
 
       oInputData.heartBeat=heartBeat+=1;
       oInputData.enableintegration= true ; // enable integration in the controller
     }
 
-   /* if ( ( oInputData.position.z < oInputData.position_reference.z*1.1)&&  ( oInputData.position.z > oInputData.position_reference.z*0.9) ) {
-          if (startDelay == 0 ) {
-            startDelay = xTaskGetTickCount() ;
-          }
-          else {
-            delay=xTaskGetTickCount()-startDelay ;
-
-          }
-        }
-        else{
-          startDelay = 0 ;
-          delay = 0 ;
-        }
-
-        if (delay>3000 ) {
-          oInputData.attitude_reference = ref2 ;
-
-        }*/
 
     if(iOutputData.HIL_mode) { // if the controller calculated the control outputs we can send them
       output[0]=iOutputData.actuation.escRightNewtons ;
@@ -300,8 +268,6 @@ void module_in_run()
       oInputData.enableintegration= false ;
       iOutputData.HIL_mode = false ;
     }
-
-
 #endif
 
 
@@ -339,7 +305,7 @@ void module_in_run()
     }
 #endif
 
-#ifndef DISABLE_RC
+#ifdef ENABLE_RC
     if (c_common_i2c_timeoutAck()==1){
       c_common_i2c_busReset(I2C1);
     }else if(c_common_i2c_timeoutAck()==2)

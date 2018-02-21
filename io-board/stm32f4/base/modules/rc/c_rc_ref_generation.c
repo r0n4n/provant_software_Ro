@@ -12,15 +12,15 @@ float trajTime = 30;
 float pi = 3.14;
 
 void c_rc_ref_init() {
-	x_points[0] = 2 ;
+	x_points[0] = 1 ;
 	y_points[0] = 0 ;
 	z_points[0] = 1;
-	yaw_points[0] = 1;
+	yaw_points[0] = 0;
 
-	x_points[1] = 2 ;
-	y_points[1] = 0 ;
-	z_points[1] = 1 ;
-	yaw_points[1] = 1;
+	x_points[1] = 0.5 ;
+	y_points[1] = 0.5 ;
+	z_points[1] = 0.5 ;
+	yaw_points[1] = 0;
 
 
 }
