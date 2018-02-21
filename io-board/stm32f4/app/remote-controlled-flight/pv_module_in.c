@@ -42,12 +42,8 @@ float attitude_quaternion[4]={1,0,0,0};
 
 /* Output Message */
 pv_msg_input oInputData;
-
 #ifdef HIL
   pv_msg_controlOutput iOutputData;
-  double startDelay ;
-  double delay ;
-  pv_type_datapr_attitude ref2 ;
 #endif
 
 /* Private function prototypes -----------------------------------------------*/
@@ -78,7 +74,7 @@ void module_in_init()
 #ifdef HIL
   /* Inicia a usart2 */
   c_common_usart2_init(USART2_BAUDRATE);
-  sincronization() ;
+  c_datapr_protocolo_synchronization() ; // synchronization with the ProVant Simulator
   pv_interface_in.iOutputData  = xQueueCreate(1, sizeof(pv_msg_controlOutput));
 #else
   /* Inicialização da imu */
@@ -239,10 +235,11 @@ void module_in_run()
 
 #ifdef HIL
 
-    if (oInputData.enableintegration== false) { // if no data needs to be sent we can read the serial port
-      ReceiveData(INPUT_SIZE, state) ;
-      c_rc_set_state(state, &oInputData ) ;
+    if (oInputData.enableintegration== false) { // if control Outputs have sent to the simulator
+    	c_datapr_protocolo_receive(INPUT_SIZE, state) ;
+    	c_rc_set_state(state, &oInputData ) ; // update oInputData with the new state
 
+    /* reference generation */
 	#ifdef REF_GENERATION
 		//c_rc_ref_discrete(&oInputData) ;
 		c_rc_ref_continuous(&oInputData) ;
@@ -253,20 +250,15 @@ void module_in_run()
     }
 
 
-    if(iOutputData.HIL_mode) { // if the controller calculated the control outputs we can send them
+    if(iOutputData.HIL_mode) { // if the controller calculated the control outputs we can send them to the simulator
       output[0]=iOutputData.actuation.escRightNewtons ;
       output[1]=iOutputData.actuation.escLeftNewtons ;
       output[2]=iOutputData.actuation.servoRight ;
       output[3]=iOutputData.actuation.servoLeft ;
 
-      /*output[0]=oInputData.receiverOutput.joystick[0] ;
-      output[1]=oInputData.receiverOutput.joystick[1] ;
-      output[2]=oInputData.receiverOutput.joystick[2] ;
-      output[3]=oInputData.receiverOutput.joystick[3] ;*/
-
-      SendData(output,4) ;
-      oInputData.enableintegration= false ;
-      iOutputData.HIL_mode = false ;
+      c_datapr_protocolo_send(output,4) ;
+      oInputData.enableintegration= false ; // disable the controller integration
+      iOutputData.HIL_mode = false ; // switch to receiver mode
     }
 #endif
 

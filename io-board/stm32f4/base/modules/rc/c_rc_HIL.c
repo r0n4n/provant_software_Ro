@@ -4,7 +4,7 @@
   * @author  Ronan Blanchard
   * @version V1.0.0
   * @date    Feb 3, 2018
-  * @brief
+  * @brief	update the pv_msg_input with the data received from the uart
   ******************************************************************************/
 
 /* Includes ------------------------------------------------------------------*/

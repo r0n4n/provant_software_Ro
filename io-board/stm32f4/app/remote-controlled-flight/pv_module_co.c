@@ -302,11 +302,11 @@ void module_co_run()
   #ifdef HIL
 
   if (iInputData.enableintegration){
-    oControlOutputData.HIL_mode = true ;
-    iInputData.enableintegration = false ;
+    oControlOutputData.HIL_mode = true ;  // switch to transmitter mode
+    iInputData.enableintegration = false ; // disable the controller integration
   }
   else
-    oControlOutputData.HIL_mode = false ;
+    oControlOutputData.HIL_mode = false ; // switch to receiver mode
   #endif
 
 	/*Time Code Execution*/

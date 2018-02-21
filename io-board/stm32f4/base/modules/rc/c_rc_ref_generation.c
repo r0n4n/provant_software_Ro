@@ -1,9 +1,11 @@
-/*
- * c_rc_ref_generation.c
- *
- *  Created on: Feb 8, 2018
- *      Author: provant
- */
+/**
+  ******************************************************************************
+  * @file    modules/rc/c_rc_ref_generation.c
+  * @author  Ronan Blanchard
+  * @version V1.0.0
+  * @date    Feb 8, 2018
+  * @brief	provide functions to generate a reference for the drone
+  ******************************************************************************/
 #include "c_rc_ref_generation.h"
 
 float trajectoryRadius = 2;
