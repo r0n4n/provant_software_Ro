@@ -551,7 +551,7 @@ pv_type_actuation c_rc_LQR_PT_controller(pv_msg_input msg_input){
   arm_mat_init_f32(&error_state_vector, 4, 1, (float32_t *)error_state_vector_f32);
   arm_mat_init_f32(&control_output, 4, 1, (float32_t *)control_output_f32);
 
-  c_RC_LQR_PT_StepRef( &msg_input) ; // adapt the reference if it is too big
+  //c_RC_LQR_PT_StepRef( &msg_input) ; // adapt the reference if it is too big
 
   // e = X -Xref
   error_state_vector = c_rc_LQR_PT_errorStateVector(msg_input);

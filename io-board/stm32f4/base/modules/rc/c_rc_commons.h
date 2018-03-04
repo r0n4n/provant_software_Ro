@@ -14,8 +14,8 @@
 //#define LQR_ATTITUDE_HEIGHT_CONTROL
 //#define TORQUE_CONTROL
 //#define BACKSTEPPING_ATTITUDE_HEIGHT_CONTROL //Based on Chowdhurry's article
-//#define LQR_PATHTRACK_CONTROL
-#define HINF_PATHTRACK_CONTROL
+#define LQR_PATHTRACK_CONTROL
+//#define HINF_PATHTRACK_CONTROL
 //#define HMIX_PATHTRACK_CONTROL //To be implemented
 #define HIL
 
